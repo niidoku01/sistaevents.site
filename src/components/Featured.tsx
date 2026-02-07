@@ -136,11 +136,11 @@ export const Featured = () => {
               className="group overflow-hidden hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 border-border cursor-pointer"
               onClick={() => openGallery(item)}
             >
-              <div className="h-48 lg:h-64 bg-gradient-to-br from-muted to-muted/50 relative overflow-hidden">
+              <div className="aspect-[4/3] bg-gradient-to-br from-muted to-muted/50 relative overflow-hidden">
                 <img
                   src={item.images[0]}
                   alt={item.title}
-                  className="w-full h-full object-fill transition-transform duration-300 group-hover:scale-110"
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-accent opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
                 {item.images.length > 1 && (

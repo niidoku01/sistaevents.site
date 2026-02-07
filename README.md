@@ -1,22 +1,27 @@
-# Welcome to your Lovable project
+# Sista Events & Rentals
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/7a52cc28-1736-406c-9d06-84f31cfac284
+A premium event rental services platform for weddings, corporate events, and celebrations.
 
-## How can I edit this code?
+## 🔒 Security Features
 
-There are several ways of editing your application.
+This application includes comprehensive security measures:
 
-**Use Lovable**
+- **Helmet.js** - HTTP security headers (XSS, clickjacking protection)
+- **Rate Limiting** - Protection against DDoS and brute force attacks
+- **Input Validation** - Sanitization of all user inputs
+- **CORS Configuration** - Restricted cross-origin access
+- **File Upload Security** - Type and size restrictions
+- **Security Headers** - Content Security Policy, X-Frame-Options, etc.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/7a52cc28-1736-406c-9d06-84f31cfac284) and start prompting.
+📖 **Full documentation**: See [SECURITY.md](./SECURITY.md) and [SECURITY_TESTING.md](./SECURITY_TESTING.md)
 
-Changes made via Lovable will be committed automatically to this repo.
+## How to edit this code
 
-**Use your preferred IDE**
+**Local Development**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Clone this repo and work with your preferred IDE. Push changes to update the application.
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
@@ -62,12 +67,4 @@ This project is built with:
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/7a52cc28-1736-406c-9d06-84f31cfac284) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+You can deploy this project using platforms like Netlify, Vercel, GitHub Pages, or any other static hosting service that supports React applications.

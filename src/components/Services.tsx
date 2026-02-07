@@ -1,4 +1,4 @@
-import { Armchair, Tent, Utensils, Lightbulb, Flower2, Music } from "lucide-react";
+import { Armchair, Tent, Utensils, Lightbulb, Flower2, MessageSquare } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 const services = [
@@ -28,10 +28,13 @@ const services = [
     description: "Centerpieces, backdrops, and styling elements",
   },
   {
-    icon: Music,
-    title: "Audio & Entertainment",
-    description: "Sound systems and entertainment equipment",
+    icon: MessageSquare,
+    title: "Event Consultation",
+    description: "Expert guidance and planning assistance for your perfect event",
   },
+  
+    
+  
 ];
 
 export const Services = () => {
@@ -43,7 +46,7 @@ export const Services = () => {
             Our Services
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Comprehensive event rental solutions tailored to your needs
+            Comprehensive event planning solutions tailored to your needs
           </p>
         </div>
 

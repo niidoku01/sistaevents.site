@@ -5,7 +5,7 @@ const features = [
   "Professional delivery & setup",
   "Flexible rental periods",
   "Dedicated event coordinators",
-  "Competitive pricing packages",
+  "Affordable pricing packages",
   "24/7 customer support",
 ];
 
@@ -16,10 +16,10 @@ export const About = () => {
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <div>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
-              Why Choose Elite Events?
+              Why Choose Us ?
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
-              With over a decade of experience, we've transformed countless events into unforgettable experiences. Our commitment to excellence and attention to detail sets us apart in the event rental industry.
+              With over 5 years of experience, we've transformed countless events into memorable experiences. Our touch of excellence and attention to detail sets us apart in the event planning industry.
             </p>
             <div className="grid gap-4">
               {features.map((feature, index) => (
@@ -34,11 +34,23 @@ export const About = () => {
           </div>
 
           <div className="relative">
-            <div className="aspect-square rounded-2xl bg-gradient-to-br from-primary to-accent/20 shadow-elegant" />
-            <div className="absolute -bottom-6 -right-6 w-3/4 aspect-square rounded-2xl bg-gradient-to-br from-accent/20 to-primary shadow-elegant" />
+            <div className="aspect-square rounded-2xl overflow-hidden shadow-elegant border-4 border-black/20">
+              <img 
+                src="/src/assets/sabout.jpeg" 
+                alt="Event Setup" 
+                className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                style={{
+                  imageRendering: "-webkit-optimize-contrast",
+                  WebkitFontSmoothing: "antialiased",
+                  objectPosition: "center"
+                }}
+                loading="lazy"
+              />
+            </div>
+            
+            </div>
           </div>
         </div>
-      </div>
     </section>
   );
-};
+}

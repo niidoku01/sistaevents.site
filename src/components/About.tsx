@@ -1,4 +1,6 @@
 import { CheckCircle2 } from "lucide-react";
+import { images } from "@/lib/imageImports";
+import { images } from "@/lib/imageImports";
 
 const features = [
   "Premium quality inventory",
@@ -36,7 +38,7 @@ export const About = () => {
           <div className="relative">
             <div className="aspect-square rounded-2xl overflow-hidden shadow-elegant border-4 border-black/20">
               <img 
-                src="/src/assets/sabout.jpeg" 
+                src={images.misc.sabout} 
                 alt="Event Setup" 
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
                 style={{

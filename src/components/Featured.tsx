@@ -136,7 +136,7 @@ export const Featured = () => {
               className="group overflow-hidden hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 border-border cursor-pointer"
               onClick={() => openGallery(item)}
             >
-              <div className="aspect-[4/3] bg-gradient-to-br from-muted to-muted/50 relative overflow-hidden">
+              <div className="aspect-[4/3] sm:aspect-video lg:aspect-[4/3] bg-gradient-to-br from-muted to-muted/50 relative overflow-hidden">
                 <img
                   src={item.images[0]}
                   alt={item.title}

@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { images } from "@/lib/imageImports";
 
 const featuredItems = [
   {
@@ -11,11 +12,11 @@ const featuredItems = [
     description: "Stunning event lighting",
     available: true,
     images: [
-      "/src/assets/lights/light 2.jpg",
-      "/src/assets/lights/light 4.jpg",
-      "/src/assets/lights/light 3.jpg",
-      "/src/assets/lights/light 1.jpg",
-      "/src/assets/lights/light 5.jpg",
+      images.lights.light2,
+      images.lights.light4,
+      images.lights.light3,
+      images.lights.light1,
+      images.lights.light5,
     ],
   },
   {
@@ -24,12 +25,12 @@ const featuredItems = [
     description: "Classic elegance for any event",
     available: true,
     images: [
-      "/src/assets/chairs/chair 4.jpg",
-      "/src/assets/chairs/chair 2.jpg",
-      "/src/assets/chairs/chair 3.jpg",
-      "/src/assets/chairs/chair 1.jpg",
-      "/src/assets/chairs/chair 5.jpg",
-      "/src/assets/chairs/chair 6.jpg",
+      images.chairs.chair4,
+      images.chairs.chair2,
+      images.chairs.chair3,
+      images.chairs.chair1,
+      images.chairs.chair5,
+      images.chairs.chair6,
     ],
   },
   {
@@ -38,8 +39,8 @@ const featuredItems = [
     description: "Rustic charm meets modern style",
     available: true,
     images: [
-      "/src/assets/Table/table 2.jpg",
-      "/src/assets/Table/table 3.jpg",
+      images.tables.table2,
+      images.tables.table3,
     ],
   },
   {
@@ -48,10 +49,10 @@ const featuredItems = [
     description: "Outdoor coverage",
     available: true,
     images: [
-      "/src/assets/tents/tent 3.jpg",
-      "/src/assets/tents/tent 2.jpg",
-      "/src/assets/tents/tent 1.jpg",
-      "/src/assets/tents/tent 4.jpg",
+      images.tents.tent3,
+      images.tents.tent2,
+      images.tents.tent1,
+      images.tents.tent4,
     ],
   },
   {
@@ -60,17 +61,17 @@ const featuredItems = [
     description: "Events aesthetics",
     available: true,
     images: [
-      "/src/assets/flatware/flatware 3.jpg",
-      "/src/assets/flatware/flatware 2.jpg",
-      "/src/assets/flatware/flatware 1.jpg",
-      "/src/assets/flatware/flatware 4.jpg",
-      "/src/assets/flatware/flatware 5.jpg",
-      "/src/assets/others/other 1.jpg",
-      "/src/assets/others/other 2.jpg",
-      "/src/assets/others/other 3.jpg",
-      "/src/assets/others/other 4.jpg",
-      "/src/assets/others/other 5.jpg",
-      "/src/assets/others/other 6.jpg"
+      images.flatware.flatware3,
+      images.flatware.flatware2,
+      images.flatware.flatware1,
+      images.flatware.flatware4,
+      images.flatware.flatware5,
+      images.others.other1,
+      images.others.other2,
+      images.others.other3,
+      images.others.other4,
+      images.others.other5,
+      images.others.other6,
     ],
   },
   {
@@ -79,12 +80,12 @@ const featuredItems = [
     description: "Fresh and silk arrangements",
     available: true,
     images: [
-      "/src/assets/sista-events.jpeg",
-      "/src/assets/flowers/flower 1.jpg",
-      "/src/assets/flowers/flower 2.jpg",
-      "/src/assets/flowers/flower 3.jpg",
-      "/src/assets/flowers/flower 4.jpg",
-      "/src/assets/flowers/flower 5.jpg"
+      images.misc.sistaEvents,
+      images.flowers.flower1,
+      images.flowers.flower2,
+      images.flowers.flower3,
+      images.flowers.flower4,
+      images.flowers.flower5,
     ],
   },
 ];

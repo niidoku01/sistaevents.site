@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { images } from "@/lib/imageImports";
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -25,7 +26,7 @@ export const Header = () => {
         <div className="flex items-center justify-between h-16 lg:h-20">
           <div className="flex items-center gap-1 md:gap-2 cursor-pointer" onClick={() => handleNavigation("/")}>
             <img 
-              src="/src/assets/sistalogo.svg" 
+              src={images.misc.sistalogo} 
               alt="Sista Events Logo" 
               className="h-12 w-12 md:h-16 md:w-16 lg:h-20 lg:w-20 flex-shrink-0 drop-shadow-[0_2px_12px_rgba(0,0,0,0.4)] hover:drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:scale-110 transition-all duration-300" 
               style={{ 

@@ -24,7 +24,7 @@ export default defineConfig({
   },
   build: {
     // Minify and optimize for production
-    minify: "terser",
+    minify: "esbuild", // Use esbuild for faster minification
     sourcemap: false, // Disable source maps in production for security
     rollupOptions: {
       output: {

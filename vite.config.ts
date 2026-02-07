@@ -26,6 +26,7 @@ export default defineConfig({
     // Minify and optimize for production
     minify: "esbuild", // Use esbuild for faster minification
     sourcemap: false, // Disable source maps in production for security
+    chunkSizeWarningLimit: 1000, // Increase chunk size warning limit to 1000kb
     rollupOptions: {
       output: {
         manualChunks: {

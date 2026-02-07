@@ -1,6 +1,5 @@
 import { CheckCircle2 } from "lucide-react";
 import { images } from "@/lib/imageImports";
-import { images } from "@/lib/imageImports";
 
 const features = [
   "Premium quality inventory",

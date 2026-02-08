@@ -14,4 +14,25 @@ export default defineSchema({
   })
     .index("by_order", ["order"])
     .index("by_category", ["category"]),
+  bookings: defineTable({
+    name: v.string(),
+    email: v.string(),
+    phone: v.string(),
+    eventDate: v.string(),
+    message: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_created_at", ["createdAt"])
+    .index("by_email", ["email"]),
+  reviews: defineTable({
+    name: v.string(),
+    email: v.string(),
+    event: v.string(),
+    content: v.string(),
+    rating: v.number(),
+    approved: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_approved", ["approved"])
+    .index("by_created_at", ["createdAt"]),
 });

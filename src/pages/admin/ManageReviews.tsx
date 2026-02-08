@@ -1,69 +1,24 @@
-import { useEffect, useState } from "react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Star, Check, X, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-interface Review {
-  id: number;
-  name: string;
-  email: string;
-  event: string;
-  content: string;
-  rating: number;
-  approved: boolean;
-  createdAt: string;
-}
-
 export const ManageReviews = () => {
-  const [pendingReviews, setPendingReviews] = useState<Review[]>([]);
-  const [approvedReviews, setApprovedReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const pendingReviews = useQuery(api.reviews.getPendingReviews) || [];
+  const approvedReviews = useQuery(api.reviews.getApprovedReviews) || [];
+  const approveReview = useMutation(api.reviews.approveReview);
+  const deleteReview = useMutation(api.reviews.deleteReview);
 
-  const fetchReviews = async () => {
-    setLoading(true);
+  const handleApprove = async (id: string) => {
     try {
-      const [pendingRes, approvedRes] = await Promise.all([
-        fetch("http://localhost:5000/api/reviews/pending"),
-        fetch("http://localhost:5000/api/reviews"),
-      ]);
-
-      const pendingData = await pendingRes.json();
-      const approvedData = await approvedRes.json();
-
-      setPendingReviews(pendingData.reviews || []);
-      setApprovedReviews(approvedData.reviews || []);
-    } catch (error) {
+      await approveReview({ id: id as any });
       toast({
-        title: "Error",
-        description: "Failed to fetch reviews",
-        variant: "destructive",
+        title: "Success",
+        description: "Review approved successfully",
       });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchReviews();
-  }, []);
-
-  const handleApprove = async (id: number) => {
-    try {
-      const response = await fetch(`http://localhost:5000/api/reviews/${id}/approve`, {
-        method: "PUT",
-      });
-
-      if (response.ok) {
-        toast({
-          title: "Success",
-          description: "Review approved successfully",
-        });
-        fetchReviews();
-      } else {
-        throw new Error("Failed to approve review");
-      }
     } catch (error) {
       toast({
         title: "Error",
@@ -73,23 +28,15 @@ export const ManageReviews = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this review?")) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/reviews/${id}`, {
-        method: "DELETE",
+      await deleteReview({ id: id as any });
+      toast({
+        title: "Success",
+        description: "Review deleted successfully",
       });
-
-      if (response.ok) {
-        toast({
-          title: "Success",
-          description: "Review deleted successfully",
-        });
-        fetchReviews();
-      } else {
-        throw new Error("Failed to delete review");
-      }
     } catch (error) {
       toast({
         title: "Error",
@@ -99,7 +46,7 @@ export const ManageReviews = () => {
     }
   };
 
-  const ReviewCard = ({ review, isPending }: { review: Review; isPending: boolean }) => (
+  const ReviewCard = ({ review, isPending }: { review: any; isPending: boolean }) => (
     <Card>
       <CardContent className="p-6">
         <div className="space-y-4">
@@ -127,7 +74,7 @@ export const ManageReviews = () => {
                 <Button
                   size="sm"
                   variant="default"
-                  onClick={() => handleApprove(review.id)}
+                  onClick={() => handleApprove(review._id)}
                 >
                   <Check className="w-4 h-4 mr-1" />
                   Approve
@@ -136,7 +83,7 @@ export const ManageReviews = () => {
               <Button
                 size="sm"
                 variant="destructive"
-                onClick={() => handleDelete(review.id)}
+                onClick={() => handleDelete(review._id)}
               >
                 <Trash2 className="w-4 h-4 mr-1" />
                 Delete
@@ -148,24 +95,13 @@ export const ManageReviews = () => {
     </Card>
   );
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <p>Loading reviews...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-8">
       <div>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold">Pending Reviews ({pendingReviews.length})</h2>
-          <Button variant="outline" onClick={fetchReviews}>
-            Refresh
-          </Button>
         </div>
-        
+
         {pendingReviews.length === 0 ? (
           <Card>
             <CardContent className="p-6 text-center text-muted-foreground">
@@ -175,7 +111,7 @@ export const ManageReviews = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {pendingReviews.map((review) => (
-              <ReviewCard key={review.id} review={review} isPending={true} />
+              <ReviewCard key={review._id} review={review} isPending={true} />
             ))}
           </div>
         )}
@@ -192,7 +128,7 @@ export const ManageReviews = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {approvedReviews.map((review) => (
-              <ReviewCard key={review.id} review={review} isPending={false} />
+              <ReviewCard key={review._id} review={review} isPending={false} />
             ))}
           </div>
         )}

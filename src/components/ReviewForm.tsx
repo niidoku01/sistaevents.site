@@ -5,9 +5,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
 
 export const ReviewForm = () => {
   const { toast } = useToast();
+  const createReview = useMutation(api.reviews.createReview);
   const [rating, setRating] = useState(5);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [formData, setFormData] = useState({
@@ -23,31 +26,22 @@ export const ReviewForm = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/reviews", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...formData,
-          rating,
-        }),
+      await createReview({
+        name: formData.name,
+        email: formData.email,
+        event: formData.event,
+        content: formData.content,
+        rating,
       });
 
-      const data = await response.json();
+      toast({
+        title: "Review Submitted!",
+        description: "Thank you for your feedback. Your review will be published after admin approval.",
+      });
 
-      if (response.ok) {
-        toast({
-          title: "Review Submitted!",
-          description: "Thank you for your feedback. Your review will be published after admin approval.",
-        });
-        
-        // Reset form
-        setFormData({ name: "", email: "", event: "", content: "" });
-        setRating(5);
-      } else {
-        throw new Error(data.error || "Failed to submit review");
-      }
+      // Reset form
+      setFormData({ name: "", email: "", event: "", content: "" });
+      setRating(5);
     } catch (error) {
       toast({
         title: "Error",

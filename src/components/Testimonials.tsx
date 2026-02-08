@@ -1,38 +1,12 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
 import { ReviewForm } from "./ReviewForm";
 
-interface Testimonial {
-  id: number;
-  name: string;
-  event: string;
-  content: string;
-  rating: number;
-}
-
 export const Testimonials = () => {
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
-  const [loading, setLoading] = useState(true);
+  const testimonials = useQuery(api.reviews.getApprovedReviews) || [];
   const [showForm, setShowForm] = useState(false);
-
-  useEffect(() => {
-    fetchTestimonials();
-  }, []);
-
-  const fetchTestimonials = async () => {
-    try {
-      const response = await fetch("http://localhost:5000/api/reviews");
-      const data = await response.json();
-      setTestimonials(data.reviews || []);
-    } catch (error) {
-      console.error("Failed to fetch testimonials:", error);
-      // Keep empty array on error
-      setTestimonials([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <section id="testimonials" className="py-20 lg:py-32 bg-background">
@@ -58,18 +32,14 @@ export const Testimonials = () => {
           </div>
         )}
 
-        {loading ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Loading testimonials...</p>
-          </div>
-        ) : testimonials.length === 0 ? (
+        {testimonials.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">No reviews yet. Be the first to share your experience!</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {testimonials.map((testimonial) => (
-              <Card key={testimonial.id} className="border-border">
+              <Card key={testimonial._id} className="border-border">
                 <CardContent className="p-6 lg:p-8">
                   <div className="flex gap-1 mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (

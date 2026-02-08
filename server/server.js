@@ -17,13 +17,28 @@ const PORT = 5000;
 try {
   // For development, use application default credentials or service account
   // In production, set GOOGLE_APPLICATION_CREDENTIALS environment variable
-  admin.initializeApp({
-    projectId: "sistaer",
-    // If you have a service account key, uncomment and use:
-    // credential: admin.credential.cert(require('./serviceAccountKey.json'))
-  });
+  // Prefer explicit service account key if present in server folder
+  const serviceAccountPath = path.join(__dirname, "serviceAccountKey.json");
+  if (fs.existsSync(serviceAccountPath)) {
+    process.env.GOOGLE_APPLICATION_CREDENTIALS = serviceAccountPath;
+    admin.initializeApp({
+      credential: admin.credential.cert(require(serviceAccountPath)),
+      projectId: process.env.FIREBASE_PROJECT_ID || "sistaer",
+    });
+    console.log("Firebase Admin initialized using serviceAccountKey.json");
+  } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    // Use ADC if provided in environment
+    admin.initializeApp({
+      credential: admin.credential.applicationDefault(),
+      projectId: process.env.FIREBASE_PROJECT_ID || "sistaer",
+    });
+    console.log("Firebase Admin initialized using application default credentials");
+  } else {
+    // Attempt minimal init (may work in some hosted environments)
+    admin.initializeApp({ projectId: process.env.FIREBASE_PROJECT_ID || "sistaer" });
+    console.log("Firebase Admin initialized without explicit credentials (may be limited)");
+  }
   const db = admin.firestore();
-  console.log("Firebase Admin initialized");
 } catch (err) {
   console.warn("Firebase Admin initialization failed:", err.message);
   console.log("Will fall back to JSON file storage");

@@ -5,7 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Phone, Mail, MapPin } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { bookingAPI } from "@/lib/api";
+import { useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
 
 // Custom WhatsApp icon component
 const WhatsAppIcon = ({ className }: { className?: string }) => (
@@ -21,6 +22,7 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
 
 export const Contact = () => {
   const { toast } = useToast();
+  const createBooking = useMutation(api.bookings.createBooking);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -51,7 +53,7 @@ export const Contact = () => {
     setIsLoading(true);
 
     try {
-      await bookingAPI.submitBooking(formData);
+      await createBooking(formData);
       toast({
         title: "Booking Received!",
         description: "We'll get back to you within 24 hours.",

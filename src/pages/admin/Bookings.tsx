@@ -43,7 +43,7 @@ const Bookings: React.FC = () => {
                     <TableCell>
                       <Badge variant="outline">{b.eventDate}</Badge>
                     </TableCell>
-                    <TableCell className="max-w-xs truncate">{b.message}</TableCell>
+                    <TableCell className="max-w-xl truncate">{b.message}</TableCell>
                     <TableCell className="text-sm text-gray-500">
                       {new Date(b.createdAt).toLocaleDateString()}
                     </TableCell>

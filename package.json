@@ -8,7 +8,8 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "vercel-build": "next build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -49,7 +50,7 @@
     "firebase": "^12.7.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.462.0",
-    "next-themes": "^0.3.0",
+    "next-themes": "^0.4.6",
     "react-day-picker": "^8.10.1",
     "react-hook-form": "^7.61.1",
     "react-resizable-panels": "^2.1.9",
@@ -76,12 +77,16 @@
     "install": "^0.13.0",
     "npm": "^11.9.0",
     "postcss": "^8.5.6",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.21.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
     "vite": "^7.2.6"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "git": ">=2.0.0"
   }
 }

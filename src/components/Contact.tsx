@@ -32,6 +32,43 @@ export const Contact = () => {
     message: "",
   });
 
+  const playSuccessSound = () => {
+    // Generate a short two-tone chime so no external audio file is required.
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const now = audioContext.currentTime;
+
+      const createTone = (frequency: number, start: number, duration: number, gainValue: number) => {
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+
+        oscillator.type = "triangle";
+        oscillator.frequency.setValueAtTime(frequency, start);
+
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(gainValue, start + 0.035);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+
+        oscillator.start(start);
+        oscillator.stop(start + duration);
+      };
+
+      createTone(784, now, 0.14, 0.022);
+      createTone(1174, now + 0.16, 0.18, 0.022);
+
+      setTimeout(() => {
+        audioContext.close().catch(() => {
+          // No-op: context may already be closed.
+        });
+      }, 450);
+    } catch {
+      // No-op: if audio is blocked/unavailable, booking still succeeds.
+    }
+  };
+
   // Pre-fill form from sessionStorage (for package quotes)
   useEffect(() => {
     const loadPackageData = () => {
@@ -54,6 +91,7 @@ export const Contact = () => {
 
     try {
       await createBooking(formData);
+      playSuccessSound();
       toast({
         title: "Booking Received!",
         description: "We'll get back to you within 24 hours.",

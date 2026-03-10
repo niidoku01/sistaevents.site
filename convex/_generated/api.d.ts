@@ -10,7 +10,9 @@
 
 import type * as bookings from "../bookings.js";
 import type * as collections from "../collections.js";
+import type * as featuredItems from "../featuredItems.js";
 import type * as images from "../images.js";
+import type * as popupAds from "../popupAds.js";
 import type * as reviews from "../reviews.js";
 
 import type {
@@ -22,7 +24,9 @@ import type {
 declare const fullApi: ApiFromModules<{
   bookings: typeof bookings;
   collections: typeof collections;
+  featuredItems: typeof featuredItems;
   images: typeof images;
+  popupAds: typeof popupAds;
   reviews: typeof reviews;
 }>;
 

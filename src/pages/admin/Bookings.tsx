@@ -1,60 +1,244 @@
-import React from "react";
-import { useQuery } from "convex/react";
+import React, { useState } from "react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 
 const Bookings: React.FC = () => {
+  const { toast } = useToast();
   const bookings = useQuery(api.bookings.getAllBookings) || [];
+  const blockedDates = useQuery(api.bookings.getBlockedDates) || [];
+  const blockDate = useMutation(api.bookings.blockDate);
+  const unblockDate = useMutation(api.bookings.unblockDate);
+  const [eventDate, setEventDate] = useState("");
+  const [reason, setReason] = useState("");
+
+  const handleBlockDate = async () => {
+    if (!eventDate) {
+      toast({
+        title: "Date required",
+        description: "Please select a date to block.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await blockDate({
+        eventDate,
+        reason: reason || undefined,
+      });
+
+      toast({
+        title: "Date blocked",
+        description: `${eventDate} has been marked as unavailable.`,
+      });
+      setEventDate("");
+      setReason("");
+    } catch (error) {
+      toast({
+        title: "Could not block date",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUnblockDate = async (id: (typeof blockedDates)[number]["_id"]) => {
+    try {
+      await unblockDate({ id });
+      toast({
+        title: "Date unblocked",
+        description: "The date is now available again.",
+      });
+    } catch (error) {
+      toast({
+        title: "Could not unblock date",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Bookings</CardTitle>
-        <CardDescription>View and manage all event bookings</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Event Date</TableHead>
-                <TableHead>Message</TableHead>
-                <TableHead>Created At</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {bookings.length === 0 ? (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Booked dates</CardTitle>
+          <CardDescription>manual date blocking so customers cannot book them</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-[220px,1fr,auto] gap-3">
+            <Input
+              type="date"
+              value={eventDate}
+              onChange={(e) => setEventDate(e.target.value)}
+              min={new Date().toISOString().split("T")[0]}
+            />
+            <Input
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Optional reason (maintenance, private event, etc.)"
+            />
+            <Button className="w-full md:w-auto" onClick={handleBlockDate}>Block Date</Button>
+          </div>
+
+          <div className="md:hidden space-y-3">
+            {blockedDates.length === 0 ? (
+              <div className="rounded-xl border border-dashed p-5 text-center text-sm text-gray-500">
+                No manually blocked dates
+              </div>
+            ) : (
+              blockedDates
+                .slice()
+                .sort((a, b) => a.eventDate.localeCompare(b.eventDate))
+                .map((d) => (
+                  <div key={d._id} className="rounded-xl border p-4 bg-white space-y-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xs uppercase tracking-wide text-gray-500">Date</span>
+                      <Badge variant="secondary">{d.eventDate}</Badge>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-gray-500 mb-1">Reason</p>
+                      <p className="text-sm text-gray-800 break-words">{d.reason || "-"}</p>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 pt-1">
+                      <p className="text-xs text-gray-500">Blocked on {new Date(d.createdAt).toLocaleDateString()}</p>
+                      <Button variant="outline" size="sm" onClick={() => handleUnblockDate(d._id)}>
+                        Unblock
+                      </Button>
+                    </div>
+                  </div>
+                ))
+            )}
+          </div>
+
+          <div className="hidden md:block rounded-md border overflow-x-auto">
+            <Table className="min-w-[780px]">
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-gray-500">
-                    No bookings found
-                  </TableCell>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Reason</TableHead>
+                  <TableHead>Blocked On</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
                 </TableRow>
-              ) : (
-                bookings.map((b) => (
-                  <TableRow key={b._id}>
-                    <TableCell className="font-medium">{b.name}</TableCell>
-                    <TableCell>{b.email}</TableCell>
-                    <TableCell>{b.phone}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{b.eventDate}</Badge>
-                    </TableCell>
-                    <TableCell className="max-w-xl truncate">{b.message}</TableCell>
-                    <TableCell className="text-sm text-gray-500">
-                      {new Date(b.createdAt).toLocaleDateString()}
+              </TableHeader>
+              <TableBody>
+                {blockedDates.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-gray-500">
+                      No manually blocked dates
                     </TableCell>
                   </TableRow>
+                ) : (
+                  blockedDates
+                    .slice()
+                    .sort((a, b) => a.eventDate.localeCompare(b.eventDate))
+                    .map((d) => (
+                      <TableRow key={d._id}>
+                        <TableCell>
+                          <Badge variant="secondary">{d.eventDate}</Badge>
+                        </TableCell>
+                        <TableCell>{d.reason || "-"}</TableCell>
+                        <TableCell className="text-sm text-gray-500">
+                          {new Date(d.createdAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="outline" size="sm" onClick={() => handleUnblockDate(d._id)}>
+                            Unblock
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle> pending Bookings</CardTitle>
+          <CardDescription>View all customer bookings.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="md:hidden space-y-3">
+            {bookings.length === 0 ? (
+              <div className="rounded-xl border border-dashed p-5 text-center text-sm text-gray-500">
+                No bookings found
+              </div>
+            ) : (
+              bookings
+                .slice()
+                .sort((a, b) => a.eventDate.localeCompare(b.eventDate))
+                .map((b) => (
+                  <div key={b._id} className="rounded-xl border p-4 bg-white space-y-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-semibold text-gray-900 break-words">{b.name}</p>
+                      <Badge variant="outline">{b.eventDate}</Badge>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2 text-sm">
+                      <p className="text-gray-700 break-words"><span className="text-gray-500">Email:</span> {b.email}</p>
+                      <p className="text-gray-700 break-words"><span className="text-gray-500">Phone:</span> {b.phone}</p>
+                      <p className="text-gray-700 break-words"><span className="text-gray-500">Message:</span> {b.message}</p>
+                      <p className="text-xs text-gray-500 pt-1">Created {new Date(b.createdAt).toLocaleDateString()}</p>
+                    </div>
+                  </div>
                 ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+            )}
+          </div>
+
+          <div className="hidden md:block rounded-md border overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Event Date</TableHead>
+                  <TableHead>Message</TableHead>
+                  <TableHead>Created At</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {bookings.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center text-gray-500">
+                      No bookings found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  bookings
+                    .slice()
+                    .sort((a, b) => a.eventDate.localeCompare(b.eventDate))
+                    .map((b) => (
+                      <TableRow key={b._id}>
+                        <TableCell className="font-medium">{b.name}</TableCell>
+                        <TableCell>{b.email}</TableCell>
+                        <TableCell>{b.phone}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{b.eventDate}</Badge>
+                        </TableCell>
+                        <TableCell className="min-w-[260px] max-w-[420px] whitespace-normal break-words align-top">
+                          {b.message}
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-500">
+                          {new Date(b.createdAt).toLocaleDateString()}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

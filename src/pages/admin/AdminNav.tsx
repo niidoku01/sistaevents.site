@@ -1,57 +1,42 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
+import { CalendarClock, MessageSquareQuote, Upload, Images, PackageCheck, Megaphone } from "lucide-react";
 
-const AdminNav: React.FC = () => (
-  <nav className="flex gap-1 border-b">
-    <NavLink
-      to="/admin/bookings"
-      className={({ isActive }) =>
-        `px-4 py-2 font-medium transition-colors ${
-          isActive
-            ? "text-blue-600 border-b-2 border-blue-600"
-            : "text-gray-600 hover:text-gray-900"
-        }`
-      }
-    >
-      Bookings
-    </NavLink>
-    <NavLink
-      to="/admin/reviews"
-      className={({ isActive }) =>
-        `px-4 py-2 font-medium transition-colors ${
-          isActive
-            ? "text-blue-600 border-b-2 border-blue-600"
-            : "text-gray-600 hover:text-gray-900"
-        }`
-      }
-    >
-      Reviews
-    </NavLink>
-    <NavLink
-      to="/admin/upload"
-      className={({ isActive }) =>
-        `px-4 py-2 font-medium transition-colors ${
-          isActive
-            ? "text-blue-600 border-b-2 border-blue-600"
-            : "text-gray-600 hover:text-gray-900"
-        }`
-      }
-    >
-      Upload Collection
-    </NavLink>
-    <NavLink
-      to="/admin/manage"
-      className={({ isActive }) =>
-        `px-4 py-2 font-medium transition-colors ${
-          isActive
-            ? "text-blue-600 border-b-2 border-blue-600"
-            : "text-gray-600 hover:text-gray-900"
-        }`
-      }
-    >
-      Manage Collection
-    </NavLink>
-  </nav>
-);
+const navItems = [
+  { to: "/admin/bookings", label: "Bookings", icon: CalendarClock },
+  { to: "/admin/reviews", label: "Reviews", icon: MessageSquareQuote },
+  { to: "/admin/upload", label: "Upload", icon: Upload },
+  { to: "/admin/manage", label: "Manage", icon: Images },
+  { to: "/admin/featured", label: "Avaiable items", icon: PackageCheck },
+  { to: "/admin/popup-ads", label: "Ads", icon: Megaphone },
+];
+
+const AdminNav: React.FC = () => {
+  return (
+    <nav className="rounded-2xl border border-slate-200 bg-white shadow-sm p-2">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                `rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
+                  isActive
+                    ? "bg-amber-400 text-slate-900 shadow"
+                    : "text-slate-600 hover:text-gold-700 hover:bg-blue-50"
+                }`
+              }
+            >
+              <Icon className="w-4 h-4" />
+              <span>{item.label}</span>
+            </NavLink>
+          );
+        })}
+      </div>
+    </nav>
+  );
+};
 
 export default AdminNav;

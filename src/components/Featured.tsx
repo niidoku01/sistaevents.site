@@ -1,15 +1,28 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { images } from "@/lib/imageImports";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 
-const featuredItems = [
+type FeaturedItem = {
+  key: string;
+  title: string;
+  category: string;
+  description: string;
+  available: boolean;
+  images: string[];
+  imageDescriptions?: string[];
+};
+
+const featuredItems: FeaturedItem[] = [
   {
+    key: "crystal-lighting",
     title: "Crystal lighting",
     category: "Lighting",
-    description: "Stunning event lighting",
+    description: "Rental option",
     available: true,
     images: [
       images.lights.light3,
@@ -20,9 +33,10 @@ const featuredItems = [
     ],
   },
   {
+    key: "chairs",
     title: "Chairs",
     category: "Seating",
-    description: "Classic elegance for any event",
+    description: "Rental option",
     available: true,
     images: [
       images.chairs.chair4,
@@ -34,9 +48,10 @@ const featuredItems = [
     ],
   },
   {
+    key: "tables",
     title: "Tables",
-    category: "Tables",
-    description: "Rustic charm meets modern style",
+    category: "Setup",
+    description: "Rental option",
     available: true,
     images: [
       images.tables.table2,
@@ -44,9 +59,10 @@ const featuredItems = [
     ],
   },
   {
+    key: "stretch-tents",
     title: "Stretch Tents",
-    category: "Tents",
-    description: "Outdoor coverage",
+    category: "Outdoor coverage",
+    description: "Rental option",
     available: true,
     images: [
       images.tents.tent3,
@@ -56,9 +72,10 @@ const featuredItems = [
     ],
   },
   {
+    key: "decorative-pieces",
     title: "Decorative pieces",
     category: "Aesthetics",
-    description: "Events aesthetics",
+    description: "Rental option",
     available: true,
     images: [
       images.flatware.flatware2,
@@ -71,9 +88,10 @@ const featuredItems = [
     ],
   },
   {
+    key: "floral-arrangements",
     title: "Floral Arrangements",
     category: "Decor",
-    description: "Fresh and silk arrangements",
+    description: "",
     available: true,
     images: [
       images.misc.sistaEvents,
@@ -83,15 +101,92 @@ const featuredItems = [
       images.flowers.flower4,
       images.flowers.flower5,
     ],
+    imageDescriptions: [
+      "Rental option",
+      "Rental option",
+      "sales option",
+      "Rental option",
+      "Sales option",
+      "sales option"
+    ],
   },
 ];
  
 
 export const Featured = () => {
-  const [selectedItem, setSelectedItem] = useState<typeof featuredItems[0] | null>(null);
+  const [selectedItem, setSelectedItem] = useState<FeaturedItem | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [previewIndices, setPreviewIndices] = useState<number[]>(featuredItems.map(() => 0));
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+  const didSwipe = useRef(false);
+  const availability = useQuery(api.featuredItems.listAvailability, {});
+  const imageAvailability = useQuery(api.featuredItems.listImageAvailability, {});
 
-  const openGallery = (item: typeof featuredItems[0], index: number = 0) => {
+  const availabilityMap = new Map((availability ?? []).map((item) => [item.key, item.available]));
+  const imageAvailabilityMap = new Map(
+    (imageAvailability ?? []).map((item) => [`${item.itemKey}:${item.imageIndex}`, item.available])
+  );
+
+  const featuredItemsWithAvailability = featuredItems.map((item) => {
+    const enabledEntries = item.images
+      .map((img, imageIndex) => ({
+        img,
+        imageIndex,
+        description: item.imageDescriptions?.[imageIndex],
+      }))
+      .filter((entry) => imageAvailabilityMap.get(`${item.key}:${entry.imageIndex}`) ?? true);
+
+    const hasEnabledImages = enabledEntries.length > 0;
+
+    return {
+      ...item,
+      available: (availabilityMap.get(item.key) ?? item.available) && hasEnabledImages,
+      images: hasEnabledImages ? enabledEntries.map((entry) => entry.img) : [],
+      imageDescriptions: item.imageDescriptions
+        ? hasEnabledImages
+          ? enabledEntries.map((entry) => entry.description ?? "")
+          : []
+        : undefined,
+    };
+  });
+
+  const onPreviewTouchStart = (e: React.TouchEvent) => {
+    touchEndX.current = null;
+    touchStartX.current = e.targetTouches[0].clientX;
+  };
+
+  const onPreviewTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const onPreviewTouchEnd = (cardIndex: number, imageCount: number) => {
+    if (!touchStartX.current || !touchEndX.current || imageCount <= 1) {
+      return;
+    }
+
+    const distance = touchStartX.current - touchEndX.current;
+    const threshold = 40;
+    const isLeftSwipe = distance > threshold;
+    const isRightSwipe = distance < -threshold;
+
+    if (!isLeftSwipe && !isRightSwipe) {
+      return;
+    }
+
+    didSwipe.current = true;
+    setPreviewIndices((prev) => {
+      const next = [...prev];
+      if (isLeftSwipe) {
+        next[cardIndex] = (next[cardIndex] + 1) % imageCount;
+      } else if (isRightSwipe) {
+        next[cardIndex] = (next[cardIndex] - 1 + imageCount) % imageCount;
+      }
+      return next;
+    });
+  };
+
+  const openGallery = (item: FeaturedItem, index: number = 0) => {
     setSelectedItem(item);
     setCurrentImageIndex(index);
   };
@@ -126,47 +221,71 @@ export const Featured = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {featuredItems.map((item, index) => (
-            <Card
-              key={index}
-              className="group overflow-hidden hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 border-border cursor-pointer"
-              onClick={() => openGallery(item)}
-            >
-              <div className={`aspect-[4/3] sm:aspect-video lg:aspect-[4/3] relative overflow-hidden flex items-center justify-center ${
-                item.category === "Aesthetics" || item.category === "Decor" ? "bg-white/5 p-0" : "bg-white/5 p-3"
-              }`}>
-                <img
-                  src={item.images[0]}
-                  alt={item.title}
-                  className={`w-full h-full transition-transform duration-300 group-hover:scale-105 ${
-                    item.category === "Aesthetics" || item.category === "Decor" ? "object-cover" : "object-contain"
-                  }`}
-                />
-                <div className="absolute inset-0 bg-gradient-accent opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
-                {item.images.length > 1 && (
-                  <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
-                    +{item.images.length - 1} more
-                  </div>
-                )}
-              </div>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <Badge variant="secondary" className="text-xs">
-                    {item.category}
-                  </Badge>
-                  {item.available && (
-                    <span className="text-xs text-accent font-medium">Available</span>
+          {featuredItemsWithAvailability.map((item, index) => {
+            // For Floral Arrangements, show per-image description
+            const isFloral = item.title === "Floral Arrangements" && item.imageDescriptions;
+            const previewIdx = item.images.length > 0 ? previewIndices[index] % item.images.length : 0;
+            const previewDesc = isFloral
+              ? item.imageDescriptions?.[previewIdx] ?? item.description
+              : item.description;
+            return (
+              <Card
+                key={index}
+                className="group overflow-hidden hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 border-border cursor-pointer"
+                onClick={() => {
+                  if (item.images.length === 0) {
+                    return;
+                  }
+                  if (didSwipe.current) {
+                    didSwipe.current = false;
+                    return;
+                  }
+                  openGallery(item, previewIdx);
+                }}
+              >
+                <div className={`aspect-[4/3] sm:aspect-video lg:aspect-[4/3] relative overflow-hidden flex items-center justify-center ${
+                  item.category === "Aesthetics" || item.category === "Decor" ? "bg-white/5 p-0" : "bg-white/5 p-3"
+                }`}
+                  onTouchStart={onPreviewTouchStart}
+                  onTouchMove={onPreviewTouchMove}
+                  onTouchEnd={() => onPreviewTouchEnd(index, item.images.length)}>
+                  {item.images.length > 0 ? (
+                    <img
+                      src={item.images[previewIdx]}
+                      alt={item.title}
+                      className={`w-full h-full transition-transform duration-300 group-hover:scale-105 ${
+                        item.category === "Aesthetics" || item.category === "Decor" ? "object-cover" : "object-contain"
+                      }`}
+                    />
+                  ) : (
+                    <div className="text-xs text-muted-foreground">No image enabled</div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-accent opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
+                  {item.images.length > 1 && (
+                    <div className="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] px-2 py-1 rounded">
+                      Swipe
+                    </div>
                   )}
                 </div>
-                <h3 className="text-xl font-semibold text-foreground mb-2">
-                  {item.title}
-                </h3>
-                <p className="text-muted-foreground text-sm">
-                  {item.description}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge variant="secondary" className="text-xs">
+                      {item.category}
+                    </Badge>
+                      <span className={`text-xs font-medium ${item.available ? "text-accent" : "text-red-500"}`}>
+                        {item.available ? "Available" : "rented out"}
+                      </span>
+                  </div>
+                  <h3 className="text-xl font-semibold text-foreground mb-2">
+                    {item.title}
+                  </h3>
+                  <p className="text-muted-foreground text-sm">
+                    {previewDesc}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
 
@@ -231,7 +350,11 @@ export const Featured = () => {
                   </span>
                 </div>
                 <h3 className="text-xl font-semibold mb-1">{selectedItem.title}</h3>
-                <p className="text-sm text-gray-300 mb-3">{selectedItem.description}</p>
+                <p className="text-sm text-gray-300 mb-3">
+                  {selectedItem.title === "Floral Arrangements" && selectedItem.imageDescriptions
+                    ? selectedItem.imageDescriptions[currentImageIndex]
+                    : selectedItem.description}
+                </p>
 
                 {/* Thumbnail navigation */}
                 <div className="flex gap-1.5 overflow-x-auto pb-1">

@@ -150,7 +150,7 @@ Please provide me with a detailed quote and availability for my event.`;
             Need a custom package? We'll create something perfect for your event.
           </p>
           <Button variant="link" onClick={() => scrollToContactWithPackage("Custom Package", "Contact for Pricing", ["Tailored to your specific needs", "Flexible options", "Professional consultation"])} className="text-accent">
-            book here →
+            click here
           </Button>
         </div>
       </div>

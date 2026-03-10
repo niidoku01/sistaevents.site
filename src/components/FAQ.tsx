@@ -93,7 +93,7 @@ export const FAQ = () => {
               rel="noopener noreferrer"
               className="text-accent hover:underline font-semibold"
             >
-              Chat with us on WhatsApp →
+              Click here
             </a>
           </div>
         </div>

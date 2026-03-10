@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { images } from "@/lib/imageImports";
@@ -116,10 +116,6 @@ const featuredItems: FeaturedItem[] = [
 export const Featured = () => {
   const [selectedItem, setSelectedItem] = useState<FeaturedItem | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [previewIndices, setPreviewIndices] = useState<number[]>(featuredItems.map(() => 0));
-  const touchStartX = useRef<number | null>(null);
-  const touchEndX = useRef<number | null>(null);
-  const didSwipe = useRef(false);
   const availability = useQuery(api.featuredItems.listAvailability, {});
   const imageAvailability = useQuery(api.featuredItems.listImageAvailability, {});
 
@@ -150,41 +146,6 @@ export const Featured = () => {
         : undefined,
     };
   });
-
-  const onPreviewTouchStart = (e: React.TouchEvent) => {
-    touchEndX.current = null;
-    touchStartX.current = e.targetTouches[0].clientX;
-  };
-
-  const onPreviewTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.targetTouches[0].clientX;
-  };
-
-  const onPreviewTouchEnd = (cardIndex: number, imageCount: number) => {
-    if (!touchStartX.current || !touchEndX.current || imageCount <= 1) {
-      return;
-    }
-
-    const distance = touchStartX.current - touchEndX.current;
-    const threshold = 40;
-    const isLeftSwipe = distance > threshold;
-    const isRightSwipe = distance < -threshold;
-
-    if (!isLeftSwipe && !isRightSwipe) {
-      return;
-    }
-
-    didSwipe.current = true;
-    setPreviewIndices((prev) => {
-      const next = [...prev];
-      if (isLeftSwipe) {
-        next[cardIndex] = (next[cardIndex] + 1) % imageCount;
-      } else if (isRightSwipe) {
-        next[cardIndex] = (next[cardIndex] - 1 + imageCount) % imageCount;
-      }
-      return next;
-    });
-  };
 
   const openGallery = (item: FeaturedItem, index: number = 0) => {
     setSelectedItem(item);
@@ -224,7 +185,7 @@ export const Featured = () => {
           {featuredItemsWithAvailability.map((item, index) => {
             // For Floral Arrangements, show per-image description
             const isFloral = item.title === "Floral Arrangements" && item.imageDescriptions;
-            const previewIdx = item.images.length > 0 ? previewIndices[index] % item.images.length : 0;
+            const previewIdx = 0;
             const previewDesc = isFloral
               ? item.imageDescriptions?.[previewIdx] ?? item.description
               : item.description;
@@ -236,19 +197,12 @@ export const Featured = () => {
                   if (item.images.length === 0) {
                     return;
                   }
-                  if (didSwipe.current) {
-                    didSwipe.current = false;
-                    return;
-                  }
                   openGallery(item, previewIdx);
                 }}
               >
-                <div className={`aspect-[4/3] sm:aspect-video lg:aspect-[4/3] relative overflow-hidden flex items-center justify-center ${
+                <div className={`aspect-[4/3] relative overflow-hidden flex items-center justify-center ${
                   item.category === "Aesthetics" || item.category === "Decor" ? "bg-white/5 p-0" : "bg-white/5 p-3"
-                }`}
-                  onTouchStart={onPreviewTouchStart}
-                  onTouchMove={onPreviewTouchMove}
-                  onTouchEnd={() => onPreviewTouchEnd(index, item.images.length)}>
+                }`}>
                   {item.images.length > 0 ? (
                     <img
                       src={item.images[previewIdx]}
@@ -260,26 +214,20 @@ export const Featured = () => {
                   ) : (
                     <div className="text-xs text-muted-foreground">No image enabled</div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-accent opacity-0 group-hover:opacity-10 transition-opacity duration-300" />
-                  {item.images.length > 1 && (
-                    <div className="absolute bottom-2 right-2 bg-black/50 text-white text-[10px] px-2 py-1 rounded">
-                      Swipe
-                    </div>
-                  )}
                 </div>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-2">
                     <Badge variant="secondary" className="text-xs">
                       {item.category}
                     </Badge>
-                      <span className={`text-xs font-medium ${item.available ? "text-accent" : "text-red-500"}`}>
-                        {item.available ? "Available" : "rented out"}
-                      </span>
+                    <span className={`text-xs font-medium ${item.available ? "text-accent" : "text-red-500"}`}>
+                      {item.available ? "Available" : "Rented Out"}
+                    </span>
                   </div>
-                  <h3 className="text-xl font-semibold text-foreground mb-2">
+                  <h3 className="text-xl font-semibold text-foreground mb-2 line-clamp-1">
                     {item.title}
                   </h3>
-                  <p className="text-muted-foreground text-sm">
+                  <p className="text-muted-foreground text-sm line-clamp-2">
                     {previewDesc}
                   </p>
                 </CardContent>
@@ -341,13 +289,10 @@ export const Featured = () => {
               </div>
 
               <div className="p-3 text-white border-t border-white/10">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center mb-2">
                   <Badge variant="secondary" className="text-xs">
                     {selectedItem.category}
                   </Badge>
-                  <span className="text-xs text-gray-300">
-                    {currentImageIndex + 1} / {selectedItem.images.length}
-                  </span>
                 </div>
                 <h3 className="text-xl font-semibold mb-1">{selectedItem.title}</h3>
                 <p className="text-sm text-gray-300 mb-3">

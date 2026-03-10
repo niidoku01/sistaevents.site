@@ -260,7 +260,7 @@ export const Contact = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Locate Us</h3>
-                    <p className="text-muted-foreground">Kasoa - Accra <br /> Amanfro , kingstown</p>
+                    <p className="text-muted-foreground">Amanfro , kingstown <br /> Kasoa</p>
                   </div>
                 </div>
               </CardContent>

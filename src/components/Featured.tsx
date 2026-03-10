@@ -104,10 +104,10 @@ const featuredItems: FeaturedItem[] = [
     imageDescriptions: [
       "Rental option",
       "Rental option",
-      "sales option",
+      "Sales option",
       "Rental option",
       "Sales option",
-      "sales option"
+      "Sales option"
     ],
   },
 ];

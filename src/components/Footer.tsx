@@ -1,4 +1,4 @@
-import { Instagram, Mail, Phone } from "lucide-react";
+import { Instagram, Mail, Phone, MapPin } from "lucide-react";
 
 // Custom TikTok icon component
 const TikTokIcon = ({ className }: { className?: string }) => (
@@ -97,13 +97,24 @@ export const Footer = () => {
                 <Phone className="w-4 h-4" />
                 <span>(+233) 555182969</span>
               </a>
+              <a
+                href="https://www.google.com/maps/search/?api=1&query=Sista+Events+and+Rentals+Kingstown"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 hover:text-accent transition-colors"
+              >
+                <MapPin className="w-4 h-4" />
+                <span>Amanfro-Kingstown,Kasoa</span>
+              </a>
             </div>
           </div>
         </div>
 
         <div className="pt-8 border-t border-primary-foreground/20 text-center text-sm text-primary-foreground/60">
           <p>&copy; {new Date().getFullYear()} Sista Events And Rentals. All rights reserved.</p>
-          <p>powered by BX GAMING AND MORE </p>
+          <p>
+            Bxcoda - powered by <span className="text-sky-300 font-medium">BX GAMING AND MORE </span>
+          </p>
         </div>
       </div>
     </footer>

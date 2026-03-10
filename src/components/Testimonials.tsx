@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
 import { ReviewForm } from "./ReviewForm";
 
-export const Testimonials = () => {
+const TestimonialsWithConvex = () => {
   const testimonials = useQuery(api.reviews.getApprovedReviews) || [];
   const [showForm, setShowForm] = useState(false);
 
@@ -62,4 +62,33 @@ export const Testimonials = () => {
       </div>
     </section>
   );
+};
+
+const TestimonialsFallback = () => {
+  return (
+    <section id="testimonials" className="py-20 lg:py-32 bg-background">
+      <div className="container mx-auto px-4 lg:px-6">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+            What Our Clients Say
+          </h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
+            Don&apos;t just take our word for it - hear from our satisfied clients
+          </p>
+          <p className="text-muted-foreground">
+            Reviews are currently unavailable. Please check back soon.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export const Testimonials = () => {
+  const convexUrl = import.meta.env.VITE_CONVEX_URL as string | undefined;
+  if (!convexUrl) {
+    return <TestimonialsFallback />;
+  }
+
+  return <TestimonialsWithConvex />;
 };

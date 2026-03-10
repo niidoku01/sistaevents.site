@@ -11,10 +11,12 @@ import { Footer } from "@/components/Footer";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { BackToTop } from "@/components/BackToTop";
 import { ScrollProgress } from "@/components/ScrollProgress";
+import { PopupAd } from "@/components/PopupAd";
 
 const Index = () => {
   return (
     <div className="min-h-screen">
+      <PopupAd />
       <ScrollProgress />
       <Header />
       <main>
@@ -28,7 +30,7 @@ const Index = () => {
         <Contact />
       </main>
       <Footer />
-      <WhatsAppButton phoneNumber="+1234567890" />
+      <WhatsAppButton phoneNumber="+233555182969" />
       <BackToTop />
     </div>
   );

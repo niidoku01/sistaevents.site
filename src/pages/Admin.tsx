@@ -6,11 +6,17 @@ import Bookings from "./admin/Bookings";
 import UploadCollection from "./admin/UploadCollection";
 import ManageCollection from "./admin/ManageCollection";
 import { ManageReviews } from "./admin/ManageReviews";
+import ManageFeaturedAvailability from "./admin/ManageFeaturedAvailability";
+import ManagePopupAds from "./admin/ManagePopupAds";
 import Login from "./admin/Login";
 import { Button } from "@/components/ui/button";
+import { images } from "@/lib/imageImports";
 
 const Admin: React.FC = () => {
   const { user, loading, signOut } = useAuth();
+  const convexUrl = (import.meta.env.VITE_CONVEX_URL as string | undefined)?.trim();
+  const email = user?.email ?? "admin@sistaevents.com";
+  const compactEmail = email.includes("@") ? email.split("@")[0] : email;
 
   if (loading) {
     return <div style={{ padding: 24 }}>Loading...</div>;
@@ -20,20 +26,37 @@ const Admin: React.FC = () => {
     return <Login />;
   }
 
+  if (!convexUrl) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-2xl mx-auto bg-white border rounded-lg p-6 shadow-sm">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Admin Unavailable</h1>
+          <p className="text-gray-600">
+             Convex not configured. fix and refresh
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="border-b bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">{user.email}</span>
-              <Button variant="outline" onClick={signOut}>Sign Out</Button>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
+          <div className="flex justify-between items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+             
+              <h1 className="text-base sm:text-2xl font-bold text-gray-900 truncate">E&R Admin</h1>
+            </div>
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+              <span className="sm:hidden text-xs text-gray-600 truncate max-w-[84px]">{compactEmail}</span>
+              <span className="hidden sm:inline text-sm text-gray-600 truncate max-w-[220px]">{email}</span>
+              <Button variant="outline" className="h-8 sm:h-9 px-3" onClick={signOut}>Sign Out</Button>
             </div>
           </div>
         </div>
       </div>
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
         <AdminNav />
         <div className="mt-6">
           <Routes>
@@ -41,6 +64,8 @@ const Admin: React.FC = () => {
             <Route path="reviews" element={<ManageReviews />} />
             <Route path="upload" element={<UploadCollection />} />
             <Route path="manage" element={<ManageCollection />} />
+            <Route path="featured" element={<ManageFeaturedAvailability />} />
+            <Route path="popup-ads" element={<ManagePopupAds />} />
             <Route path="*" element={<Navigate to="bookings" replace />} />
           </Routes>
         </div>

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { Menu, House } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { images } from "@/lib/imageImports";
@@ -8,6 +8,7 @@ export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const isCollectionPage = location.pathname === "/our-collection";
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -78,24 +79,38 @@ export const Header = () => {
               </>
             ) : (
               <>
-                <Button variant="secondary" onClick={() => handleNavigation("/")}>
-                  Home
-                </Button>
+                <button
+                  onClick={() => handleNavigation("/")}
+                  aria-label="Go to home"
+                  className="inline-flex items-center justify-center h-10 w-10 rounded-full border border-slate-200/80 bg-white/70 text-slate-700 shadow-sm backdrop-blur hover:bg-white hover:text-amber-600 hover:shadow-md transition-all duration-200"
+                >
+                  <House className="w-4 h-4" />
+                </button>
               
               </>
             )}
             
           </nav>
 
-          <button
-            className="md:hidden text-foreground"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            <Menu className="h-6 w-6" />
-          </button>
+          {location.pathname === "/" ? (
+            <button
+              className="md:hidden text-foreground"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              <Menu className="h-6 w-6" />
+            </button>
+          ) : (
+            <button
+              className="md:hidden inline-flex items-center justify-center h-10 w-10 rounded-full border border-slate-200/80 bg-white/70 text-slate-700 shadow-sm backdrop-blur hover:bg-white hover:text-amber-600 hover:shadow-md transition-all duration-200"
+              onClick={() => handleNavigation("/")}
+              aria-label="Go to home"
+            >
+              <House className="h-5 w-5" />
+            </button>
+          )}
         </div>
 
-        {isMenuOpen && (
+        {location.pathname === "/" && isMenuOpen && (
           <nav className="md:hidden py-4 border-t border-border flex flex-col gap-4">
             {location.pathname === "/" ? (
               <>
@@ -123,14 +138,18 @@ export const Header = () => {
                 >
                   Testimonials
                 </button>
-                <Button variant="secondary" onClick={() => scrollToSection("contact")} className="w-auto">
+                <Button
+                  variant="secondary"
+                  onClick={() => scrollToSection("contact")}
+                  className="w-auto hover:bg-secondary active:bg-secondary/90"
+                >
                   Bookings
                 </Button>
               </>
             ) : (
               <>
                 <Button variant="secondary" onClick={() => handleNavigation("/")} className="w-full">
-                  Home
+                  {isCollectionPage ? <House className="w-4 h-4" /> : "Home"}
                 </Button>
                 
               </>

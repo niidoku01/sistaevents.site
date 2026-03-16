@@ -1,5 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Phone, Mail, MapPin } from "lucide-react";
@@ -31,12 +34,12 @@ export const Contact = () => {
     eventDate: "",
     message: "",
   });
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   const playSuccessSound = () => {
     // Generate a short two-tone chime so no external audio file is required.
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const now = audioContext.currentTime;
 
       const createTone = (frequency: number, start: number, duration: number, gainValue: number) => {
         const oscillator = audioContext.createOscillator();
@@ -56,6 +59,7 @@ export const Contact = () => {
         oscillator.stop(start + duration);
       };
 
+      const now = audioContext.currentTime;
       createTone(784, now, 0.14, 0.022);
       createTone(1174, now + 0.16, 0.18, 0.022);
 
@@ -134,7 +138,7 @@ export const Contact = () => {
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
-                        Your Name *
+                        Your Name 
                       </label>
                       <Input
                         id="name"
@@ -176,12 +180,32 @@ export const Contact = () => {
                       <label htmlFor="eventDate" className="block text-sm font-medium text-foreground mb-2">
                         Event Date
                       </label>
-                      <Input
-                        id="eventDate"
-                        type="date"
-                        value={formData.eventDate}
-                        onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })}
-                      />
+                      <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className={
+                              `w-full justify-start text-left font-normal ${!formData.eventDate ? "text-muted-foreground" : ""}`
+                            }
+                            onClick={() => setCalendarOpen((open) => !open)}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4 text-accent" />
+                            {formData.eventDate ? new Date(formData.eventDate).toLocaleDateString() : "Pick a date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent align="start" className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={formData.eventDate ? new Date(formData.eventDate) : undefined}
+                            onSelect={(date) => {
+                              setFormData({ ...formData, eventDate: date ? date.toISOString().split("T")[0] : "" });
+                              setCalendarOpen(false);
+                            }}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </div>
                   </div>
 

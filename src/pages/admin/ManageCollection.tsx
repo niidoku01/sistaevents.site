@@ -154,21 +154,21 @@ const ManageCollection: React.FC = () => {
             {localImages.length === 0 ? (
               <div className="text-center py-12">
                 <ImageIcon className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                <p className="text-gray-500 text-lg mb-2">No images in collection</p>
-                <p className="text-gray-400 text-sm">Upload images to get started</p>
+                <p className="text-gray-500 text-lg mb-2">No images</p>
+                <p className="text-gray-400 text-sm">refresh the page</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {localImages.map((img, index) => (
                   <Card 
                     key={img._id} 
-                    className="overflow-hidden cursor-move hover:shadow-lg transition-shadow"
+                    className="overflow-hidden cursor-move hover:shadow-lg transition-shadow rounded-3xl"
                     draggable
                     onDragStart={(e) => handleDragStart(e, index)}
                     onDragOver={(e) => handleDragOver(e, index)}
                     onDragEnd={handleDragEnd}
                   >
-                    <div className="aspect-video bg-gray-100 relative group">
+                    <div className="aspect-video bg-gray-100 relative group rounded-2xl">
                       <div className="absolute top-2 left-2 z-10 bg-white/80 rounded p-1">
                         <GripVertical className="w-5 h-5 text-gray-600" />
                       </div>
@@ -183,7 +183,7 @@ const ManageCollection: React.FC = () => {
                         <img
                           src={img.url}
                           alt={img.filename}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover rounded-2xl"
                         />
                       )}
                     </div>

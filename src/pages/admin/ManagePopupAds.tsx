@@ -51,6 +51,7 @@ const ManagePopupAds = () => {
     try {
       setIsSaving(true);
       let imageUrl = form.imageUrl.trim() || undefined;
+      let imageStorageId: string | undefined;
 
       // If a local image is selected, upload it and use the returned URL.
       if (selectedImageFile) {
@@ -66,13 +67,14 @@ const ManagePopupAds = () => {
         }
 
         const { storageId } = await uploadResponse.json();
-        const storageUrl = new URL(import.meta.env.VITE_CONVEX_URL as string);
-        imageUrl = `${storageUrl.origin}/api/storage/${storageId}`;
+        imageStorageId = storageId;
+        imageUrl = undefined;
       }
 
       await createAd({
         title: form.title.trim(),
         message: form.message.trim(),
+        imageStorageId: imageStorageId as any,
         imageUrl,
         ctaText: form.ctaText.trim() || undefined,
         ctaUrl: form.ctaUrl.trim() || undefined,

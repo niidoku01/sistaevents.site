@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "convex/react";
@@ -79,17 +81,31 @@ const HeroContent = ({ unavailableDates }: HeroContentProps) => {
         <div className="mt-20 max-w-md mx-auto bg-green-100/10 backdrop-blur-sm border border-green-100/20 rounded-lg p-2 md:p-2 animate-fade-in" style={{ animationDelay: "0.9s" }}>
           <p className="text-primary-foreground/85 text-xs sm:text-sm md:text-base mb-2 md:mb-3">Date Availability checker</p>
           <div className="flex flex-row gap-2 items-center justify-center">
-            <Input
-              type="date"
-              value={eventDate}
-              onChange={(e) => {
-                setEventDate(e.target.value);
-                setDateError("");
-                setDateStatus("");
-              }}
-              min={new Date().toISOString().split("T")[0]}
-              className="bg-white/85 border-sky-100/40 text-foreground h-6 text-xs sm:text-sm w-[155px] sm:w-[170px] flex-none"
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="bg-white/85 border-sky-100/40 text-foreground h-6 text-xs sm:text-sm w-[155px] sm:w-[170px] flex-none justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4 text-accent" />
+                  {eventDate ? new Date(eventDate).toLocaleDateString() : ""}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={eventDate ? new Date(eventDate) : undefined}
+                  onSelect={(date) => {
+                    setEventDate(date ? date.toISOString().split("T")[0] : "");
+                    setDateError("");
+                    setDateStatus("");
+                  }}
+                  initialFocus
+                  disabled={(date) => date < new Date()}
+                />
+              </PopoverContent>
+            </Popover>
             <Button variant="secondary" className="h-6 px-2 sm:px-3 text-xs sm:text-sm whitespace-nowrap bg-sky-100/70 hover:bg-sky-100/85 text-slate-800" onClick={goToBookingWithDate}>
               Check Date
             </Button>

@@ -32,3 +32,16 @@ server/.env.local
 *.sw?
 .vercel
 .env*.local
+
+# Added by GitGuard (Node.js, Vite, React)
+# Environment-specific local files may contain sensitive overrides
+.env.*.local
+# Development environment secrets should not be shared
+.env.development.local
+# Production secrets must never be committed to version control
+.env.production.local
+build/
+out/
+coverage/
+# Test environment secrets should not be committed
+.env.test.local

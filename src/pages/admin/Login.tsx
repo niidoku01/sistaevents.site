@@ -23,6 +23,12 @@ const Login: React.FC = () => {
       navigate("/admin/bookings");
     } catch (err: any) {
       setError(err.message || "Failed to login");
+      // Log failed login attempt
+      fetch("/api/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event: "admin_login_failed", email, time: new Date().toISOString() })
+      });
     } finally {
       setLoading(false);
     }
@@ -30,7 +36,7 @@ const Login: React.FC = () => {
 
   return (
     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", padding: 24 }}>
-      <Card style={{ width: "100%", maxWidth: 400 }}>
+      <Card style={{ width: "100%", maxWidth: 600 }}>
         <CardHeader>
           <CardTitle>Admin Login</CardTitle>
           <CardDescription>Sign in to access the admin dashboard</CardDescription>
@@ -44,7 +50,7 @@ const Login: React.FC = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@example.com"
+                placeholder="admin@mail.com"
                 required
               />
             </div>
@@ -61,7 +67,7 @@ const Login: React.FC = () => {
             </div>
             {error && <p style={{ color: "red", fontSize: 14 }}>{error}</p>}
             <Button type="submit" disabled={loading}>
-              {loading ? "Signing in..." : "Sign In"}
+              {loading ? "Signing you in..." : "Sign In"}
             </Button>
           </form>
         </CardContent>

@@ -5,6 +5,7 @@ export default defineSchema({
   popupAds: defineTable({
     title: v.string(),
     message: v.string(),
+    imageStorageId: v.optional(v.id("_storage")),
     imageUrl: v.optional(v.string()),
     ctaText: v.optional(v.string()),
     ctaUrl: v.optional(v.string()),

@@ -80,9 +80,13 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
 }));
 
+// CSRF protection for POST, PUT, DELETE
+const csurf = require('csurf');
+app.use(csurf({ cookie: true }));
+
 // Rate limiting - Prevent brute force and DoS attacks
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000, // 10 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
   message: "Too many requests from this IP, please try again later.",
   standardHeaders: true,
@@ -91,8 +95,8 @@ const limiter = rateLimit({
 
 // Stricter rate limit for booking endpoint
 const bookingLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 booking attempts per 15 minutes
+  windowMs: 15 * 60 * 1000, // 10 minutes
+  max: 5, // Limit each IP to 5 booking attempts per 10 minutes
   message: "Too many booking attempts, please try again later.",
 });
 
@@ -171,8 +175,18 @@ const upload = multer({
   },
 });
 
-// Serve static files (uploaded images)
-app.use("/uploads", express.static(uploadsDir));
+// Serve static files (uploaded images) with directory browsing disabled
+app.use("/uploads", express.static(uploadsDir, {
+  index: false,
+  redirect: false,
+  setHeaders: (res, path) => {
+    // Remove X-Powered-By and other inspect info
+    res.removeHeader("X-Powered-By");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("X-XSS-Protection", "1; mode=block");
+  }
+}));
 
 // Routes
 
@@ -286,7 +300,7 @@ app.post(
 
     // Optionally send a confirmation SMS to the customer if enabled and phone provided
     if (SEND_CONFIRMATION_TO_CUSTOMER && twilioClient && TWILIO_FROM && booking.phone) {
-      const customerMsg = `Thanks ${booking.name}, we received your booking for ${booking.eventDate}. We'll be in touch. - Sista Events`;
+      const customerMsg = `Thanks ${booking.name}, we received your booking for ${booking.eventDate}. We'll get back to you soon. - Sista Events And Rentals`;
       twilioClient.messages
         .create({ body: customerMsg, from: TWILIO_FROM, to: booking.phone })
         .then((msg) => console.log(`Confirmation SMS sent to customer ${booking.phone}, SID: ${msg.sid}`))

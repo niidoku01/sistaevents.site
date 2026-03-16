@@ -31,11 +31,11 @@ export const PopupAd = () => {
   if (!ad || !open) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-[300px] sm:w-[340px] rounded-xl border border-amber-200 bg-white shadow-xl overflow-hidden">
+    <div className="fixed top-4 right-4 z-50 w-[500px] sm:w-[500px] squared-xl border border-amber-200 bg-white shadow-xl overflow-hidden">
       <button
         onClick={() => handleClose(false)}
         aria-label="Close popup ad"
-        className="absolute top-2 right-2 z-10 rounded-full bg-black/60 text-white p-1 hover:bg-black/75"
+        className="absolute top-2 right-2 z-10 squared-full bg-black/60 text-white p-1 hover:bg-black/75"
       >
         <X className="w-4 h-4" />
       </button>
@@ -48,7 +48,7 @@ export const PopupAd = () => {
         <div className="p-3">
           <h3 className="text-base font-semibold text-slate-900 mb-1">{ad.title}</h3>
           <p className="text-xs text-slate-700 line-clamp-3 mb-2">{ad.message}</p>
-          <span className="text-xs font-medium text-amber-700">Tap ad to go to homepage</span>
+         
         </div>
       </Link>
     </div>

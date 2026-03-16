@@ -6,6 +6,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Bookings: React.FC = () => {
@@ -15,6 +18,7 @@ const Bookings: React.FC = () => {
   const blockDate = useMutation(api.bookings.blockDate);
   const unblockDate = useMutation(api.bookings.unblockDate);
   const [eventDate, setEventDate] = useState("");
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const [reason, setReason] = useState("");
 
   const handleBlockDate = async () => {
@@ -73,12 +77,31 @@ const Bookings: React.FC = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-[220px,1fr,auto] gap-3">
-            <Input
-              type="date"
-              value={eventDate}
-              onChange={(e) => setEventDate(e.target.value)}
-              min={new Date().toISOString().split("T")[0]}
-            />
+            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={`w-full justify-start text-left font-normal ${!eventDate ? "text-muted-foreground" : ""}`}
+                  onClick={() => setCalendarOpen((open) => !open)}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4 text-accent" />
+                  {eventDate ? new Date(eventDate).toLocaleDateString() : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={eventDate ? new Date(eventDate) : undefined}
+                  onSelect={(date) => {
+                    setEventDate(date ? date.toISOString().split("T")[0] : "");
+                    setCalendarOpen(false);
+                  }}
+                  initialFocus
+                  disabled={(date) => date < new Date()}
+                />
+              </PopoverContent>
+            </Popover>
             <Input
               value={reason}
               onChange={(e) => setReason(e.target.value)}

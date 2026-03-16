@@ -22,7 +22,7 @@ export const Footer = () => {
               Sista Events And Rentals
             </h3>
             <p className="text-primary-foreground/80 text-sm">
-              Creating unforgettable moments with a sizeable budget since 2018.
+              Creating unforgettable moments with a sizeable budget. <p> since 2018</p>              git add .
             </p>
           </div>
 

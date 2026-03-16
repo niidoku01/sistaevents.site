@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { Menu, House } from "lucide-react";
+import { Menu } from "lucide-react";
+import { MdHome } from "react-icons/md";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { images } from "@/lib/imageImports";
@@ -84,7 +85,7 @@ export const Header = () => {
                   aria-label="Go to home"
                   className="inline-flex items-center justify-center h-10 w-10 rounded-full border border-slate-200/80 bg-white/70 text-slate-700 shadow-sm backdrop-blur hover:bg-white hover:text-amber-600 hover:shadow-md transition-all duration-200"
                 >
-                  <House className="w-4 h-4" />
+                  <MdHome className="w-5 h-5 text-accent" />
                 </button>
               
               </>
@@ -105,7 +106,7 @@ export const Header = () => {
               onClick={() => handleNavigation("/")}
               aria-label="Go to home"
             >
-              <House className="h-5 w-5" />
+              <MdHome className="h-5 w-5 text-accent" />
             </button>
           )}
         </div>
@@ -149,7 +150,7 @@ export const Header = () => {
             ) : (
               <>
                 <Button variant="secondary" onClick={() => handleNavigation("/")} className="w-full">
-                  {isCollectionPage ? <House className="w-4 h-4" /> : "Home"}
+                  {isCollectionPage ? <MdHome className="w-5 h-5 text-accent" /> : "Home"}
                 </Button>
                 
               </>

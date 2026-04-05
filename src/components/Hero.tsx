@@ -4,15 +4,9 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { Calendar as CalendarIcon } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
 import heroImage from "@/assets/scover.jpeg";
 
-type HeroContentProps = {
-  unavailableDates?: string[];
-};
-
-const HeroContent = ({ unavailableDates }: HeroContentProps) => {
+const HeroContent = () => {
   const navigate = useNavigate();
   const [eventDate, setEventDate] = useState("");
   const [dateError, setDateError] = useState("");
@@ -51,13 +45,6 @@ const HeroContent = ({ unavailableDates }: HeroContentProps) => {
       return;
     }
 
-    if (unavailableDates?.includes(eventDate)) {
-      setDateError("Date is currently booked.");
-      setDateStatus("");
-      return;
-    }
-
-
     setDateError("");
     setDateStatus("available");
   };
@@ -89,7 +76,7 @@ const HeroContent = ({ unavailableDates }: HeroContentProps) => {
             View Our Collection
           </Button>
         </div>
-        <div className="mt-20 max-w-md mx-auto bg-green-100/10 backdrop-blur-sm border border-green-100/20 rounded-lg p-2 md:p-2 animate-fade-in" style={{ animationDelay: "0.9s" }}>
+        <div className="mt-20 max-w-md mx-auto bg-green-100/10 backdrop-blur-sm border border-green-100/20 rounded-lg p-3 md:p-2 animate-fade-in" style={{ animationDelay: "0.9s" }}>
           <p className="text-primary-foreground/85 text-xs sm:text-sm md:text-base mb-2 md:mb-3">Date Availability Checker</p>
           <div className="flex flex-row gap-2 items-center justify-center">
             <Popover>
@@ -97,7 +84,7 @@ const HeroContent = ({ unavailableDates }: HeroContentProps) => {
                 <Button
                   type="button"
                   variant="outline"
-                  className="bg-white/85 border-sky-100/40 text-foreground h-6 text-xs sm:text-sm w-[110px] sm:w-[150px] flex-none justify-start text-left font-normal"
+                  className="bg-white/85 border-sky-100/40 text-foreground h-8 text-xs sm:text-sm w-[140px] sm:w-[160px] flex-none justify-start text-left font-normal"
                 >
                   <CalendarIcon className="mr-2 h-4 w-4 text-accent" />
                   {eventDate ? formatDate(eventDate) : "Select date"}
@@ -127,7 +114,7 @@ const HeroContent = ({ unavailableDates }: HeroContentProps) => {
                 />
               </PopoverContent>
             </Popover>
-            <Button variant="secondary" className="h-6 px-2 sm:px-3 text-xs sm:text-sm whitespace-nowrap bg-sky-100/70 hover:bg-sky-100/85 text-slate-800" onClick={goToBookingWithDate}>
+            <Button variant="secondary" className="h-8 px-3 sm:px-3 text-xs sm:text-sm whitespace-nowrap bg-sky-100/70 hover:bg-sky-100/85 text-slate-800" onClick={goToBookingWithDate}>
               Check Date
             </Button>
           </div>
@@ -141,16 +128,6 @@ const HeroContent = ({ unavailableDates }: HeroContentProps) => {
   );
 };
 
-const HeroWithAvailability = () => {
-  const unavailableDates = useQuery(api.bookings.getUnavailableDates);
-  return <HeroContent unavailableDates={unavailableDates} />;
-};
-
 export const Hero = () => {
-  const convexUrl = import.meta.env.VITE_CONVEX_URL as string | undefined;
-  if (!convexUrl) {
-    return <HeroContent />;
-  }
-
-  return <HeroWithAvailability />;
+  return <HeroContent />;
 };

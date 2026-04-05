@@ -209,7 +209,7 @@ export default function OurCollection() {
                       <ChevronLeft className="w-4 h-4" />
                     </Button>
 
-                    <div className="flex flex-wrap items-center gap-2" aria-label="Category switch">
+                    <div className="flex flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap pb-1" aria-label="Category switch">
                       {categoryOrder.map((category) => {
                         const isActive = selectedCategory === category;
                         return (
@@ -217,7 +217,7 @@ export default function OurCollection() {
                             key={category}
                             type="button"
                             onClick={() => setSelectedCategory(category)}
-                            className={`rounded-xl px-3.5 py-2 text-xs sm:text-sm border font-medium transition-all duration-200 active:scale-[0.98] ${
+                            className={`shrink-0 rounded-xl px-3.5 py-2 text-xs sm:text-sm border font-medium transition-all duration-200 active:scale-[0.98] ${
                               isActive
                                 ? "bg-gradient-to-r from-[#FFD700] to-amber-500 text-slate-900 border-amber-400 shadow-md shadow-amber-300/50"
                                 : "bg-white text-slate-700 border-slate-200 hover:bg-amber-50 hover:border-amber-200 hover:shadow-sm"

@@ -16,7 +16,7 @@ export const createBooking = mutation({
       .first();
 
     if (blockedDate) {
-      throw new Error("This date is not available for booking.");
+      throw new Error("Date is blocked by admin and currently unavailable.");
     }
 
     const bookingId = await ctx.db.insert("bookings", {

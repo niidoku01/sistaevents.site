@@ -1,10 +1,12 @@
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { images } from "@/lib/imageImports";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 const featuredItems = [
   {
@@ -65,11 +67,19 @@ const ManageFeaturedAvailability = () => {
   const imageAvailability = useQuery(api.featuredItems.listImageAvailability, {});
   const setAvailability = useMutation(api.featuredItems.setAvailability);
   const setImageAvailability = useMutation(api.featuredItems.setImageAvailability);
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
 
   const availabilityMap = new Map((availability ?? []).map((item) => [item.key, item.available]));
   const imageAvailabilityMap = new Map(
     (imageAvailability ?? []).map((item) => [`${item.itemKey}:${item.imageIndex}`, item.available])
   );
+
+  const toggleExpanded = (itemKey: string) => {
+    setExpandedItems((prev) => ({
+      ...prev,
+      [itemKey]: !prev[itemKey],
+    }));
+  };
 
   const handleToggle = async (key: string, nextValue: boolean) => {
     try {
@@ -107,23 +117,38 @@ const ManageFeaturedAvailability = () => {
     <Card>
       <CardHeader>
         <CardTitle>Available items</CardTitle>
-        <CardDescription>Control which featured items are available to clients.</CardDescription>
+       
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {featuredItems.map((item) => {
             const isAvailable = availabilityMap.get(item.key) ?? true;
+            const unavailableCount = item.imageUrls.filter((_, imageIndex) => {
+              const imageKey = `${item.key}:${imageIndex}`;
+              return !(imageAvailabilityMap.get(imageKey) ?? true);
+            }).length;
+            const isExpanded = !!expandedItems[item.key];
+            const primaryImage = item.imageUrls[0];
+
             return (
-              <div key={item.key} className="rounded-lg border p-4 bg-white space-y-3">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="min-w-0">
+              <div key={item.key} className="rounded-lg border p-3 sm:p-4 bg-white space-y-3">
+                <div className="flex items-start gap-3">
+                  <img
+                    src={primaryImage}
+                    alt={item.title}
+                    className="w-14 h-14 rounded-md object-cover border border-slate-200 flex-none"
+                  />
+                  <div className="min-w-0 flex-1">
                     <p className="font-medium text-slate-900 truncate">{item.title}</p>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center flex-wrap gap-2 mt-1">
                       <Badge variant="secondary" className="text-xs">
                         {item.category}
                       </Badge>
                       <span className={`text-xs font-medium ${isAvailable ? "text-green-600" : "text-red-600"}`}>
                         {isAvailable ? "Available" : "Unavailable"}
+                      </span>
+                      <span className="text-xs text-slate-500">
+                        {item.imageUrls.length} images | {unavailableCount} unavailable
                       </span>
                     </div>
                   </div>
@@ -134,32 +159,51 @@ const ManageFeaturedAvailability = () => {
                   />
                 </div>
 
-                <div className="rounded-md bg-slate-50 border p-2">
-                  <p className="text-xs text-slate-600 mb-2">Image controls</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {item.imageUrls.map((imageUrl, imageIndex) => {
-                      const imageKey = `${item.key}:${imageIndex}`;
-                      const imageIsAvailable = imageAvailabilityMap.get(imageKey) ?? true;
-                      return (
-                        <div key={imageKey} className="rounded border bg-white px-2 py-1.5 flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <img
-                              src={imageUrl}
-                              alt={`${item.title} ${imageIndex + 1}`}
-                              className="w-8 h-8 rounded object-cover border border-slate-200"
-                            />
-                            <span className="text-xs text-slate-700 truncate">Image {imageIndex + 1}</span>
-                          </div>
-                          <Switch
-                            checked={imageIsAvailable}
-                            onCheckedChange={(checked) => handleImageToggle(item.key, imageIndex, checked)}
-                            aria-label={`Toggle image ${imageIndex + 1} for ${item.title}`}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
+                <div className="flex items-center justify-end gap-3 rounded-md border bg-slate-50 px-3 py-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => toggleExpanded(item.key)}
+                    className="h-8"
+                  >
+                    {isExpanded ? "Hide details" : "Show details"}
+                  </Button>
                 </div>
+
+                {isExpanded ? (
+                  <div className="rounded-md bg-slate-50 border p-2.5 sm:p-3">
+                    <p className="text-xs text-slate-600 mb-2">Image controls</p>
+                    <div className="space-y-2">
+                      {item.imageUrls.map((imageUrl, imageIndex) => {
+                        const imageKey = `${item.key}:${imageIndex}`;
+                        const imageIsAvailable = imageAvailabilityMap.get(imageKey) ?? true;
+                        return (
+                          <div key={imageKey} className="rounded border bg-white px-2.5 py-2 flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <img
+                                src={imageUrl}
+                                alt={`${item.title} ${imageIndex + 1}`}
+                                className="w-10 h-10 rounded object-cover border border-slate-200"
+                              />
+                              <div className="min-w-0">
+                                <p className="text-xs font-medium text-slate-800 truncate">Image {imageIndex + 1}</p>
+                                <p className={`text-[11px] ${imageIsAvailable ? "text-green-600" : "text-red-600"}`}>
+                                  {imageIsAvailable ? "Available" : "Unavailable"}
+                                </p>
+                              </div>
+                            </div>
+                            <Switch
+                              checked={imageIsAvailable}
+                              onCheckedChange={(checked) => handleImageToggle(item.key, imageIndex, checked)}
+                              aria-label={`Toggle image ${imageIndex + 1} for ${item.title}`}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
               </div>
             );
           })}

@@ -1,13 +1,13 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { CalendarClock, MessageSquareQuote, Upload, Images, PackageCheck, Megaphone } from "lucide-react";
+import { CalendarClock, MessageSquareQuote, Upload, Images, ListChecks, Megaphone } from "lucide-react";
 
 const navItems = [
   { to: "/admin/bookings", label: "Bookings", icon: CalendarClock },
   { to: "/admin/reviews", label: "Reviews", icon: MessageSquareQuote },
   { to: "/admin/upload", label: "Upload", icon: Upload },
   { to: "/admin/manage", label: "Manage", icon: Images },
-  { to: "/admin/featured", label: "Avaiable items", icon: PackageCheck },
+  { to: "/admin/featured", label: "logistics", icon: ListChecks },
   { to: "/admin/popup-ads", label: "Ads", icon: Megaphone },
 ];
 

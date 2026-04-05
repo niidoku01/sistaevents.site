@@ -31,18 +31,27 @@ export const PopupAd = () => {
   if (!ad || !open) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-50 w-[500px] sm:w-[500px] squared-xl border border-amber-200 bg-white shadow-xl overflow-hidden">
+    <div className="fixed z-50 top-20 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] max-w-sm rounded-xl border border-amber-200 bg-white shadow-xl overflow-hidden sm:top-24 sm:right-4 sm:left-auto sm:translate-x-0 sm:w-[380px]">
       <button
         onClick={() => handleClose(false)}
         aria-label="Close popup ad"
-        className="absolute top-2 right-2 z-10 squared-full bg-black/60 text-white p-1 hover:bg-black/75"
+        className="absolute top-2 right-2 z-10 rounded-full bg-black/60 text-white p-1 hover:bg-black/75"
       >
         <X className="w-4 h-4" />
       </button>
 
       <Link to="/" className="block bg-gradient-to-br from-amber-50 to-white">
         {ad.imageUrl ? (
-          <img src={ad.imageUrl} alt={ad.title} className="w-full h-32 object-cover" />
+          <div className="bg-white">
+            <img
+              src={ad.imageUrl}
+              alt={ad.title}
+              className="w-full h-auto max-h-56 object-contain"
+              loading="eager"
+              decoding="async"
+              style={{ imageRendering: "auto" }}
+            />
+          </div>
         ) : null}
 
         <div className="p-3">

@@ -21,6 +21,23 @@ const Bookings: React.FC = () => {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [reason, setReason] = useState("");
 
+  const formatIsoDate = (isoDate: string) => {
+    const [year, month, day] = isoDate.split("-").map(Number);
+    const localDate = new Date(year, month - 1, day);
+    return new Intl.DateTimeFormat("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+    }).format(localDate);
+  };
+
+  const formatTimestampDate = (timestamp: number) =>
+    new Intl.DateTimeFormat("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+    }).format(new Date(timestamp));
+
   const handleBlockDate = async () => {
     if (!eventDate) {
       toast({
@@ -39,7 +56,7 @@ const Bookings: React.FC = () => {
 
       toast({
         title: "Date blocked",
-        description: `${eventDate} has been marked as unavailable.`,
+        description: `${formatIsoDate(eventDate)} has been marked as unavailable.`,
       });
       setEventDate("");
       setReason("");
@@ -86,7 +103,7 @@ const Bookings: React.FC = () => {
                   onClick={() => setCalendarOpen((open) => !open)}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4 text-accent" />
-                  {eventDate ? new Date(eventDate).toLocaleDateString() : "Pick a date"}
+                  {eventDate ? formatIsoDate(eventDate) : "Pick a date"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent align="start" className="w-auto p-0">
@@ -123,14 +140,14 @@ const Bookings: React.FC = () => {
                   <div key={d._id} className="rounded-xl border p-4 bg-white space-y-2">
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-xs uppercase tracking-wide text-gray-500">Date</span>
-                      <Badge variant="secondary">{d.eventDate}</Badge>
+                      <Badge variant="secondary">{formatIsoDate(d.eventDate)}</Badge>
                     </div>
                     <div>
                       <p className="text-xs uppercase tracking-wide text-gray-500 mb-1">Reason</p>
                       <p className="text-sm text-gray-800 break-words">{d.reason || "-"}</p>
                     </div>
                     <div className="flex items-center justify-between gap-3 pt-1">
-                      <p className="text-xs text-gray-500">Blocked on {new Date(d.createdAt).toLocaleDateString()}</p>
+                      <p className="text-xs text-gray-500">Blocked on {formatTimestampDate(d.createdAt)}</p>
                       <Button variant="outline" size="sm" onClick={() => handleUnblockDate(d._id)}>
                         Unblock
                       </Button>
@@ -164,11 +181,11 @@ const Bookings: React.FC = () => {
                     .map((d) => (
                       <TableRow key={d._id}>
                         <TableCell>
-                          <Badge variant="secondary">{d.eventDate}</Badge>
+                          <Badge variant="secondary">{formatIsoDate(d.eventDate)}</Badge>
                         </TableCell>
                         <TableCell>{d.reason || "-"}</TableCell>
                         <TableCell className="text-sm text-gray-500">
-                          {new Date(d.createdAt).toLocaleDateString()}
+                          {formatTimestampDate(d.createdAt)}
                         </TableCell>
                         <TableCell className="text-right">
                           <Button variant="outline" size="sm" onClick={() => handleUnblockDate(d._id)}>
@@ -186,7 +203,7 @@ const Bookings: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle> pending Bookings</CardTitle>
+          <CardTitle>Bookings</CardTitle>
           <CardDescription>View all customer bookings.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -203,13 +220,13 @@ const Bookings: React.FC = () => {
                   <div key={b._id} className="rounded-xl border p-4 bg-white space-y-3">
                     <div className="flex items-center justify-between gap-3">
                       <p className="font-semibold text-gray-900 break-words">{b.name}</p>
-                      <Badge variant="outline">{b.eventDate}</Badge>
+                      <Badge variant="outline">{formatIsoDate(b.eventDate)}</Badge>
                     </div>
                     <div className="grid grid-cols-1 gap-2 text-sm">
                       <p className="text-gray-700 break-words"><span className="text-gray-500">Email:</span> {b.email}</p>
                       <p className="text-gray-700 break-words"><span className="text-gray-500">Phone:</span> {b.phone}</p>
                       <p className="text-gray-700 break-words"><span className="text-gray-500">Message:</span> {b.message}</p>
-                      <p className="text-xs text-gray-500 pt-1">Created {new Date(b.createdAt).toLocaleDateString()}</p>
+                      <p className="text-xs text-gray-500 pt-1">Created {formatTimestampDate(b.createdAt)}</p>
                     </div>
                   </div>
                 ))
@@ -224,7 +241,7 @@ const Bookings: React.FC = () => {
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>Event Date</TableHead>
-                  <TableHead>Message</TableHead>
+                  <TableHead>Detailing </TableHead>
                   <TableHead>Created At</TableHead>
                 </TableRow>
               </TableHeader>
@@ -245,13 +262,13 @@ const Bookings: React.FC = () => {
                         <TableCell>{b.email}</TableCell>
                         <TableCell>{b.phone}</TableCell>
                         <TableCell>
-                          <Badge variant="outline">{b.eventDate}</Badge>
+                          <Badge variant="outline">{formatIsoDate(b.eventDate)}</Badge>
                         </TableCell>
                         <TableCell className="min-w-[260px] max-w-[420px] whitespace-normal break-words align-top">
                           {b.message}
                         </TableCell>
                         <TableCell className="text-sm text-gray-500">
-                          {new Date(b.createdAt).toLocaleDateString()}
+                          {formatTimestampDate(b.createdAt)}
                         </TableCell>
                       </TableRow>
                     ))

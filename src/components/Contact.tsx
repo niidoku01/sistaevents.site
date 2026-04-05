@@ -36,10 +36,29 @@ export const Contact = () => {
   });
   const [calendarOpen, setCalendarOpen] = useState(false);
 
+  const formatDate = (isoDate: string) => {
+    const [year, month, day] = isoDate.split("-").map(Number);
+    const localDate = new Date(year, month - 1, day);
+    return new Intl.DateTimeFormat("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+    }).format(localDate);
+  };
+
   const playSuccessSound = () => {
-    // Generate a short two-tone chime so no external audio file is required.
+    // Generate a short success chime so no external audio file is required.
     try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const AudioContextConstructor = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AudioContextConstructor) {
+        return;
+      }
+
+      const audioContext = new AudioContextConstructor();
+
+      if (audioContext.state === "suspended") {
+        void audioContext.resume();
+      }
 
       const createTone = (frequency: number, start: number, duration: number, gainValue: number) => {
         const oscillator = audioContext.createOscillator();
@@ -60,14 +79,15 @@ export const Contact = () => {
       };
 
       const now = audioContext.currentTime;
-      createTone(784, now, 0.14, 0.022);
-      createTone(1174, now + 0.16, 0.18, 0.022);
+      createTone(659, now, 0.12, 0.03);
+      createTone(988, now + 0.13, 0.14, 0.03);
+      createTone(1318, now + 0.28, 0.2, 0.028);
 
       setTimeout(() => {
         audioContext.close().catch(() => {
           // No-op: context may already be closed.
         });
-      }, 450);
+      }, 700);
     } catch {
       // No-op: if audio is blocked/unavailable, booking still succeeds.
     }
@@ -191,7 +211,7 @@ export const Contact = () => {
                             onClick={() => setCalendarOpen((open) => !open)}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4 text-accent" />
-                            {formData.eventDate ? new Date(formData.eventDate).toLocaleDateString() : "Pick a date"}
+                            {formData.eventDate ? formatDate(formData.eventDate) : "Pick a date"}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent align="start" className="w-auto p-0">

@@ -16,7 +16,17 @@ const HeroContent = ({ unavailableDates }: HeroContentProps) => {
   const navigate = useNavigate();
   const [eventDate, setEventDate] = useState("");
   const [dateError, setDateError] = useState("");
-  const [dateStatus, setDateStatus] = useState<"" | "available" | "booked">("");
+  const [dateStatus, setDateStatus] = useState<"" | "available">("");
+
+  const formatDate = (isoDate: string) => {
+    const [year, month, day] = isoDate.split("-").map(Number);
+    const localDate = new Date(year, month - 1, day);
+    return new Intl.DateTimeFormat("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+    }).format(localDate);
+  };
 
   const scrollToContact = () => {
     const element = document.getElementById("contact");
@@ -29,23 +39,24 @@ const HeroContent = ({ unavailableDates }: HeroContentProps) => {
 
   const goToBookingWithDate = () => {
     if (!eventDate) {
-      setDateError("Please select an event date first.");
+      setDateError("Choose your event date to check availability.");
       setDateStatus("");
       return;
     }
 
     const today = new Date().toISOString().split("T")[0];
     if (eventDate < today) {
-      setDateError("Please select a current or future date.");
+      setDateError("Select today or a future date.");
       setDateStatus("");
       return;
     }
 
     if (unavailableDates?.includes(eventDate)) {
-      setDateError("Date already booked. Please choose another date.");
-      setDateStatus("booked");
+      setDateError("Date is currently booked.");
+      setDateStatus("");
       return;
     }
+
 
     setDateError("");
     setDateStatus("available");
@@ -79,22 +90,32 @@ const HeroContent = ({ unavailableDates }: HeroContentProps) => {
           </Button>
         </div>
         <div className="mt-20 max-w-md mx-auto bg-green-100/10 backdrop-blur-sm border border-green-100/20 rounded-lg p-2 md:p-2 animate-fade-in" style={{ animationDelay: "0.9s" }}>
-          <p className="text-primary-foreground/85 text-xs sm:text-sm md:text-base mb-2 md:mb-3">Date Availability checker</p>
+          <p className="text-primary-foreground/85 text-xs sm:text-sm md:text-base mb-2 md:mb-3">Date Availability Checker</p>
           <div className="flex flex-row gap-2 items-center justify-center">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   type="button"
                   variant="outline"
-                  className="bg-white/85 border-sky-100/40 text-foreground h-6 text-xs sm:text-sm w-[155px] sm:w-[170px] flex-none justify-start text-left font-normal"
+                  className="bg-white/85 border-sky-100/40 text-foreground h-6 text-xs sm:text-sm w-[110px] sm:w-[150px] flex-none justify-start text-left font-normal"
                 >
                   <CalendarIcon className="mr-2 h-4 w-4 text-accent" />
-                  {eventDate ? new Date(eventDate).toLocaleDateString() : ""}
+                  {eventDate ? formatDate(eventDate) : "Select date"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent align="start" className="w-auto p-0">
                 <Calendar
                   mode="single"
+                  className="p-2"
+                  classNames={{
+                    month: "space-y-2",
+                    caption_label: "text-xs font-medium",
+                    nav_button: "h-6 w-6 bg-transparent p-0 opacity-60 hover:opacity-100",
+                    head_cell: "text-muted-foreground rounded-md w-8 font-normal text-[0.7rem]",
+                    cell:
+                      "h-8 w-8 text-center text-xs p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                    day: "h-8 w-8 p-0 font-normal aria-selected:opacity-100",
+                  }}
                   selected={eventDate ? new Date(eventDate) : undefined}
                   onSelect={(date) => {
                     setEventDate(date ? date.toISOString().split("T")[0] : "");

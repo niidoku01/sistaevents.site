@@ -1,11 +1,10 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { images } from "@/lib/imageImports";
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { getLogisticsAvailability, LOGISTICS_AVAILABILITY_EVENT } from "@/lib/logisticsAvailability";
 
 type FeaturedItem = {
   key: string;
@@ -116,12 +115,25 @@ const featuredItems: FeaturedItem[] = [
 export const Featured = () => {
   const [selectedItem, setSelectedItem] = useState<FeaturedItem | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const availability = useQuery(api.featuredItems.listAvailability, {});
-  const imageAvailability = useQuery(api.featuredItems.listImageAvailability, {});
+  const [availabilityState, setAvailabilityState] = useState(getLogisticsAvailability());
 
-  const availabilityMap = new Map((availability ?? []).map((item) => [item.key, item.available]));
+  useEffect(() => {
+    const updateAvailability = () => {
+      setAvailabilityState(getLogisticsAvailability());
+    };
+
+    window.addEventListener(LOGISTICS_AVAILABILITY_EVENT, updateAvailability);
+    window.addEventListener("storage", updateAvailability);
+
+    return () => {
+      window.removeEventListener(LOGISTICS_AVAILABILITY_EVENT, updateAvailability);
+      window.removeEventListener("storage", updateAvailability);
+    };
+  }, []);
+
+  const availabilityMap = new Map(Object.entries(availabilityState.items));
   const imageAvailabilityMap = new Map(
-    (imageAvailability ?? []).map((item) => [`${item.itemKey}:${item.imageIndex}`, item.available])
+    Object.entries(availabilityState.images)
   );
 
   const featuredItemsWithAvailability = featuredItems.map((item) => {
@@ -172,7 +184,7 @@ export const Featured = () => {
   return (
     <section id="featured" className="py-20 lg:py-32 bg-background">
       <div className="container mx-auto px-4 lg:px-6">
-        <div className="text-center mb-16">
+        <div className="text-center mb-16" data-reveal>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
             Featured Logistics
           </h2>
@@ -181,7 +193,7 @@ export const Featured = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8" data-reveal-stagger>
           {featuredItemsWithAvailability.map((item, index) => {
             // For Floral Arrangements, show per-image description
             const isFloral = item.title === "Floral Arrangements" && item.imageDescriptions;
@@ -193,6 +205,8 @@ export const Featured = () => {
               <Card
                 key={index}
                 className="group overflow-hidden hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 border-border cursor-pointer"
+                data-reveal
+                data-reveal-item
                 onClick={() => {
                   if (item.images.length === 0) {
                     return;
@@ -210,6 +224,9 @@ export const Featured = () => {
                       className={`w-full h-full transition-transform duration-300 group-hover:scale-105 ${
                         item.category === "Aesthetics" || item.category === "Decor" ? "object-cover" : "object-contain"
                       }`}
+                      loading="lazy"
+                      decoding="async"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                   ) : (
                     <div className="text-xs text-muted-foreground">No image enabled</div>
@@ -268,6 +285,9 @@ export const Featured = () => {
                   src={selectedItem.images[currentImageIndex]}
                   alt={`${selectedItem.title} - Image ${currentImageIndex + 1}`}
                   className="w-full h-full object-contain"
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
                 />
 
                 {selectedItem.images.length > 1 && (
@@ -311,7 +331,13 @@ export const Featured = () => {
                         idx === currentImageIndex ? "border-white" : "border-transparent opacity-60 hover:opacity-100"
                       }`}
                     >
-                      <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                      <img
+                        src={img}
+                        alt={`Thumbnail ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                      />
                     </button>
                   ))}
                 </div>

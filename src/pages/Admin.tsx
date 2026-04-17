@@ -3,8 +3,6 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import AdminNav from "./admin/AdminNav";
 import Bookings from "./admin/Bookings";
-import UploadCollection from "./admin/UploadCollection";
-import ManageCollection from "./admin/ManageCollection";
 import { ManageReviews } from "./admin/ManageReviews";
 import ManageFeaturedAvailability from "./admin/ManageFeaturedAvailability";
 import ManagePopupAds from "./admin/ManagePopupAds";
@@ -45,8 +43,14 @@ const Admin: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex justify-between items-center gap-2">
             <div className="flex items-center gap-2 min-w-0">
-             
-              <h1 className="text-base sm:text-2xl font-bold text-gray-900 truncate">E&R Admin</h1>
+              <img
+                src={images.misc.sistalogo}
+                alt="Sista Events logo"
+                className="h-9 w-9 sm:h-10 sm:w-10 rounded-md object-contain"
+                loading="eager"
+                decoding="async"
+              />
+              <h1 className="text-base sm:text-2xl font-bold text-gray-900 truncate">Admin</h1>
             </div>
             <div className="flex items-center gap-2 sm:gap-4 min-w-0">
               <span className="sm:hidden text-xs text-gray-600 truncate max-w-[84px]">{compactEmail}</span>
@@ -62,8 +66,6 @@ const Admin: React.FC = () => {
           <Routes>
             <Route path="bookings" element={<Bookings />} />
             <Route path="reviews" element={<ManageReviews />} />
-            <Route path="upload" element={<UploadCollection />} />
-            <Route path="manage" element={<ManageCollection />} />
             <Route path="featured" element={<ManageFeaturedAvailability />} />
             <Route path="popup-ads" element={<ManagePopupAds />} />
             <Route path="*" element={<Navigate to="bookings" replace />} />

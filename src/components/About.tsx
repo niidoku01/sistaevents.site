@@ -46,6 +46,8 @@ export const About = () => {
                   objectPosition: "center"
                 }}
                 loading="lazy"
+                decoding="async"
+                sizes="(max-width: 1024px) 100vw, 50vw"
               />
             </div>
             

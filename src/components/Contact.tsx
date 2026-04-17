@@ -11,6 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 
+const BRANDED_SUCCESS_SOUND_URL = "/sounds/sistaevents-booking-success.mp3";
+
 // Custom WhatsApp icon component
 const WhatsAppIcon = ({ className }: { className?: string }) => (
   <svg
@@ -36,6 +38,13 @@ export const Contact = () => {
   });
   const [calendarOpen, setCalendarOpen] = useState(false);
 
+  const getMissingFieldMessage = () => {
+    if (!formData.name.trim()) return "Please enter your name.";
+    if (!formData.email.trim()) return "Please enter your email address.";
+    if (!formData.message.trim()) return "Please tell us about your event.";
+    return "";
+  };
+
   const formatDate = (isoDate: string) => {
     const [year, month, day] = isoDate.split("-").map(Number);
     const localDate = new Date(year, month - 1, day);
@@ -46,8 +55,8 @@ export const Contact = () => {
     }).format(localDate);
   };
 
-  const playSuccessSound = () => {
-    // Generate a short success chime so no external audio file is required.
+  const playFallbackSuccessChime = () => {
+    // Generate a short success chime if branded audio is unavailable.
     try {
       const AudioContextConstructor = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
       if (!AudioContextConstructor) {
@@ -93,6 +102,17 @@ export const Contact = () => {
     }
   };
 
+  const playSuccessSound = async () => {
+    try {
+      const audio = new Audio(BRANDED_SUCCESS_SOUND_URL);
+      audio.preload = "auto";
+      audio.volume = 0.9;
+      await audio.play();
+    } catch {
+      playFallbackSuccessChime();
+    }
+  };
+
   // Pre-fill form from sessionStorage (for package quotes)
   useEffect(() => {
     const loadPackageData = () => {
@@ -111,6 +131,17 @@ export const Contact = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const validationMessage = getMissingFieldMessage();
+    if (validationMessage) {
+      toast({
+        title: "Missing information",
+        description: validationMessage,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -154,7 +185,7 @@ export const Contact = () => {
           <div className="lg:col-span-2">
             <Card className="border-border">
               <CardContent className="p-6 lg:p-8">
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
@@ -162,7 +193,7 @@ export const Contact = () => {
                       </label>
                       <Input
                         id="name"
-                        required
+                        aria-required="true"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         placeholder="Mr/Ms."
@@ -175,7 +206,7 @@ export const Contact = () => {
                       <Input
                         id="email"
                         type="email"
-                        required
+                        aria-required="true"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         placeholder="mail@example.com"
@@ -235,7 +266,7 @@ export const Contact = () => {
                     </label>
                     <Textarea
                       id="message"
-                      required
+                      aria-required="true"
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                       placeholder="Describe your event needs, logistics, guest count, venue, etc."

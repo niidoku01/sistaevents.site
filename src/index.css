@@ -113,4 +113,41 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+@layer utilities {
+  .section-mobile-padding {
+    @apply py-14 sm:py-20 lg:py-32;
+  }
+}
+
+@layer components {
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+    transition-property: opacity, transform;
+    transition-duration: 0.45s;
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+    will-change: opacity, transform;
+  }
+
+  [data-reveal].is-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
 }

@@ -54,7 +54,7 @@ export const FAQ = () => {
   return (
     <section className="py-20 lg:py-32 bg-muted/30">
       <div className="container mx-auto px-4 lg:px-6">
-        <div className="text-center mb-16">
+        <div className="text-center mb-16" data-reveal>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
             Frequently Asked Questions
           </h2>
@@ -64,12 +64,14 @@ export const FAQ = () => {
         </div>
 
         <div className="max-w-4xl mx-auto">
-          <Accordion type="single" collapsible className="space-y-4">
+          <Accordion type="single" collapsible className="space-y-4" data-reveal-stagger>
             {faqs.map((faq, index) => (
               <AccordionItem
                 key={index}
                 value={`item-${index}`}
                 className="bg-background border border-border rounded-lg px-6"
+                data-reveal
+                data-reveal-item
               >
                 <AccordionTrigger className="text-left hover:no-underline">
                   <span className="font-semibold text-foreground pr-4">
@@ -91,9 +93,9 @@ export const FAQ = () => {
               href="https://wa.me/0279689522?text=Hi%2C%20I%20have%20a%20question%20about%20your%20event%20rental%20services"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-accent hover:underline font-semibold"
+              className="text-primary hover:text-primary/80 underline underline-offset-4 font-semibold"
             >
-              Click here
+              Chat with us on WhatsApp
             </a>
           </div>
         </div>

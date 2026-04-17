@@ -25,12 +25,16 @@ export default defineConfig({
   build: {
     // Minify and optimize for production
     minify: "esbuild", // Use esbuild for faster minification
-    sourcemap: false, // Disable source maps in production for security
+    sourcemap: true, // Generate source maps for better debugging and Lighthouse best-practices
+    target: "es2020",
     chunkSizeWarningLimit: 1000, // Increase chunk size warning limit to 1000kb
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ["react", "react-dom"],
+          "vendor-react": ["react", "react-dom", "react-router-dom"],
+          "vendor-firebase": ["firebase/app", "firebase/auth", "firebase/firestore", "firebase/storage"],
+          "vendor-convex": ["convex/react", "convex/browser"],
+          "vendor-ui": ["@radix-ui/react-dialog", "@radix-ui/react-popover", "@radix-ui/react-accordion"],
         },
       },
     },

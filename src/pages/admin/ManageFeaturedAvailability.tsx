@@ -1,12 +1,17 @@
-import { useMutation, useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { images } from "@/lib/imageImports";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  getLogisticsAvailability,
+  LOGISTICS_AVAILABILITY_EVENT,
+  resetLogisticsAvailability,
+  setLogisticsImageAvailability,
+  setLogisticsItemAvailability,
+} from "@/lib/logisticsAvailability";
 
 const featuredItems = [
   {
@@ -63,15 +68,24 @@ const featuredItems = [
 
 const ManageFeaturedAvailability = () => {
   const { toast } = useToast();
-  const availability = useQuery(api.featuredItems.listAvailability, {});
-  const imageAvailability = useQuery(api.featuredItems.listImageAvailability, {});
-  const setAvailability = useMutation(api.featuredItems.setAvailability);
-  const setImageAvailability = useMutation(api.featuredItems.setImageAvailability);
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
+  const [availabilityState, setAvailabilityState] = useState(getLogisticsAvailability());
 
-  const availabilityMap = new Map((availability ?? []).map((item) => [item.key, item.available]));
+  useEffect(() => {
+    const refresh = () => setAvailabilityState(getLogisticsAvailability());
+
+    window.addEventListener(LOGISTICS_AVAILABILITY_EVENT, refresh);
+    window.addEventListener("storage", refresh);
+
+    return () => {
+      window.removeEventListener(LOGISTICS_AVAILABILITY_EVENT, refresh);
+      window.removeEventListener("storage", refresh);
+    };
+  }, []);
+
+  const availabilityMap = new Map(Object.entries(availabilityState.items));
   const imageAvailabilityMap = new Map(
-    (imageAvailability ?? []).map((item) => [`${item.itemKey}:${item.imageIndex}`, item.available])
+    Object.entries(availabilityState.images)
   );
 
   const toggleExpanded = (itemKey: string) => {
@@ -81,43 +95,42 @@ const ManageFeaturedAvailability = () => {
     }));
   };
 
-  const handleToggle = async (key: string, nextValue: boolean) => {
-    try {
-      await setAvailability({ key, available: nextValue });
-      toast({
-        title: "Updated",
-        description: `Item is now ${nextValue ? "available" : "unavailable"}.`,
-      });
-    } catch {
-      toast({
-        title: "Update failed",
-        description: "Could not update item availability.",
-        variant: "destructive",
-      });
-    }
+  const handleToggle = (key: string, nextValue: boolean) => {
+    setLogisticsItemAvailability(key, nextValue);
+    setAvailabilityState(getLogisticsAvailability());
+    toast({
+      title: "Updated",
+      description: `Item is now ${nextValue ? "available" : "unavailable"}.`,
+    });
   };
 
-  const handleImageToggle = async (itemKey: string, imageIndex: number, nextValue: boolean) => {
-    try {
-      await setImageAvailability({ itemKey, imageIndex, available: nextValue });
-      toast({
-        title: "Updated",
-        description: `Image ${imageIndex + 1} is now ${nextValue ? "available" : "unavailable"}.`,
-      });
-    } catch {
-      toast({
-        title: "Update failed",
-        description: "Could not update image availability.",
-        variant: "destructive",
-      });
-    }
+  const handleImageToggle = (itemKey: string, imageIndex: number, nextValue: boolean) => {
+    setLogisticsImageAvailability(itemKey, imageIndex, nextValue);
+    setAvailabilityState(getLogisticsAvailability());
+    toast({
+      title: "Updated",
+      description: `Image ${imageIndex + 1} is now ${nextValue ? "available" : "unavailable"}.`,
+    });
+  };
+
+  const handleReset = () => {
+    resetLogisticsAvailability();
+    setAvailabilityState(getLogisticsAvailability());
+    toast({
+      title: "Reset complete",
+      description: "Logistics availability restored to default values.",
+    });
   };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Available items</CardTitle>
-       
+        <div className="pt-2">
+          <Button type="button" variant="outline" size="sm" onClick={handleReset}>
+            Reset Logistics Defaults
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

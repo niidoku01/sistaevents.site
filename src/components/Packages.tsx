@@ -57,6 +57,12 @@ const packages = [
 ];
 
 export const Packages = () => {
+  const scrollToContact = () => {
+    sessionStorage.removeItem('selectedPackage');
+    const element = document.getElementById("contact");
+    element?.scrollIntoView({ behavior: "smooth" });
+  };
+
   const scrollToContactWithPackage = (packageName: string, packagePrice: string, features: string[]) => {
     // Create the pre-filled message
     const message = `I'm interested in the ${packageName} package (${packagePrice}).
@@ -84,7 +90,7 @@ Please provide me with a detailed quote and availability for my event.`;
   return (
     <section className="py-20 lg:py-32 bg-background">
       <div className="container mx-auto px-4 lg:px-6">
-        <div className="text-center mb-16">
+        <div className="text-center mb-16" data-reveal>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
             Event Packages
           </h2>
@@ -93,7 +99,7 @@ Please provide me with a detailed quote and availability for my event.`;
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto" data-reveal-stagger>
           {packages.map((pkg, index) => (
             <Card 
               key={index} 
@@ -102,6 +108,8 @@ Please provide me with a detailed quote and availability for my event.`;
                   ? "border-accent shadow-xl scale-105 z-10" 
                   : "border-border"
               }`}
+              data-reveal
+              data-reveal-item
             >
               {pkg.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
@@ -149,8 +157,8 @@ Please provide me with a detailed quote and availability for my event.`;
           <p className="text-muted-foreground mb-4">
             Need a custom package? We'll create something perfect for your event.
           </p>
-          <Button variant="link" onClick={() => scrollToContactWithPackage("Custom Package", "Contact for Pricing", ["Tailored to your specific needs", "Flexible options", "Professional consultation"])} className="text-accent">
-            click here
+          <Button variant="link" onClick={scrollToContact} className="text-primary hover:text-primary/80">
+            Request a custom package quote
           </Button>
         </div>
       </div>

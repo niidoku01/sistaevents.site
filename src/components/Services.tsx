@@ -41,7 +41,7 @@ export const Services = () => {
   return (
     <section id="services" className="py-20 lg:py-32 bg-muted/50">
       <div className="container mx-auto px-4 lg:px-6">
-        <div className="text-center mb-16">
+        <div className="text-center mb-16" data-reveal>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
             Our Services
           </h2>
@@ -50,11 +50,13 @@ export const Services = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8" data-reveal-stagger>
           {services.map((service, index) => (
             <Card
               key={index}
               className="group hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 border-border"
+              data-reveal
+              data-reveal-item
             >
               <CardContent className="p-6 lg:p-8">
                 <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-lg bg-accent/10 flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">

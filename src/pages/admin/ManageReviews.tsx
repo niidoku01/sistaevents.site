@@ -2,8 +2,19 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Star, Check, X, Trash2 } from "lucide-react";
+import { Star, Check, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import type { Id } from "../../../convex/_generated/dataModel";
+
+type Review = {
+  _id: Id<"reviews">;
+  name: string;
+  email: string;
+  event: string;
+  content: string;
+  rating: number;
+  createdAt: number;
+};
 
 export const ManageReviews = () => {
   const { toast } = useToast();
@@ -12,9 +23,9 @@ export const ManageReviews = () => {
   const approveReview = useMutation(api.reviews.approveReview);
   const deleteReview = useMutation(api.reviews.deleteReview);
 
-  const handleApprove = async (id: string) => {
+  const handleApprove = async (id: Id<"reviews">) => {
     try {
-      await approveReview({ id: id as any });
+      await approveReview({ id });
       toast({
         title: "Success",
         description: "Review approved successfully",
@@ -28,11 +39,11 @@ export const ManageReviews = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: Id<"reviews">) => {
     if (!confirm("Are you sure you want to delete this review?")) return;
 
     try {
-      await deleteReview({ id: id as any });
+      await deleteReview({ id });
       toast({
         title: "Success",
         description: "Review deleted successfully",
@@ -46,7 +57,7 @@ export const ManageReviews = () => {
     }
   };
 
-  const ReviewCard = ({ review, isPending }: { review: any; isPending: boolean }) => (
+  const ReviewCard = ({ review, isPending }: { review: Review; isPending: boolean }) => (
     <Card>
       <CardContent className="p-6">
         <div className="space-y-4">

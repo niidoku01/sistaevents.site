@@ -2,10 +2,9 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import React, { useEffect, useState } from "react";
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { staticCollectionImagesByCategory } from "@/lib/staticCollections";
 
 type Category = "weddings" | "funerals" | "corporate";
 
@@ -17,6 +16,12 @@ const categoryTitleMap: Record<Category, string> = {
   corporate: "Corporate Events",
 };
 
+const categoryMobileLabelMap: Record<Category, string> = {
+  weddings: "Weddings",
+  funerals: "Funerals",
+  corporate: "Corporate",
+};
+
 type CollectionImage = {
   _id?: string;
   url: string;
@@ -24,18 +29,15 @@ type CollectionImage = {
 };
 
 export default function OurCollection() {
-  const weddingImages = useQuery(api.collections.listImages, { category: "weddings" }) ?? [];
-  const funeralImages = useQuery(api.collections.listImages, { category: "funerals" }) ?? [];
-  const corporateImages = useQuery(api.collections.listImages, { category: "corporate" }) ?? [];
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState<number | null>(null);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
   const imagesByCategory: Record<Category, CollectionImage[]> = {
-    weddings: weddingImages,
-    funerals: funeralImages,
-    corporate: corporateImages,
+    weddings: staticCollectionImagesByCategory.weddings,
+    funerals: staticCollectionImagesByCategory.funerals,
+    corporate: staticCollectionImagesByCategory.corporate,
   };
 
   const categoryImages = selectedCategory ? imagesByCategory[selectedCategory] : null;
@@ -138,6 +140,8 @@ export default function OurCollection() {
                 alt={img.originalName || `Image ${i + 1}`} 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 loading="lazy"
+                decoding="async"
+                sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
               />
             </div>
           </div>
@@ -181,6 +185,9 @@ export default function OurCollection() {
                               src={getCoverImage(images)}
                               alt={category}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              loading="lazy"
+                              decoding="async"
+                              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                             <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
@@ -197,16 +204,16 @@ export default function OurCollection() {
               </div>
             ) : (
               <div>
-                <div className="sticky top-[76px] sm:top-[92px] z-20 mb-6 rounded-2xl border border-slate-200/80 bg-white/95 backdrop-blur p-3 sm:p-4 shadow-sm">
+                <div className="sticky top-[70px] sm:top-[92px] z-20 mb-4 sm:mb-6 rounded-xl sm:rounded-2xl border border-slate-200/80 bg-white/95 backdrop-blur p-2 sm:p-4 shadow-sm">
                   <div className="flex items-center justify-between gap-3">
                     <Button
                       variant="ghost"
                       onClick={() => setSelectedCategory(null)}
-                      className="h-10 w-10 p-0 rounded-xl border border-amber-200 bg-white text-slate-700 hover:bg-amber-100 hover:text-amber-700 shadow-sm"
+                      className="h-9 w-9 sm:h-11 sm:w-11 p-0 rounded-lg sm:rounded-xl border border-amber-200 bg-white text-slate-700 hover:bg-amber-100 hover:text-amber-700 shadow-sm"
                       aria-label="Back"
                       title="Back"
                     >
-                      <ChevronLeft className="w-4 h-4" />
+                      <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </Button>
 
                     <div className="flex flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap pb-1" aria-label="Category switch">
@@ -217,7 +224,7 @@ export default function OurCollection() {
                             key={category}
                             type="button"
                             onClick={() => setSelectedCategory(category)}
-                            className={`shrink-0 rounded-xl px-3.5 py-2 text-xs sm:text-sm border font-medium transition-all duration-200 active:scale-[0.98] ${
+                            className={`shrink-0 rounded-lg sm:rounded-xl px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-sm border font-medium transition-all duration-200 active:scale-[0.98] ${
                               isActive
                                 ? "bg-gradient-to-r from-[#FFD700] to-amber-500 text-slate-900 border-amber-400 shadow-md shadow-amber-300/50"
                                 : "bg-white text-slate-700 border-slate-200 hover:bg-amber-50 hover:border-amber-200 hover:shadow-sm"
@@ -225,7 +232,8 @@ export default function OurCollection() {
                             aria-label={`Switch to ${categoryTitleMap[category]}`}
                             title={categoryTitleMap[category]}
                           >
-                            {categoryTitleMap[category]}
+                            <span className="sm:hidden">{categoryMobileLabelMap[category]}</span>
+                            <span className="hidden sm:inline">{categoryTitleMap[category]}</span>
                           </button>
                         );
                       })}
@@ -287,6 +295,9 @@ export default function OurCollection() {
                 src={currentImage}
                 alt="Full size view"
                 className="max-w-full max-h-full object-contain select-none"
+                decoding="async"
+                fetchPriority="high"
+                sizes="100vw"
                 draggable={false}
               />
             </div>

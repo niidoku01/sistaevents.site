@@ -1,14 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
 import { Link } from "react-router-dom";
 import { X } from "lucide-react";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
+import type { Id } from "../../convex/_generated/dataModel";
 
 const POPUP_DISMISS_KEY = "homepagePopupDismissedAt";
 const DISMISS_DURATION_MS = 1000 * 60 * 60 * 12;
 
-export const PopupAd = () => {
-  const ad = useQuery(api.popupAds.getActiveAd, {});
+type ActivePopupAd = {
+  _id: Id<"popupAds">;
+  title: string;
+  message: string;
+  imageUrl?: string;
+  ctaText?: string;
+  ctaUrl?: string;
+  active: boolean;
+};
+
+const PopupAdWithConvex = () => {
+  const ad = (useQuery(api.popupAds.getActivePopupAd) ?? null) as ActivePopupAd | null;
   const [open, setOpen] = useState(false);
 
   const canShow = useMemo(() => {
@@ -47,8 +58,9 @@ export const PopupAd = () => {
               src={ad.imageUrl}
               alt={ad.title}
               className="w-full h-auto max-h-56 object-contain"
-              loading="eager"
+              loading="lazy"
               decoding="async"
+              sizes="(max-width: 640px) 100vw, 380px"
               style={{ imageRendering: "auto" }}
             />
           </div>
@@ -62,4 +74,13 @@ export const PopupAd = () => {
       </Link>
     </div>
   );
+};
+
+export const PopupAd = () => {
+  const convexUrl = (import.meta.env.VITE_CONVEX_URL as string | undefined)?.trim();
+  if (!convexUrl) {
+    return null;
+  }
+
+  return <PopupAdWithConvex />;
 };

@@ -1,5 +1,5 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "sistaevents-site",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -8,6 +8,8 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
+    "localize:collections": "tsx scripts/localize-static-collections.ts",
+    "snapshot:collections": "tsx scripts/snapshot-convex-collections.ts",
     "preview": "vite preview",
     "vercel-build": "next build"
   },

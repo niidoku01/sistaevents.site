@@ -51,40 +51,47 @@ const HeroContent = () => {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${heroImage})` }}
-      >
+      <div className="absolute inset-0">
+        <img
+          src={heroImage}
+          alt=""
+          aria-hidden="true"
+          className="w-full h-full object-cover"
+          loading="eager"
+          fetchPriority="high"
+          decoding="async"
+          sizes="100vw"
+        />
         <div className="absolute inset-0 bg-gradient-to-r from-primary/90 via-primary/70 to-primary/50" />
       </div>
     
 
-      <div className="relative z-10 container mx-auto px-4 lg:px-6 text-center">
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground mb-6 animate-fade-in">
+      <div className="relative z-10 container mx-auto px-4 lg:px-6 text-center pt-20 sm:pt-24">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground mb-6 animate-fade-in leading-tight">
            WE PLAN EVENTS  
           <br />
-          <span className="text-xs md:text-base lg:text-lg bg-gradient-accent bg-clip-text text-transparent mt-4 block whitespace-nowrap overflow-x-auto mx-auto w-full text-center">
+          <span className="text-[11px] sm:text-sm md:text-base lg:text-lg bg-gradient-accent bg-clip-text text-transparent mt-4 block max-w-3xl mx-auto text-center text-balance">
           • Weddings • Funerals • Parties • Graduation • Corporate Events  
           </span>
         </h1>
         
-        <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in" style={{ animationDelay: "0.4s" }}>
-          <Button variant="hero" size="lg" onClick={scrollToContact}>
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-fade-in w-full max-w-md sm:max-w-none mx-auto" style={{ animationDelay: "0.4s" }}>
+          <Button variant="hero" size="lg" onClick={scrollToContact} className="w-full sm:w-auto">
             Book Us Now
           </Button>
-          <Button variant="outline" size="lg" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary" onClick={goToGallery}>
+          <Button variant="outline" size="lg" className="w-full sm:w-auto border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary" onClick={goToGallery}>
             View Our Collection
           </Button>
         </div>
-        <div className="mt-20 max-w-md mx-auto bg-green-100/10 backdrop-blur-sm border border-green-100/20 rounded-lg p-3 md:p-2 animate-fade-in" style={{ animationDelay: "0.9s" }}>
+        <div className="mt-12 sm:mt-16 lg:mt-20 max-w-md mx-auto bg-green-100/10 backdrop-blur-sm border border-green-100/20 rounded-lg p-3 sm:p-4 md:p-3 animate-fade-in" style={{ animationDelay: "0.9s" }}>
           <p className="text-primary-foreground/85 text-xs sm:text-sm md:text-base mb-2 md:mb-3">Date Availability Checker</p>
-          <div className="flex flex-row gap-2 items-center justify-center">
+          <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-center">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   type="button"
                   variant="outline"
-                  className="bg-white/85 border-sky-100/40 text-foreground h-8 text-xs sm:text-sm w-[140px] sm:w-[160px] flex-none justify-start text-left font-normal"
+                  className="bg-white/85 border-sky-100/40 text-foreground h-9 text-xs sm:text-sm w-full sm:w-[170px] flex-none justify-start text-left font-normal"
                 >
                   <CalendarIcon className="mr-2 h-4 w-4 text-accent" />
                   {eventDate ? formatDate(eventDate) : "Select date"}
@@ -114,7 +121,7 @@ const HeroContent = () => {
                 />
               </PopoverContent>
             </Popover>
-            <Button variant="secondary" className="h-8 px-3 sm:px-3 text-xs sm:text-sm whitespace-nowrap bg-sky-100/70 hover:bg-sky-100/85 text-slate-800" onClick={goToBookingWithDate}>
+            <Button variant="secondary" className="h-9 px-3 sm:px-3 text-xs sm:text-sm whitespace-nowrap bg-sky-100/70 hover:bg-sky-100/85 text-slate-800 w-full sm:w-auto" onClick={goToBookingWithDate}>
               Check Date
             </Button>
           </div>

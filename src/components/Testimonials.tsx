@@ -8,11 +8,12 @@ import { ReviewForm } from "./ReviewForm";
 const TestimonialsWithConvex = () => {
   const testimonials = useQuery(api.reviews.getApprovedReviews) || [];
   const [showForm, setShowForm] = useState(false);
+  const sortedTestimonials = [...testimonials].sort((a, b) => b.createdAt - a.createdAt);
 
   return (
     <section id="testimonials" className="py-20 lg:py-32 bg-background">
       <div className="container mx-auto px-4 lg:px-6">
-        <div className="text-center mb-16">
+        <div className="text-center mb-16" data-reveal>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
             What Our Clients Say
           </h2>
@@ -21,7 +22,7 @@ const TestimonialsWithConvex = () => {
           </p>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="text-accent hover:underline font-medium"
+            className="text-primary hover:text-primary/80 underline underline-offset-4 font-medium"
           >
             {showForm ? "Hide Review Form" : "Share Your Experience"}
           </button>
@@ -33,26 +34,29 @@ const TestimonialsWithConvex = () => {
           </div>
         )}
 
-        {testimonials.length === 0 ? (
+        {sortedTestimonials.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">No reviews yet. Be the first to share your experience!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {testimonials.map((testimonial) => (
-              <Card key={testimonial._id} className="border-border">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8" data-reveal-stagger>
+            {sortedTestimonials.map((testimonial) => (
+              <Card key={testimonial._id} className="border-border" data-reveal data-reveal-item>
                 <CardContent className="p-6 lg:p-8">
                   <div className="flex gap-1 mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
                       <Star key={i} className="w-5 h-5 fill-accent text-accent" />
                     ))}
                   </div>
-                  <p className="text-foreground mb-6 italic">
+                  <p className="text-foreground mb-6 italic whitespace-pre-line break-words">
                     "{testimonial.content}"
                   </p>
                   <div>
-                    <p className="font-semibold text-foreground">{testimonial.name}</p>
+                    <p className="font-semibold text-foreground">{testimonial.name} said:</p>
                     <p className="text-sm text-muted-foreground">{testimonial.event}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {new Date(testimonial.createdAt).toLocaleDateString()}
+                    </p>
                   </div>
                 </CardContent>
               </Card>

@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { useMutation, useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,26 +6,29 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
 
-const RECOMMENDED_WIDTH = 1200;
-const RECOMMENDED_HEIGHT = 600;
+type PopupAd = {
+  _id: Id<"popupAds">;
+  title: string;
+  message: string;
+  imageUrl?: string;
+  ctaText?: string;
+  ctaUrl?: string;
+  active: boolean;
+};
 
 const ManagePopupAds = () => {
   const { toast } = useToast();
-  const ads = useQuery(api.popupAds.listAds, {}) || [];
-  const createAd = useMutation(api.popupAds.createAd);
-  const generateUploadUrl = useMutation(api.images.generateUploadUrl);
-  const setActive = useMutation(api.popupAds.setActive);
-  const deleteAd = useMutation(api.popupAds.deleteAd);
+  const ads = (useQuery(api.popupAds.listPopupAds) || []) as PopupAd[];
+  const createPopupAd = useMutation(api.popupAds.createPopupAd);
+  const setPopupAdActive = useMutation(api.popupAds.setPopupAdActive);
+  const deletePopupAd = useMutation(api.popupAds.deletePopupAd);
+  const [imageFileName, setImageFileName] = useState("");
 
   const [isSaving, setIsSaving] = useState(false);
-  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
-  const [selectedImagePreview, setSelectedImagePreview] = useState("");
-  const [selectedImageMeta, setSelectedImageMeta] = useState<{
-    width: number;
-    height: number;
-    sizeLabel: string;
-  } | null>(null);
   const [form, setForm] = useState({
     title: "",
     message: "",
@@ -48,33 +49,22 @@ const ManagePopupAds = () => {
       return;
     }
 
+    if (!form.imageUrl.trim()) {
+      toast({
+        title: "Image required",
+        description: "Please upload an ad image or provide an image URL before posting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setIsSaving(true);
-      let imageUrl = form.imageUrl.trim() || undefined;
-      let imageStorageId: string | undefined;
+      const imageUrl = form.imageUrl.trim() || undefined;
 
-      // If a local image is selected, upload it and use the returned URL.
-      if (selectedImageFile) {
-        const postUrl = await generateUploadUrl();
-        const uploadResponse = await fetch(postUrl, {
-          method: "POST",
-          headers: { "Content-Type": selectedImageFile.type },
-          body: selectedImageFile,
-        });
-
-        if (!uploadResponse.ok) {
-          throw new Error("Could not upload popup image");
-        }
-
-        const { storageId } = await uploadResponse.json();
-        imageStorageId = storageId;
-        imageUrl = undefined;
-      }
-
-      await createAd({
+      await createPopupAd({
         title: form.title.trim(),
         message: form.message.trim(),
-        imageStorageId: imageStorageId as any,
         imageUrl,
         ctaText: form.ctaText.trim() || undefined,
         ctaUrl: form.ctaUrl.trim() || undefined,
@@ -94,8 +84,7 @@ const ManagePopupAds = () => {
         ctaUrl: "",
         active: true,
       });
-      setSelectedImageFile(null);
-      setSelectedImagePreview("");
+      setImageFileName("");
     } catch {
       toast({
         title: "Create failed",
@@ -107,33 +96,40 @@ const ManagePopupAds = () => {
     }
   };
 
-  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setSelectedImageFile(file);
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    if (!file) {
-      setSelectedImagePreview("");
-      setSelectedImageMeta(null);
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Invalid file",
+        description: "Please select a valid image file.",
+        variant: "destructive",
+      });
       return;
     }
 
-    const previewUrl = URL.createObjectURL(file);
-    setSelectedImagePreview(previewUrl);
-
-    const img = new Image();
-    img.onload = () => {
-      setSelectedImageMeta({
-        width: img.naturalWidth,
-        height: img.naturalHeight,
-        sizeLabel: `${(file.size / 1024).toFixed(0)} KB`,
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === "string" ? reader.result : "";
+      setForm((prev) => ({ ...prev, imageUrl: result }));
+      setImageFileName(file.name);
+    };
+    reader.onerror = () => {
+      toast({
+        title: "Upload failed",
+        description: "Could not read the selected image.",
+        variant: "destructive",
       });
     };
-    img.src = previewUrl;
+
+    reader.readAsDataURL(file);
   };
 
-  const handleToggle = async (id: any, active: boolean) => {
+
+  const handleToggle = async (id: Id<"popupAds">, active: boolean) => {
     try {
-      await setActive({ id, active });
+      await setPopupAdActive({ id, active });
       toast({
         title: "Updated",
         description: active ? "Ad is now active." : "Ad deactivated.",
@@ -147,9 +143,9 @@ const ManagePopupAds = () => {
     }
   };
 
-  const handleDelete = async (id: any) => {
+  const handleDelete = async (id: Id<"popupAds">) => {
     try {
-      await deleteAd({ id });
+      await deletePopupAd({ id });
       toast({
         title: "Deleted",
         description: "Popup ad removed.",
@@ -182,46 +178,27 @@ const ManagePopupAds = () => {
                 />
               </div>
               <div>
-                <p className="text-sm text-slate-700 mb-1">Image URL (optional)</p>
+                <p className="text-sm text-slate-700 mb-1">Image URL (required if no upload)</p>
                 <Input
                   value={form.imageUrl}
                   onChange={(e) => setForm((prev) => ({ ...prev, imageUrl: e.target.value }))}
                   placeholder="https://..."
                 />
-                <p className="text-[11px] text-slate-500 mt-1">upload a graphical content</p>
+                <p className="text-[11px] text-slate-500 mt-1">Use a hosted URL, or upload an image below.</p>
+              </div>
+              <div>
+                <p className="text-sm text-slate-700 mb-1">Upload Ad Image (required if no URL)</p>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                />
+                <p className="text-[11px] text-slate-500 mt-1">
+                  {imageFileName ? `Selected: ${imageFileName}` : "No file selected"}
+                </p>
               </div>
             </div>
 
-            <div>
-              <p className="text-sm text-slate-700 mb-1">Upload graphic (optional)</p>
-              <Input
-                type="file"
-                accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                onChange={handleImageFileChange}
-              />
-              <p className="text-[11px] text-slate-500 mt-1">
-                Recommended size: {RECOMMENDED_WIDTH} x {RECOMMENDED_HEIGHT}px (2:1), under 500KB.
-              </p>
-              {selectedImagePreview ? (
-                <div className="mt-2 flex items-center gap-3">
-                  <img
-                    src={selectedImagePreview}
-                    alt="Popup preview"
-                    className="h-16 w-16 rounded border object-cover"
-                  />
-                  <div className="text-xs text-slate-600">
-                    <p>Selected image</p>
-                    {selectedImageMeta ? (
-                      <p>
-                        {selectedImageMeta.width} x {selectedImageMeta.height}px • {selectedImageMeta.sizeLabel}
-                      </p>
-                    ) : (
-                      <p>Loading dimensions...</p>
-                    )}
-                  </div>
-                </div>
-              ) : null}
-            </div>
 
             <div>
               <p className="text-sm text-slate-700 mb-1">Message</p>
@@ -267,9 +244,9 @@ const ManagePopupAds = () => {
             <div className="rounded-lg border border-amber-200 bg-amber-50/40 p-3">
               <p className="text-sm font-medium text-slate-900 mb-2">Sample Preview</p>
               <div className="max-w-sm rounded-md border bg-white overflow-hidden">
-                {selectedImagePreview || form.imageUrl ? (
+                {form.imageUrl ? (
                   <img
-                    src={selectedImagePreview || form.imageUrl}
+                    src={form.imageUrl}
                     alt="Ad sample"
                     className="w-full h-36 object-cover"
                   />

@@ -1,91 +1,122 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
-export const listAds = query({
-  args: {},
-  handler: async (ctx) => {
-    const ads = await ctx.db.query("popupAds").withIndex("by_created_at").collect();
+const sortNewestFirst = <T extends { createdAt: number }>(items: T[]) =>
+	items.sort((a, b) => b.createdAt - a.createdAt);
 
-    const resolvedAds = await Promise.all(
-      ads.map(async (ad) => ({
-        ...ad,
-        imageUrl: ad.imageStorageId ? await ctx.storage.getUrl(ad.imageStorageId) : ad.imageUrl,
-      }))
-    );
-
-    return resolvedAds.sort((a, b) => b.createdAt - a.createdAt);
-  },
+export const listPopupAds = query({
+	handler: async (ctx) => {
+		const ads = await ctx.db.query("popupAds").collect();
+		return sortNewestFirst(ads).map((ad) => ({
+			...ad,
+			active: ad.isActive,
+		}));
+	},
 });
 
-export const getActiveAd = query({
-  args: {},
-  handler: async (ctx) => {
-    const activeAds = await ctx.db.query("popupAds").withIndex("by_active", (q) => q.eq("active", true)).collect();
-    if (activeAds.length === 0) return null;
+export const getActivePopupAd = query({
+	handler: async (ctx) => {
+		const now = Date.now();
+		const activeAds = await ctx.db
+			.query("popupAds")
+			.withIndex("by_active", (q) => q.eq("isActive", true))
+			.collect();
 
-    const activeAd = activeAds.sort((a, b) => b.updatedAt - a.updatedAt)[0];
-    return {
-      ...activeAd,
-      imageUrl: activeAd.imageStorageId ? await ctx.storage.getUrl(activeAd.imageStorageId) : activeAd.imageUrl,
-    };
-  },
+		const eligible = activeAds
+			.filter((ad) => {
+				const startsOk = ad.startsAt === undefined || ad.startsAt <= now;
+				const endsOk = ad.endsAt === undefined || ad.endsAt >= now;
+				return startsOk && endsOk;
+			})
+			.sort((a, b) => b.updatedAt - a.updatedAt);
+
+		const ad = eligible[0];
+		if (!ad) return null;
+
+		return {
+			...ad,
+			active: ad.isActive,
+		};
+	},
 });
 
-export const createAd = mutation({
-  args: {
-    title: v.string(),
-    message: v.string(),
-    imageStorageId: v.optional(v.id("_storage")),
-    imageUrl: v.optional(v.string()),
-    ctaText: v.optional(v.string()),
-    ctaUrl: v.optional(v.string()),
-    active: v.boolean(),
-  },
-  handler: async (ctx, args) => {
-    const now = Date.now();
+export const createPopupAd = mutation({
+	args: {
+		title: v.string(),
+		message: v.string(),
+		imageUrl: v.optional(v.string()),
+		ctaText: v.optional(v.string()),
+		ctaUrl: v.optional(v.string()),
+		active: v.boolean(),
+	},
+	handler: async (ctx, args) => {
+		const now = Date.now();
 
-    if (args.active) {
-      const activeAds = await ctx.db.query("popupAds").withIndex("by_active", (q) => q.eq("active", true)).collect();
-      await Promise.all(activeAds.map((ad) => ctx.db.patch(ad._id, { active: false, updatedAt: now })));
-    }
+		if (args.active) {
+			const activeAds = await ctx.db
+				.query("popupAds")
+				.withIndex("by_active", (q) => q.eq("isActive", true))
+				.collect();
 
-    return await ctx.db.insert("popupAds", {
-      title: args.title,
-      message: args.message,
-      imageStorageId: args.imageStorageId,
-      imageUrl: args.imageUrl,
-      ctaText: args.ctaText,
-      ctaUrl: args.ctaUrl,
-      active: args.active,
-      createdAt: now,
-      updatedAt: now,
-    });
-  },
+			await Promise.all(
+				activeAds.map((ad) =>
+					ctx.db.patch(ad._id, {
+						isActive: false,
+						updatedAt: now,
+					})
+				)
+			);
+		}
+
+		return await ctx.db.insert("popupAds", {
+			title: args.title,
+			message: args.message,
+			imageUrl: args.imageUrl,
+			ctaText: args.ctaText,
+			ctaUrl: args.ctaUrl,
+			isActive: args.active,
+			createdAt: now,
+			updatedAt: now,
+		});
+	},
 });
 
-export const setActive = mutation({
-  args: {
-    id: v.id("popupAds"),
-    active: v.boolean(),
-  },
-  handler: async (ctx, args) => {
-    const now = Date.now();
+export const setPopupAdActive = mutation({
+	args: {
+		id: v.id("popupAds"),
+		active: v.boolean(),
+	},
+	handler: async (ctx, args) => {
+		const now = Date.now();
 
-    if (args.active) {
-      const activeAds = await ctx.db.query("popupAds").withIndex("by_active", (q) => q.eq("active", true)).collect();
-      await Promise.all(activeAds.map((ad) => ctx.db.patch(ad._id, { active: false, updatedAt: now })));
-    }
+		if (args.active) {
+			const activeAds = await ctx.db
+				.query("popupAds")
+				.withIndex("by_active", (q) => q.eq("isActive", true))
+				.collect();
 
-    await ctx.db.patch(args.id, {
-      active: args.active,
-      updatedAt: now,
-    });
-  },
+			await Promise.all(
+				activeAds.map((ad) =>
+					ctx.db.patch(ad._id, {
+						isActive: false,
+						updatedAt: now,
+					})
+				)
+			);
+		}
+
+		await ctx.db.patch(args.id, {
+			isActive: args.active,
+			updatedAt: now,
+		});
+	},
 });
 
-export const deleteAd = mutation({
-  args: { id: v.id("popupAds") },
-  handler: async (ctx, args) => {
-    await ctx.db.delete(args.id);
-  },
+export const deletePopupAd = mutation({
+	args: {
+		id: v.id("popupAds"),
+	},
+	handler: async (ctx, args) => {
+		await ctx.db.delete(args.id);
+	},
 });

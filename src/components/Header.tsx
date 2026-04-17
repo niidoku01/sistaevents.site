@@ -26,11 +26,11 @@ export const Header = () => {
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-4 lg:px-6">
         <div className="flex items-center justify-between h-16 lg:h-20">
-          <div className="flex items-center gap-1 md:gap-2 cursor-pointer" onClick={() => handleNavigation("/")}>
+          <div className="flex items-center gap-1.5 sm:gap-2 cursor-pointer min-w-0" onClick={() => handleNavigation("/")}>
             <img 
               src={images.misc.sistalogo} 
               alt="Sista Events Logo" 
-              className="h-12 w-12 md:h-16 md:w-16 lg:h-20 lg:w-20 flex-shrink-0 drop-shadow-[0_2px_12px_rgba(0,0,0,0.4)] hover:drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:scale-110 transition-all duration-300" 
+              className="h-10 w-10 sm:h-12 sm:w-12 md:h-16 md:w-16 lg:h-20 lg:w-20 flex-shrink-0 drop-shadow-[0_2px_12px_rgba(0,0,0,0.4)] hover:drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:scale-110 transition-all duration-300" 
               style={{ 
                 imageRendering: "crisp-edges",
                 filter: "contrast(1.0) saturate(1.9) brightness(1.1)",
@@ -39,10 +39,15 @@ export const Header = () => {
                 backfaceVisibility: "hidden",
                 transform: "translateZ(0)"
               }}
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
             />
 
-            <div className="text-sm md:text-lg lg:text-xl font-bold bg-gradient-to-r from-[#FFD700] to-accent to-primary bg-clip-text text-transparent">
-               SISTA EVENTS AND RENTALS
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-sm md:text-lg lg:text-xl font-bold bg-gradient-to-r from-[#FFD700] to-accent to-primary bg-clip-text text-transparent truncate whitespace-nowrap">
+                SISTA EVENTS AND RENTALS
+              </p>
             </div>
           </div>
 
@@ -60,7 +65,7 @@ export const Header = () => {
                   onClick={() => scrollToSection("featured")}
                   className="text-foreground hover:text-accent transition-colors"
                 >
-                  
+                  Logistics
                 </button>
                 <button
                   onClick={() => scrollToSection("about")}
@@ -97,6 +102,7 @@ export const Header = () => {
             <button
               className="md:hidden text-foreground"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Toggle navigation menu"
             >
               <Menu className="h-6 w-6" />
             </button>

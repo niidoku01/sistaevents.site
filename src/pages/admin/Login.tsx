@@ -21,8 +21,9 @@ const Login: React.FC = () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       navigate("/admin/bookings");
-    } catch (err: any) {
-      setError(err.message || "Failed to login");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to login";
+      setError(message);
       // Log failed login attempt
       fetch("/api/log", {
         method: "POST",

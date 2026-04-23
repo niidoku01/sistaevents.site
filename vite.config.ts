@@ -25,7 +25,7 @@ export default defineConfig({
   build: {
     // Minify and optimize for production
     minify: "esbuild", // Use esbuild for faster minification
-    sourcemap: true, // Generate source maps for better debugging and Lighthouse best-practices
+    sourcemap: false,
     target: "es2020",
     chunkSizeWarningLimit: 1000, // Increase chunk size warning limit to 1000kb
     rollupOptions: {

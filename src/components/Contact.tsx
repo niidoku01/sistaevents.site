@@ -6,12 +6,13 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Phone, Mail, MapPin } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import bookingSuccessSound from "@/sound/u_3bsnvt0dsu-successed-295058.mp3";
 
-const BRANDED_SUCCESS_SOUND_URL = "/sounds/sistaevents-booking-success.mp3";
+const BRANDED_SUCCESS_SOUND_URL = bookingSuccessSound;
 
 // Custom WhatsApp icon component
 const WhatsAppIcon = ({ className }: { className?: string }) => (
@@ -28,6 +29,9 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
 export const Contact = () => {
   const { toast } = useToast();
   const createBooking = useMutation(api.bookings.createBooking);
+  const successAudioRef = useRef<HTMLAudioElement | null>(null);
+  const fallbackAudioContextRef = useRef<AudioContext | null>(null);
+  const isAudioPrimedRef = useRef(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -37,6 +41,7 @@ export const Contact = () => {
     message: "",
   });
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const hasRequiredFields = Boolean(formData.name.trim() && formData.email.trim() && formData.message.trim());
 
   const getMissingFieldMessage = () => {
     if (!formData.name.trim()) return "Please enter your name.";
@@ -63,7 +68,8 @@ export const Contact = () => {
         return;
       }
 
-      const audioContext = new AudioContextConstructor();
+      const audioContext = fallbackAudioContextRef.current ?? new AudioContextConstructor();
+      fallbackAudioContextRef.current = audioContext;
 
       if (audioContext.state === "suspended") {
         void audioContext.resume();
@@ -91,22 +97,56 @@ export const Contact = () => {
       createTone(659, now, 0.12, 0.03);
       createTone(988, now + 0.13, 0.14, 0.03);
       createTone(1318, now + 0.28, 0.2, 0.028);
-
-      setTimeout(() => {
-        audioContext.close().catch(() => {
-          // No-op: context may already be closed.
-        });
-      }, 700);
     } catch {
       // No-op: if audio is blocked/unavailable, booking still succeeds.
     }
   };
 
-  const playSuccessSound = async () => {
+  const primeSuccessSound = async () => {
+    if (isAudioPrimedRef.current) return;
+
     try {
       const audio = new Audio(BRANDED_SUCCESS_SOUND_URL);
       audio.preload = "auto";
+      audio.volume = 0;
+      audio.muted = true;
+
+      await audio.play();
+      audio.pause();
+      audio.currentTime = 0;
+
+      audio.muted = false;
       audio.volume = 0.9;
+      successAudioRef.current = audio;
+      isAudioPrimedRef.current = true;
+      return;
+    } catch {
+      // Fall through to priming fallback chime.
+    }
+
+    try {
+      const AudioContextConstructor = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AudioContextConstructor) return;
+
+      const audioContext = fallbackAudioContextRef.current ?? new AudioContextConstructor();
+      fallbackAudioContextRef.current = audioContext;
+
+      if (audioContext.state === "suspended") {
+        await audioContext.resume();
+      }
+
+      isAudioPrimedRef.current = true;
+    } catch {
+      // No-op.
+    }
+  };
+
+  const playSuccessSound = async () => {
+    try {
+      const audio = successAudioRef.current ?? new Audio(BRANDED_SUCCESS_SOUND_URL);
+      audio.preload = "auto";
+      audio.volume = 0.9;
+      audio.currentTime = 0;
       await audio.play();
     } catch {
       playFallbackSuccessChime();
@@ -145,6 +185,7 @@ export const Contact = () => {
     setIsLoading(true);
 
     try {
+      await primeSuccessSound();
       await createBooking(formData);
       playSuccessSound();
       toast({
@@ -170,22 +211,25 @@ export const Contact = () => {
   };
 
   return (
-    <section id="contact" className="py-20 lg:py-32 bg-muted/50">
+    <section id="contact" className="section-mobile-padding bg-muted/50">
       <div className="container mx-auto px-4 lg:px-6">
-        <div className="text-center mb-16">
+        <div className="text-center mb-10 sm:mb-16">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
             Bookings
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="hidden sm:block text-lg text-muted-foreground max-w-2xl mx-auto">
             Let's discuss how we can make your event extraordinary
+          </p>
+          <p className="sm:hidden text-sm text-muted-foreground max-w-2xl mx-auto">
+            Tell us what you need and we’ll help you plan it.
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8 lg:gap-12">
+        <div className="grid lg:grid-cols-3 gap-5 sm:gap-8 lg:gap-12">
           <div className="lg:col-span-2">
             <Card className="border-border">
-              <CardContent className="p-6 lg:p-8">
-                <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+              <CardContent className="p-4 sm:p-6 lg:p-8">
+                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6" noValidate>
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
@@ -194,6 +238,7 @@ export const Contact = () => {
                       <Input
                         id="name"
                         aria-required="true"
+                        autoComplete="name"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         placeholder="Mr/Ms."
@@ -207,6 +252,7 @@ export const Contact = () => {
                         id="email"
                         type="email"
                         aria-required="true"
+                        autoComplete="email"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         placeholder="mail@example.com"
@@ -222,6 +268,8 @@ export const Contact = () => {
                       <Input
                         id="phone"
                         type="tel"
+                        autoComplete="tel"
+                        inputMode="tel"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                         placeholder="(0) 123456789"
@@ -267,6 +315,7 @@ export const Contact = () => {
                     <Textarea
                       id="message"
                       aria-required="true"
+                      maxLength={1000}
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                       placeholder="Describe your event needs, logistics, guest count, venue, etc."
@@ -274,7 +323,14 @@ export const Contact = () => {
                     />
                   </div>
 
-                  <Button type="submit" variant="secondary" size="lg" className="w-full" disabled={isLoading}>
+                  <Button
+                    type="submit"
+                    variant="secondary"
+                    size="lg"
+                    className="w-full"
+                    disabled={isLoading || !hasRequiredFields}
+                    aria-disabled={isLoading || !hasRequiredFields}
+                  >
                     {isLoading ? "Sending..." : "Send Booking"}
                   </Button>
                 </form>
@@ -282,7 +338,7 @@ export const Contact = () => {
             </Card>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             <Card className="border-border">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
@@ -313,7 +369,7 @@ export const Contact = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-border">
+            <Card className="border-border hidden sm:block">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
@@ -327,7 +383,7 @@ export const Contact = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-border">
+            <Card className="border-border hidden sm:block">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">

@@ -237,7 +237,7 @@ export const Featured = () => {
                     <Badge variant="secondary" className="text-xs">
                       {item.category}
                     </Badge>
-                    <span className={`text-xs font-medium ${item.available ? "text-accent" : "text-red-500"}`}>
+                    <span className={`text-xs font-semibold ${item.available ? "text-emerald-700" : "text-red-700"}`}>
                       {item.available ? "Available" : "Rented Out"}
                     </span>
                   </div>

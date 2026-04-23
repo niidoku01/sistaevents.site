@@ -101,13 +101,13 @@ export const ReviewForm = () => {
               value={formData.name}
               onChange={handleChange}
               required
-              placeholder="John Doe"
+              placeholder="Your name or nickname"
             />
           </div>
 
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium">
-              Email *
+              Email 
             </label>
             <Input
               id="email"
@@ -116,13 +116,13 @@ export const ReviewForm = () => {
               value={formData.email}
               onChange={handleChange}
               required
-              placeholder="john@example.com"
+              placeholder="example@mail.com"
             />
           </div>
 
           <div className="space-y-2">
             <label htmlFor="event" className="text-sm font-medium">
-              Event Type *
+              Event Type 
             </label>
             <Input
               id="event"
@@ -136,7 +136,7 @@ export const ReviewForm = () => {
 
           <div className="space-y-2">
             <label htmlFor="content" className="text-sm font-medium">
-              Your Review *
+              Your Review 
             </label>
             <Textarea
               id="content"
@@ -160,6 +160,7 @@ export const ReviewForm = () => {
 
           <p className="text-xs text-muted-foreground text-center">
             Your review will be reviewed by our team before being published.
+            THANK YOU!
           </p>
         </form>
       </CardContent>

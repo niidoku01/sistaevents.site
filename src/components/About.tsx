@@ -2,7 +2,7 @@ import { CheckCircle2 } from "lucide-react";
 import { images } from "@/lib/imageImports";
 
 const features = [
-  "Premium quality inventory",
+  "Premium quality event logistics",
   "Professional delivery & setup",
   "Flexible rental periods",
   "Dedicated event coordinators",
@@ -12,23 +12,29 @@ const features = [
 
 export const About = () => {
   return (
-    <section id="about" className="py-20 lg:py-32 bg-muted/50">
+    <section id="about" className="section-mobile-padding bg-muted/50">
       <div className="container mx-auto px-4 lg:px-6">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 items-center">
           <div>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4 sm:mb-6">
               Why Choose Us ?
             </h2>
-            <p className="text-lg text-muted-foreground mb-8">
+            <p className="hidden sm:block text-lg text-muted-foreground mb-8">
               With over 5 years of experience, we've transformed countless events into memorable experiences. Our touch of excellence and attention to detail sets us apart in the event planning industry.
             </p>
-            <div className="grid gap-4">
+            <p className="sm:hidden text-sm text-muted-foreground mb-5">
+              5+ years delivering memorable events with premium quality and reliable support.
+            </p>
+            <div className="grid gap-3 sm:gap-4">
               {features.map((feature, index) => (
-                <div key={index} className="flex items-center gap-3">
+                <div
+                  key={index}
+                  className={`flex items-center gap-3 ${index > 3 ? "hidden sm:flex" : ""}`}
+                >
                   <div className="flex-shrink-0 w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center">
                     <CheckCircle2 className="w-4 h-4 text-accent" />
                   </div>
-                  <span className="text-foreground">{feature}</span>
+                  <span className="text-sm sm:text-base text-foreground">{feature}</span>
                 </div>
               ))}
             </div>

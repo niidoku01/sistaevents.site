@@ -11,14 +11,17 @@ const TestimonialsWithConvex = () => {
   const sortedTestimonials = [...testimonials].sort((a, b) => b.createdAt - a.createdAt);
 
   return (
-    <section id="testimonials" className="py-20 lg:py-32 bg-background">
+    <section id="testimonials" className="section-mobile-padding bg-background">
       <div className="container mx-auto px-4 lg:px-6">
-        <div className="text-center mb-16" data-reveal>
+        <div className="text-center mb-10 sm:mb-16" data-reveal>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
             What Our Clients Say
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
+          <p className="hidden sm:block text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
             Don't just take our word for it - hear from our satisfied clients
+          </p>
+          <p className="sm:hidden text-sm text-muted-foreground max-w-2xl mx-auto mb-5">
+            Hear from our satisfied clients.
           </p>
           <button
             onClick={() => setShowForm(!showForm)}
@@ -39,16 +42,16 @@ const TestimonialsWithConvex = () => {
             <p className="text-muted-foreground">No reviews yet. Be the first to share your experience!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8" data-reveal-stagger>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8" data-reveal-stagger>
             {sortedTestimonials.map((testimonial) => (
               <Card key={testimonial._id} className="border-border" data-reveal data-reveal-item>
-                <CardContent className="p-6 lg:p-8">
+                <CardContent className="p-4 sm:p-6 lg:p-8">
                   <div className="flex gap-1 mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
                       <Star key={i} className="w-5 h-5 fill-accent text-accent" />
                     ))}
                   </div>
-                  <p className="text-foreground mb-6 italic whitespace-pre-line break-words">
+                  <p className="text-sm sm:text-base text-foreground mb-4 sm:mb-6 italic whitespace-pre-line break-words line-clamp-4 sm:line-clamp-none">
                     "{testimonial.content}"
                   </p>
                   <div>

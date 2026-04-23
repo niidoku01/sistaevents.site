@@ -4,14 +4,22 @@ import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 import { getFirestore } from "firebase/firestore";
 
+const getRequiredEnv = (name: keyof ImportMetaEnv) => {
+  const value = (import.meta.env[name] as string | undefined)?.trim();
+  if (!value) {
+    throw new Error(`Missing required env var: ${name}`);
+  }
+  return value;
+};
+
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyD9tLpt7zJCLxchiy0lKdQOEp7aLYtTmEw",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "sistaer.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "sistaer",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "sistaer.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "603971068408",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:603971068408:web:586f0d1f157ef4a1e8b60d"
+  apiKey: getRequiredEnv("VITE_FIREBASE_API_KEY"),
+  authDomain: getRequiredEnv("VITE_FIREBASE_AUTH_DOMAIN"),
+  projectId: getRequiredEnv("VITE_FIREBASE_PROJECT_ID"),
+  storageBucket: getRequiredEnv("VITE_FIREBASE_STORAGE_BUCKET"),
+  messagingSenderId: getRequiredEnv("VITE_FIREBASE_MESSAGING_SENDER_ID"),
+  appId: getRequiredEnv("VITE_FIREBASE_APP_ID")
 };
 
 // Initialize Firebase

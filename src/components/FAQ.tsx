@@ -52,14 +52,17 @@ const faqs = [
 
 export const FAQ = () => {
   return (
-    <section className="py-20 lg:py-32 bg-muted/30">
+    <section className="section-mobile-padding bg-muted/30">
       <div className="container mx-auto px-4 lg:px-6">
-        <div className="text-center mb-16" data-reveal>
+        <div className="text-center mb-10 sm:mb-16" data-reveal>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
             Frequently Asked Questions
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="hidden sm:block text-lg text-muted-foreground max-w-2xl mx-auto">
             Got questions? We've got answers! Find quick answers to common questions about our services.
+          </p>
+          <p className="sm:hidden text-sm text-muted-foreground max-w-2xl mx-auto">
+            Quick answers to common questions.
           </p>
         </div>
 
@@ -69,16 +72,16 @@ export const FAQ = () => {
               <AccordionItem
                 key={index}
                 value={`item-${index}`}
-                className="bg-background border border-border rounded-lg px-6"
+                className={`bg-background border border-border rounded-lg px-4 sm:px-6 ${index > 5 ? "hidden sm:block" : ""}`}
                 data-reveal
                 data-reveal-item
               >
                 <AccordionTrigger className="text-left hover:no-underline">
-                  <span className="font-semibold text-foreground pr-4">
+                  <span className="font-semibold text-sm sm:text-base text-foreground pr-4">
                     {faq.question}
                   </span>
                 </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground pt-2 pb-4">
+                <AccordionContent className="text-sm sm:text-base text-muted-foreground pt-2 pb-4">
                   {faq.answer}
                 </AccordionContent>
               </AccordionItem>

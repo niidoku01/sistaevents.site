@@ -63,49 +63,34 @@ export const Packages = () => {
     element?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const scrollToContactWithPackage = (packageName: string, packagePrice: string, features: string[]) => {
-    // Create the pre-filled message
-    const message = `I'm interested in the ${packageName} package (${packagePrice}).
-
-Package includes:
-${features.map(f => `• ${f}`).join('\n')}
-
-Please provide me with a detailed quote and availability for my event.`;
-
-    // Store in sessionStorage so Contact component can read it
-    sessionStorage.setItem('selectedPackage', JSON.stringify({
-      name: packageName,
-      price: packagePrice,
-      message: message
-    }));
-
-    // Scroll to contact section
+  const scrollToContactWithPackage = () => {
+    sessionStorage.removeItem('selectedPackage');
     const element = document.getElementById("contact");
     element?.scrollIntoView({ behavior: "smooth" });
-    
-    // Trigger a custom event to notify Contact component
-    window.dispatchEvent(new CustomEvent('packageSelected'));
   };
 
   return (
-    <section className="py-20 lg:py-32 bg-background">
+    <section className="section-mobile-padding bg-background">
       <div className="container mx-auto px-4 lg:px-6">
-        <div className="text-center mb-16" data-reveal>
+        <div className="text-center mb-10 sm:mb-16" data-reveal>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
             Event Packages
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="hidden sm:block text-lg text-muted-foreground max-w-2xl mx-auto">
             Choose a package that fits your event size and budget. All packages are customizable!
+          </p>
+          <p className="sm:hidden text-sm text-muted-foreground max-w-2xl mx-auto">
+            Flexible packages for every event and budget.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto" data-reveal-stagger>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-8 max-w-7xl mx-auto" data-reveal-stagger>
           {packages.map((pkg, index) => (
             <Card 
               key={index} 
               className={`relative ${
                 pkg.popular 
-                  ? "border-accent shadow-xl scale-105 z-10" 
+                  ? "border-accent shadow-xl md:scale-105 z-10" 
                   : "border-border"
               }`}
               data-reveal
@@ -113,26 +98,26 @@ Please provide me with a detailed quote and availability for my event.`;
             >
               {pkg.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <span className="bg-accent text-white px-4 py-1 rounded-full text-sm font-semibold">
+                  <span className="bg-accent text-accent-foreground px-4 py-1 rounded-full text-sm font-semibold">
                     Most Popular
                   </span>
                 </div>
               )}
               
-              <CardHeader className="text-center pb-8">
+              <CardHeader className="text-center pb-6 sm:pb-8">
                 <CardTitle className="text-2xl mb-2">{pkg.name}</CardTitle>
                 <div className="text-3xl font-bold text-accent mb-2">
                   {pkg.price}
                 </div>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground line-clamp-2 sm:line-clamp-none">
                   {pkg.description}
                 </p>
               </CardHeader>
 
               <CardContent className="space-y-6">
-                <ul className="space-y-3">
+                <ul className="space-y-2 sm:space-y-3">
                   {pkg.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-start gap-3">
+                    <li key={idx} className={`flex items-start gap-3 ${idx > 4 ? "hidden sm:flex" : ""}`}>
                       <div className="flex-shrink-0 w-5 h-5 rounded-full bg-accent/10 flex items-center justify-center mt-0.5">
                         <Check className="w-3 h-3 text-accent" />
                       </div>
@@ -144,7 +129,7 @@ Please provide me with a detailed quote and availability for my event.`;
                 <Button 
                   className="w-full" 
                   variant={pkg.popular ? "default" : "outline"}
-                  onClick={() => scrollToContactWithPackage(pkg.name, pkg.price, pkg.features)}
+                  onClick={scrollToContactWithPackage}
                 >
                   Get Quote
                 </Button>
@@ -153,8 +138,8 @@ Please provide me with a detailed quote and availability for my event.`;
           ))}
         </div>
 
-        <div className="mt-12 text-center">
-          <p className="text-muted-foreground mb-4">
+        <div className="mt-8 sm:mt-12 text-center">
+          <p className="hidden sm:block text-muted-foreground mb-4">
             Need a custom package? We'll create something perfect for your event.
           </p>
           <Button variant="link" onClick={scrollToContact} className="text-primary hover:text-primary/80">

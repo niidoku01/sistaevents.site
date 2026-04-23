@@ -42,7 +42,7 @@
 ```typescript
 // Move to environment variables
 // Create .env file:
-VITE_FIREBASE_API_KEY=AIzaSyD9tLpt7zJCLxchiy0lKdQOEp7aLYtTmEw
+VITE_FIREBASE_API_KEY=your_firebase_api_key
 VITE_FIREBASE_AUTH_DOMAIN=sistaer.firebaseapp.com
 VITE_FIREBASE_PROJECT_ID=sistaer
 VITE_FIREBASE_STORAGE_BUCKET=sistaer.firebasestorage.app

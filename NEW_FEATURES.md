@@ -60,19 +60,19 @@
 
 **Three Package Tiers:**
 
-**Basic Package** - From $500
+**Basic Package** - From 1.5k
 - Up to 50 guests
 - Basic setup
 - 4-hour rental
 
-**Premium Package** - From $1,200 (Most Popular)
+**Premium Package** - From 3k (Most Popular)
 - Up to 150 guests
 - Premium furniture & decor
 - Event lighting
 - 8-hour rental
 - Dedicated coordinator
 
-**Luxury Package** - From $2,500
+**Luxury Package** - From 10k
 - Unlimited guests
 - Full design package
 - Custom everything

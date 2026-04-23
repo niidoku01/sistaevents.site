@@ -59,39 +59,39 @@ const HeroContent = () => {
           className="w-full h-full object-cover"
           loading="eager"
           fetchPriority="high"
-          decoding="async"
+          decoding="sync"
           sizes="100vw"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-primary/90 via-primary/70 to-primary/50" />
       </div>
     
 
-      <div className="relative z-10 container mx-auto px-4 lg:px-6 text-center pt-20 sm:pt-24">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground mb-6 animate-fade-in leading-tight">
+      <div className="relative z-10 container mx-auto px-4 lg:px-6 text-center pt-14 sm:pt-16">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-primary-foreground mb-4 sm:mb-6 animate-fade-in leading-tight">
            WE PLAN EVENTS  
           <br />
-          <span className="text-[11px] sm:text-sm md:text-base lg:text-lg bg-gradient-accent bg-clip-text text-transparent mt-4 block max-w-3xl mx-auto text-center text-balance">
+          <span className="text-[11px] sm:text-xs md:text-sm lg:text-base bg-gradient-accent bg-clip-text text-transparent mt-2 sm:mt-4 block max-w-3xl mx-auto text-center text-balance">
           • Weddings • Funerals • Parties • Graduation • Corporate Events  
           </span>
         </h1>
         
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-fade-in w-full max-w-md sm:max-w-none mx-auto" style={{ animationDelay: "0.4s" }}>
-          <Button variant="hero" size="lg" onClick={scrollToContact} className="w-full sm:w-auto">
+        <div className="inline-flex flex-nowrap gap-3 sm:gap-4 items-center justify-center animate-fade-in w-full overflow-x-auto pb-1" style={{ animationDelay: "0.4s" }}>
+          <Button variant="hero" size="default" onClick={scrollToContact} className="w-auto whitespace-nowrap flex-none">
             Book Us Now
           </Button>
-          <Button variant="outline" size="lg" className="w-full sm:w-auto border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary" onClick={goToGallery}>
+          <Button variant="outline" size="default" className="w-auto whitespace-nowrap flex-none border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary" onClick={goToGallery}>
             View Our Collection
           </Button>
         </div>
-        <div className="mt-12 sm:mt-16 lg:mt-20 max-w-md mx-auto bg-green-100/10 backdrop-blur-sm border border-green-100/20 rounded-lg p-3 sm:p-4 md:p-3 animate-fade-in" style={{ animationDelay: "0.9s" }}>
+        <div className="mt-16 lg:mt-20 max-w-md mx-auto bg-green-100/10 backdrop-blur-sm border border-green-100/20 rounded-lg p-3 sm:p-4 md:p-3 animate-fade-in" style={{ animationDelay: "0.9s" }}>
           <p className="text-primary-foreground/85 text-xs sm:text-sm md:text-base mb-2 md:mb-3">Date Availability Checker</p>
-          <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-center">
+          <div className="inline-flex flex-nowrap gap-2 items-center justify-center w-full overflow-x-auto pb-1">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   type="button"
                   variant="outline"
-                  className="bg-white/85 border-sky-100/40 text-foreground h-9 text-xs sm:text-sm w-full sm:w-[170px] flex-none justify-start text-left font-normal"
+                  className="bg-white/90 border-sky-100/40 text-foreground h-9 text-sm w-[170px] flex-none justify-start text-left font-normal"
                 >
                   <CalendarIcon className="mr-2 h-4 w-4 text-accent" />
                   {eventDate ? formatDate(eventDate) : "Select date"}
@@ -121,7 +121,7 @@ const HeroContent = () => {
                 />
               </PopoverContent>
             </Popover>
-            <Button variant="secondary" className="h-9 px-3 sm:px-3 text-xs sm:text-sm whitespace-nowrap bg-sky-100/70 hover:bg-sky-100/85 text-slate-800 w-full sm:w-auto" onClick={goToBookingWithDate}>
+            <Button variant="secondary" className="h-9 px-3 text-sm whitespace-nowrap bg-sky-100/80 hover:bg-sky-100 text-slate-900 w-auto flex-none" onClick={goToBookingWithDate}>
               Check Date
             </Button>
           </div>

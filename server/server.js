@@ -11,7 +11,11 @@ const fs = require("fs");
 const admin = require("firebase-admin");
 
 const app = express();
-const PORT = 5000;
+const PORT = Number(process.env.PORT) || 5000;
+const isProduction = process.env.NODE_ENV === "production";
+const isServerlessRuntime = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+
+app.disable("x-powered-by");
 
 // Initialize Firebase Admin SDK
 try {
@@ -77,12 +81,15 @@ app.use(helmet({
       frameSrc: ["'none'"],
     },
   },
+  hsts: isProduction
+    ? {
+        maxAge: 31536000,
+        includeSubDomains: true,
+        preload: true,
+      }
+    : false,
   crossOriginEmbedderPolicy: false,
 }));
-
-// CSRF protection for POST, PUT, DELETE
-const csurf = require('csurf');
-app.use(csurf({ cookie: true }));
 
 // Rate limiting - Prevent brute force and DoS attacks
 const limiter = rateLimit({
@@ -104,18 +111,28 @@ const bookingLimiter = rateLimit({
 app.use("/api/", limiter);
 
 // CORS - Configure allowed origins (update with your production domain)
-const allowedOrigins = [
+const defaultAllowedOrigins = [
   "http://localhost:8080",
   "http://localhost:5173",
   "http://localhost:3000",
-  process.env.FRONTEND_URL || "http://localhost:8080",
 ];
+
+const configuredOrigins = (process.env.ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const frontendUrl = (process.env.FRONTEND_URL || "").trim();
+
+const allowedOrigins = [...defaultAllowedOrigins, ...configuredOrigins, frontendUrl].filter(Boolean);
+
+const isAllowedOrigin = (origin) => allowedOrigins.includes(origin);
 
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
+    if (!isAllowedOrigin(origin)) {
       const msg = "The CORS policy for this site does not allow access from the specified Origin.";
       return callback(new Error(msg), false);
     }
@@ -129,6 +146,21 @@ app.use(cors({
 app.use(express.json({ limit: "10mb" })); // Reduced from 50mb for security
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
+// Enforce origin on state-changing requests to reduce CSRF risk without cookie-based sessions.
+app.use((req, res, next) => {
+  const method = req.method.toUpperCase();
+  if (!["POST", "PUT", "PATCH", "DELETE"].includes(method)) return next();
+
+  const origin = req.headers.origin;
+  if (!origin) return next();
+
+  if (!isAllowedOrigin(origin)) {
+    return res.status(403).json({ error: "Forbidden origin" });
+  }
+
+  return next();
+});
+
 // Prevent parameter pollution
 app.use((req, res, next) => {
   // Remove duplicate parameters
@@ -141,7 +173,8 @@ app.use((req, res, next) => {
 });
 
 // Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, "uploads");
+const uploadsRoot = isServerlessRuntime ? path.join("/tmp", "uploads") : path.join(__dirname, "uploads");
+const uploadsDir = uploadsRoot;
 const collectionDir = path.join(uploadsDir, "collections");
 const bookingsDir = path.join(uploadsDir, "bookings");
 const reviewsDir = path.join(uploadsDir, "reviews");
@@ -500,7 +533,12 @@ app.delete("/api/bookings/:id", async (req, res) => {
  */
 app.delete("/api/collections/:filename", (req, res) => {
   try {
-    const filePath = path.join(collectionDir, req.params.filename);
+    const safeFilename = path.basename(req.params.filename);
+    if (safeFilename !== req.params.filename) {
+      return res.status(400).json({ error: "Invalid filename" });
+    }
+
+    const filePath = path.join(collectionDir, safeFilename);
 
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ error: "File not found" });
@@ -739,11 +777,24 @@ app.delete("/api/reviews/:id", async (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: err.message });
+  console.error(err.stack || err.message);
+
+  if (err.name === "MulterError") {
+    return res.status(400).json({ error: "Upload failed", details: err.message });
+  }
+
+  if (err.message && err.message.includes("CORS policy")) {
+    return res.status(403).json({ error: "Forbidden origin" });
+  }
+
+  return res.status(500).json({ error: isProduction ? "Internal server error" : err.message });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
+// Start server only for local/node runtime.
+if (!isServerlessRuntime) {
+  app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;

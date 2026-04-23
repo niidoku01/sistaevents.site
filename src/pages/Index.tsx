@@ -24,13 +24,15 @@ const Index = () => {
       <Header />
       <main>
         <Hero />
-        <Services />
-        <Featured />
-        <About />
-        <Packages />
-        <FAQ />
-        <Testimonials />
-        <Contact />
+        <div className="deferred-sections">
+          <Services />
+          <Featured />
+          <About />
+          <Packages />
+          <FAQ />
+          <Testimonials />
+          <Contact />
+        </div>
       </main>
       <Footer />
       <WhatsAppButton phoneNumber="+233555182969" />

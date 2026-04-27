@@ -68,3 +68,13 @@ This project is built with:
 ## How can I deploy this project?
 
 You can deploy this project using platforms like Netlify, Vercel, GitHub Pages, or any other static hosting service that supports React applications.
+
+## License
+
+This project is proprietary and not open source.
+
+- Copyright (c) 2018-present Sista Events & Rentals
+- All rights reserved
+- No use, redistribution, modification, or derivative works without prior written permission
+
+See [LICENSE](./LICENSE) for full terms.

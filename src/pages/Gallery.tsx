@@ -1,10 +1,10 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
-import { staticCollectionImagesByCategory } from "@/lib/staticCollections";
+import { staticCollectionImagesByCategory } from "../lib/staticCollections";
 
 type Category = "weddings" | "funerals" | "corporate";
 
@@ -28,11 +28,17 @@ type CollectionImage = {
   originalName?: string;
 };
 
+const PRIORITY_GRID_IMAGES = 4;
+const INITIAL_VISIBLE_IMAGES = 12;
+const LOAD_MORE_STEP = 12;
+
 export default function OurCollection() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState<number | null>(null);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [visibleCount, setVisibleCount] = useState<number>(INITIAL_VISIBLE_IMAGES);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   const imagesByCategory: Record<Category, CollectionImage[]> = {
     weddings: staticCollectionImagesByCategory.weddings,
@@ -41,6 +47,15 @@ export default function OurCollection() {
   };
 
   const categoryImages = selectedCategory ? imagesByCategory[selectedCategory] : null;
+  const visibleCategoryImages = useMemo(() => {
+    if (!categoryImages) {
+      return null;
+    }
+
+    return categoryImages.slice(0, visibleCount);
+  }, [categoryImages, visibleCount]);
+
+  const hasMoreImages = Boolean(categoryImages && visibleCategoryImages && visibleCategoryImages.length < categoryImages.length);
 
   // Get current image URL
   const currentImage = currentImageIndex !== null && categoryImages && categoryImages[currentImageIndex]
@@ -66,6 +81,42 @@ export default function OurCollection() {
   const closeViewer = () => {
     setCurrentImageIndex(null);
   };
+
+  const loadMoreImages = () => {
+    if (!categoryImages) {
+      return;
+    }
+
+    setVisibleCount((previous) => Math.min(previous + LOAD_MORE_STEP, categoryImages.length));
+  };
+
+  useEffect(() => {
+    if (!selectedCategory) {
+      return;
+    }
+
+    setVisibleCount(INITIAL_VISIBLE_IMAGES);
+  }, [selectedCategory]);
+
+  useEffect(() => {
+    if (!selectedCategory || !hasMoreImages || !loadMoreRef.current) {
+      return;
+    }
+
+    const node = loadMoreRef.current;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry?.isIntersecting) {
+          loadMoreImages();
+        }
+      },
+      { rootMargin: "400px 0px" }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [selectedCategory, hasMoreImages, visibleCount, categoryImages]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -111,8 +162,14 @@ export default function OurCollection() {
   };
 
   // Helper function to get cover image for a category
-  const getCoverImage = (images: CollectionImage[] | undefined) => {
+  const getCoverImage = (images: CollectionImage[] | undefined, category?: Category) => {
     if (!images || images.length === 0) return "https://via.placeholder.com/800x600?text=No+Images";
+    
+    // Use last image for corporate, first for others
+    if (category === "corporate" && images.length > 0) {
+      return images[images.length - 1]?.url || "https://via.placeholder.com/800x600?text=No+Images";
+    }
+    
     return images[0]?.url || "https://via.placeholder.com/800x600?text=No+Images";
   };
 
@@ -133,13 +190,15 @@ export default function OurCollection() {
             key={img._id || i} 
             className="group relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer"
             onClick={() => setCurrentImageIndex(i)}
+            style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}
           >
             <div className="aspect-[4/3] bg-slate-100">
               <img 
                 src={img.url} 
                 alt={img.originalName || `Image ${i + 1}`} 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                loading="lazy"
+                loading={i < PRIORITY_GRID_IMAGES ? "eager" : "lazy"}
+                fetchPriority={i === 0 ? "high" : "auto"}
                 decoding="async"
                 sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
               />
@@ -182,10 +241,11 @@ export default function OurCollection() {
                         <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm hover:shadow-2xl transition-all duration-300">
                           <div className="aspect-[4/5] bg-slate-100">
                             <img
-                              src={getCoverImage(images)}
+                              src={getCoverImage(images, category)}
                               alt={category}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                              loading="lazy"
+                              loading={category === "weddings" ? "eager" : "lazy"}
+                              fetchPriority={category === "weddings" ? "high" : "auto"}
                               decoding="async"
                               sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
                             />
@@ -242,7 +302,22 @@ export default function OurCollection() {
                 </div>
 
                 <div className="py-1 sm:py-2">
-                  {renderImageGrid(categoryImages)}
+                  {renderImageGrid(visibleCategoryImages || undefined)}
+
+                  {hasMoreImages && (
+                    <div className="mt-6 flex justify-center">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={loadMoreImages}
+                        className="border-amber-300 text-slate-700 hover:bg-amber-50"
+                      >
+                        Load More Images
+                      </Button>
+                    </div>
+                  )}
+
+                  {hasMoreImages && <div ref={loadMoreRef} className="h-1 w-full" aria-hidden="true" />}
                 </div>
               </div>
             )}

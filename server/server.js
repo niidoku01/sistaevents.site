@@ -19,11 +19,41 @@ app.disable("x-powered-by");
 
 // Initialize Firebase Admin SDK
 try {
-  // For development, use application default credentials or service account
-  // In production, set GOOGLE_APPLICATION_CREDENTIALS environment variable
-  // Prefer explicit service account key if present in server folder
+  // Priority order for credentials:
+  // 1) SERVICE_ACCOUNT_JSON_BASE64 (env var with base64-encoded JSON)
+  // 2) SERVICE_ACCOUNT_JSON (raw JSON string)
+  // 3) server/serviceAccountKey.json file (local development)
+  // 4) GOOGLE_APPLICATION_CREDENTIALS (path to credential file)
+  // 5) Application Default Credentials (ADC)
+  
+  const serviceAccountJsonB64 = process.env.SERVICE_ACCOUNT_JSON_BASE64;
+  const serviceAccountJson = process.env.SERVICE_ACCOUNT_JSON;
   const serviceAccountPath = path.join(__dirname, "serviceAccountKey.json");
-  if (fs.existsSync(serviceAccountPath)) {
+
+  if (serviceAccountJsonB64) {
+    try {
+      const decoded = Buffer.from(serviceAccountJsonB64, "base64").toString("utf8");
+      const obj = JSON.parse(decoded);
+      admin.initializeApp({
+        credential: admin.credential.cert(obj),
+        projectId: process.env.FIREBASE_PROJECT_ID || obj.project_id || "sistaer",
+      });
+      console.log("Firebase Admin initialized using SERVICE_ACCOUNT_JSON_BASE64");
+    } catch (decodeErr) {
+      throw new Error(`Failed to decode SERVICE_ACCOUNT_JSON_BASE64: ${decodeErr.message}`);
+    }
+  } else if (serviceAccountJson) {
+    try {
+      const obj = JSON.parse(serviceAccountJson);
+      admin.initializeApp({
+        credential: admin.credential.cert(obj),
+        projectId: process.env.FIREBASE_PROJECT_ID || obj.project_id || "sistaer",
+      });
+      console.log("Firebase Admin initialized using SERVICE_ACCOUNT_JSON");
+    } catch (parseErr) {
+      throw new Error(`Failed to parse SERVICE_ACCOUNT_JSON: ${parseErr.message}`);
+    }
+  } else if (fs.existsSync(serviceAccountPath)) {
     process.env.GOOGLE_APPLICATION_CREDENTIALS = serviceAccountPath;
     admin.initializeApp({
       credential: admin.credential.cert(require(serviceAccountPath)),
@@ -176,11 +206,13 @@ app.use((req, res, next) => {
 const uploadsRoot = isServerlessRuntime ? path.join("/tmp", "uploads") : path.join(__dirname, "uploads");
 const uploadsDir = uploadsRoot;
 const collectionDir = path.join(uploadsDir, "collections");
+const popupAdsDir = path.join(uploadsDir, "popup-ads");
 const bookingsDir = path.join(uploadsDir, "bookings");
 const reviewsDir = path.join(uploadsDir, "reviews");
 
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
 if (!fs.existsSync(collectionDir)) fs.mkdirSync(collectionDir);
+if (!fs.existsSync(popupAdsDir)) fs.mkdirSync(popupAdsDir);
 if (!fs.existsSync(bookingsDir)) fs.mkdirSync(bookingsDir);
 if (!fs.existsSync(reviewsDir)) fs.mkdirSync(reviewsDir);
 
@@ -198,6 +230,29 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  fileFilter: (req, file, cb) => {
+    const allowedMimes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image files are allowed"));
+    }
+  },
+});
+
+const popupAdStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, popupAdsDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const popupAdUpload = multer({
+  storage: popupAdStorage,
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowedMimes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
     if (allowedMimes.includes(file.mimetype)) {
@@ -372,6 +427,30 @@ app.post("/api/uploads/collections", upload.array("images", 10), (req, res) => {
       success: true,
       message: "Images uploaded successfully",
       images: imageUrls,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * POST /api/uploads/popup-ads
+ * Upload popup ad image
+ */
+app.post("/api/uploads/popup-ads", popupAdUpload.single("image"), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No image provided" });
+    }
+
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    return res.status(201).json({
+      success: true,
+      message: "Popup ad image uploaded successfully",
+      image: {
+        url: `${baseUrl}/uploads/popup-ads/${req.file.filename}`,
+        name: req.file.originalname,
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

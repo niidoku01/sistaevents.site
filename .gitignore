@@ -45,3 +45,8 @@ out/
 coverage/
 # Test environment secrets should not be committed
 .env.test.local
+
+# Do not commit service account or upload backups
+server/serviceAccountKey.json
+server/uploads/
+server/uploads/**

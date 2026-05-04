@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { X, ArrowRight } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -18,14 +17,25 @@ type ActivePopupAd = {
   active: boolean;
 };
 
+const isExternalUrl = (value: string) => /^https?:\/\//i.test(value);
+
 const PopupAdWithConvex = () => {
   const ad = (useQuery(api.popupAds.getActivePopupAd) ?? null) as ActivePopupAd | null;
   const [open, setOpen] = useState(false);
+  const [canShow, setCanShow] = useState(false);
 
-  const canShow = useMemo(() => {
-    const dismissedAt = Number(localStorage.getItem(POPUP_DISMISS_KEY) || "0");
-    if (!dismissedAt) return true;
-    return Date.now() - dismissedAt > DISMISS_DURATION_MS;
+  useEffect(() => {
+    try {
+      const dismissedAt = Number(localStorage.getItem(POPUP_DISMISS_KEY) || "0");
+      if (!dismissedAt) {
+        setCanShow(true);
+        return;
+      }
+
+      setCanShow(Date.now() - dismissedAt > DISMISS_DURATION_MS);
+    } catch {
+      setCanShow(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -35,52 +45,91 @@ const PopupAdWithConvex = () => {
   const handleClose = (nextOpen: boolean) => {
     setOpen(nextOpen);
     if (!nextOpen) {
-      localStorage.setItem(POPUP_DISMISS_KEY, String(Date.now()));
+      try {
+        localStorage.setItem(POPUP_DISMISS_KEY, String(Date.now()));
+      } catch {
+        // Ignore storage failures and still close the popup.
+      }
     }
   };
 
   if (!ad || !open) return null;
 
-  return (
-    <div className="fixed z-50 top-20 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] max-w-sm rounded-xl border border-amber-200 bg-white shadow-xl overflow-hidden sm:top-24 sm:right-4 sm:left-auto sm:translate-x-0 sm:w-[380px]">
-      <button
-        onClick={() => handleClose(false)}
-        aria-label="Close popup ad"
-        className="absolute top-2 right-2 z-10 rounded-full bg-black/60 text-white p-1 hover:bg-black/75"
-      >
-        <X className="w-4 h-4" />
-      </button>
+  const ctaUrl = ad.ctaUrl?.trim();
+  const ctaText = ad.ctaText?.trim();
 
-      <Link to="/" className="block bg-gradient-to-br from-amber-50 to-white">
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center bg-slate-950/45 p-3 backdrop-blur-[2px] sm:items-center sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-label={ad.title}
+    >
+      <div className="relative mt-16 w-full max-w-[min(100vw-1.5rem,420px)] overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-2xl max-h-[calc(100vh-3rem)] overflow-y-auto sm:mt-0 sm:max-h-[calc(100vh-4rem)]">
+        <button
+          onClick={() => handleClose(false)}
+          aria-label="Close popup ad"
+          className="absolute right-3 top-3 z-20 rounded-full bg-slate-900/70 p-1.5 text-white transition-colors hover:bg-slate-900"
+        >
+          <X className="h-4 w-4" />
+        </button>
+
         {ad.imageUrl ? (
-          <div className="bg-white">
+          <div className="relative aspect-[16/10] w-full bg-slate-100">
             <img
               src={ad.imageUrl}
               alt={ad.title}
-              className="w-full h-auto max-h-56 object-contain"
-              loading="lazy"
+              className="absolute inset-0 h-full w-full object-cover"
+              loading="eager"
               decoding="async"
-              sizes="(max-width: 640px) 100vw, 380px"
-              style={{ imageRendering: "auto" }}
+              fetchPriority="high"
+              sizes="(max-width: 640px) 100vw, 420px"
             />
           </div>
-        ) : null}
+        ) : (
+          <div className="bg-gradient-to-br from-amber-50 to-white px-4 py-8 sm:px-6">
+            <div className="rounded-xl border border-dashed border-amber-200 bg-white/80 px-4 py-8 text-center">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">Popup announcement</p>
+              <p className="mt-2 text-sm text-slate-600">A new ad is active on the homepage.</p>
+            </div>
+          </div>
+        )}
 
-        <div className="p-3">
-          <h3 className="text-base font-semibold text-slate-900 mb-1">{ad.title}</h3>
-          <p className="text-xs text-slate-700 line-clamp-3 mb-2">{ad.message}</p>
-         
+        <div className="space-y-3 bg-gradient-to-br from-amber-50 to-white p-4 sm:p-5">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700">Featured notice</p>
+            <h3 className="mt-1 text-lg font-semibold leading-tight text-slate-900">{ad.title}</h3>
+          </div>
+
+          <p className="text-sm leading-6 text-slate-700 line-clamp-4">{ad.message}</p>
+
+          {ctaText && ctaUrl ? (
+            isExternalUrl(ctaUrl) ? (
+              <a
+                href={ctaUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-slate-800"
+              >
+                {ctaText}
+                <ArrowRight className="h-3.5 w-3.5" />
+              </a>
+            ) : (
+              <a
+                href={ctaUrl}
+                className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-slate-800"
+              >
+                {ctaText}
+                <ArrowRight className="h-3.5 w-3.5" />
+              </a>
+            )
+          ) : null}
         </div>
-      </Link>
+      </div>
     </div>
   );
 };
 
 export const PopupAd = () => {
-  const convexUrl = (import.meta.env.VITE_CONVEX_URL as string | undefined)?.trim();
-  if (!convexUrl) {
-    return null;
-  }
-
   return <PopupAdWithConvex />;
 };

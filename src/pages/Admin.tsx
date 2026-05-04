@@ -12,7 +12,6 @@ import { images } from "@/lib/imageImports";
 
 const Admin: React.FC = () => {
   const { user, loading, signOut } = useAuth();
-  const convexUrl = (import.meta.env.VITE_CONVEX_URL as string | undefined)?.trim();
   const email = user?.email ?? "admin@gmail.com";
   const compactEmail = email.includes("@") ? email.split("@")[0] : email;
 
@@ -22,19 +21,6 @@ const Admin: React.FC = () => {
 
   if (!user) {
     return <Login />;
-  }
-
-  if (!convexUrl) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-2xl mx-auto bg-white border rounded-lg p-6 shadow-sm">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Admin Unavailable</h1>
-          <p className="text-gray-600">
-             configure convex and refresh
-          </p>
-        </div>
-      </div>
-    );
   }
 
   return (

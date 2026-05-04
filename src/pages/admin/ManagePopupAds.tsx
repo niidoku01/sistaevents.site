@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { popupAdAPI } from "@/lib/api";
 
 type PopupAd = {
   _id: Id<"popupAds">;
@@ -18,6 +19,21 @@ type PopupAd = {
   ctaText?: string;
   ctaUrl?: string;
   active: boolean;
+  startsAt?: number;
+  endsAt?: number;
+};
+
+const toDateTimeLocalValue = (timestamp?: number) => {
+  if (!timestamp) return "";
+  const date = new Date(timestamp);
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
+
+const parseDateTimeLocalValue = (value: string) => {
+  if (!value.trim()) return undefined;
+  const timestamp = new Date(value).getTime();
+  return Number.isNaN(timestamp) ? undefined : timestamp;
 };
 
 const ManagePopupAds = () => {
@@ -27,6 +43,7 @@ const ManagePopupAds = () => {
   const setPopupAdActive = useMutation(api.popupAds.setPopupAdActive);
   const deletePopupAd = useMutation(api.popupAds.deletePopupAd);
   const [imageFileName, setImageFileName] = useState("");
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const [isSaving, setIsSaving] = useState(false);
   const [form, setForm] = useState({
@@ -35,6 +52,8 @@ const ManagePopupAds = () => {
     imageUrl: "",
     ctaText: "",
     ctaUrl: "",
+    startsAt: "",
+    endsAt: "",
     active: true,
   });
 
@@ -44,15 +63,6 @@ const ManagePopupAds = () => {
       toast({
         title: "Missing details",
         description: "Title and message are required.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!form.imageUrl.trim()) {
-      toast({
-        title: "Image required",
-        description: "Please upload an ad image or provide an image URL before posting.",
         variant: "destructive",
       });
       return;
@@ -68,6 +78,8 @@ const ManagePopupAds = () => {
         imageUrl,
         ctaText: form.ctaText.trim() || undefined,
         ctaUrl: form.ctaUrl.trim() || undefined,
+        startsAt: parseDateTimeLocalValue(form.startsAt),
+        endsAt: parseDateTimeLocalValue(form.endsAt),
         active: form.active,
       });
 
@@ -82,6 +94,8 @@ const ManagePopupAds = () => {
         imageUrl: "",
         ctaText: "",
         ctaUrl: "",
+        startsAt: "",
+        endsAt: "",
         active: true,
       });
       setImageFileName("");
@@ -109,21 +123,32 @@ const ManagePopupAds = () => {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = typeof reader.result === "string" ? reader.result : "";
-      setForm((prev) => ({ ...prev, imageUrl: result }));
-      setImageFileName(file.name);
-    };
-    reader.onerror = () => {
-      toast({
-        title: "Upload failed",
-        description: "Could not read the selected image.",
-        variant: "destructive",
-      });
-    };
+    (async () => {
+      try {
+        setIsUploadingImage(true);
+        const result = await popupAdAPI.uploadImage(file);
+        const uploadedUrl = result?.image?.url;
 
-    reader.readAsDataURL(file);
+        if (!uploadedUrl) {
+          throw new Error("No image URL returned from upload");
+        }
+
+        setForm((prev) => ({ ...prev, imageUrl: uploadedUrl }));
+        setImageFileName(file.name);
+        toast({
+          title: "Image uploaded",
+          description: "The popup ad image is ready to use.",
+        });
+      } catch {
+        toast({
+          title: "Upload failed",
+          description: "Could not upload the selected image.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsUploadingImage(false);
+      }
+    })();
   };
 
 
@@ -192,9 +217,14 @@ const ManagePopupAds = () => {
                   type="file"
                   accept="image/*"
                   onChange={handleImageUpload}
+                  disabled={isUploadingImage}
                 />
                 <p className="text-[11px] text-slate-500 mt-1">
-                  {imageFileName ? `Selected: ${imageFileName}` : "No file selected"}
+                  {isUploadingImage
+                    ? "Uploading image..."
+                    : imageFileName
+                      ? `Selected: ${imageFileName}`
+                      : "No file selected"}
                 </p>
               </div>
             </div>
@@ -225,6 +255,25 @@ const ManagePopupAds = () => {
                   value={form.ctaUrl}
                   onChange={(e) => setForm((prev) => ({ ...prev, ctaUrl: e.target.value }))}
                   placeholder="https://... or /#contact"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-slate-700 mb-1">Start At (optional)</p>
+                <Input
+                  type="datetime-local"
+                  value={form.startsAt}
+                  onChange={(e) => setForm((prev) => ({ ...prev, startsAt: e.target.value }))}
+                />
+              </div>
+              <div>
+                <p className="text-sm text-slate-700 mb-1">End At (optional)</p>
+                <Input
+                  type="datetime-local"
+                  value={form.endsAt}
+                  onChange={(e) => setForm((prev) => ({ ...prev, endsAt: e.target.value }))}
                 />
               </div>
             </div>
@@ -295,6 +344,13 @@ const ManagePopupAds = () => {
                         </Badge>
                       </div>
                       <p className="text-sm text-slate-600 line-clamp-2">{ad.message}</p>
+                      {(ad.startsAt || ad.endsAt) && (
+                        <p className="text-xs text-slate-500 mt-1">
+                          {ad.startsAt ? `Starts ${new Date(ad.startsAt).toLocaleString()}` : "Starts immediately"}
+                          {ad.startsAt && ad.endsAt ? " · " : ""}
+                          {ad.endsAt ? `Ends ${new Date(ad.endsAt).toLocaleString()}` : ""}
+                        </p>
+                      )}
                       {ad.imageUrl ? (
                         <img src={ad.imageUrl} alt={ad.title} className="mt-2 h-12 w-12 rounded border object-cover" />
                       ) : null}

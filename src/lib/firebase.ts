@@ -7,31 +7,48 @@ import { getFirestore } from "firebase/firestore";
 const getRequiredEnv = (name: keyof ImportMetaEnv) => {
   const value = (import.meta.env[name] as string | undefined)?.trim();
   if (!value) {
-    throw new Error(`Missing required env var: ${name}`);
+    return null;
   }
   return value;
 };
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: getRequiredEnv("VITE_FIREBASE_API_KEY"),
-  authDomain: getRequiredEnv("VITE_FIREBASE_AUTH_DOMAIN"),
-  projectId: getRequiredEnv("VITE_FIREBASE_PROJECT_ID"),
-  storageBucket: getRequiredEnv("VITE_FIREBASE_STORAGE_BUCKET"),
-  messagingSenderId: getRequiredEnv("VITE_FIREBASE_MESSAGING_SENDER_ID"),
-  appId: getRequiredEnv("VITE_FIREBASE_APP_ID")
-};
-
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+let app: any = null;
+let auth: any = null;
+let storage: any = null;
+let db: any = null;
+let initError: Error | null = null;
 
-// Initialize Firebase Authentication and get a reference to the service
-export const auth = getAuth(app);
+try {
+  // Validate required Firebase environment variables
+  const apiKey = getRequiredEnv("VITE_FIREBASE_API_KEY");
+  const authDomain = getRequiredEnv("VITE_FIREBASE_AUTH_DOMAIN");
+  const projectId = getRequiredEnv("VITE_FIREBASE_PROJECT_ID");
+  const storageBucket = getRequiredEnv("VITE_FIREBASE_STORAGE_BUCKET");
+  const messagingSenderId = getRequiredEnv("VITE_FIREBASE_MESSAGING_SENDER_ID");
+  const appId = getRequiredEnv("VITE_FIREBASE_APP_ID");
 
-// Initialize Firebase Storage
-export const storage = getStorage(app);
+  if (!apiKey || !authDomain || !projectId || !storageBucket || !messagingSenderId || !appId) {
+    throw new Error("Missing required Firebase environment variables");
+  }
 
-// Initialize Firestore Database
-export const db = getFirestore(app);
+  const firebaseConfig = {
+    apiKey,
+    authDomain,
+    projectId,
+    storageBucket,
+    messagingSenderId,
+    appId
+  };
 
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  storage = getStorage(app);
+  db = getFirestore(app);
+} catch (error) {
+  initError = error instanceof Error ? error : new Error("Failed to initialize Firebase");
+  console.error("Firebase initialization error:", initError.message);
+}
+
+export { auth, storage, db, initError };
 export default app;

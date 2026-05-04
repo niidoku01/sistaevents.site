@@ -24,20 +24,18 @@ import tent2 from "@/assets/tents/tent 2.jpg";
 import tent3 from "@/assets/tents/tent 3.jpg";
 import tent4 from "@/assets/tents/tent 4.jpg";
 
-// Flatware
-import flatware1 from "@/assets/flatware/flatware 1.jpg";
+// Flatware (only 2, 4, 5 exist; 1 and 3 are missing)
 import flatware2 from "@/assets/flatware/flatware 2.jpg";
-import flatware3 from "@/assets/flatware/flatware 3.jpg";
 import flatware4 from "@/assets/flatware/flatware 4.jpg";
 import flatware5 from "@/assets/flatware/flatware 5.jpg";
 
-// Others
+// Others (missing: 2)
 import other1 from "@/assets/others/other 1.jpg";
-import other2 from "@/assets/others/other 2.jpg";
 import other3 from "@/assets/others/other 3.jpg";
 import other4 from "@/assets/others/other 4.jpg";
 import other5 from "@/assets/others/other 5.jpg";
 import other6 from "@/assets/others/other 6.jpg";
+import other7 from "@/assets/others/other 7.jpg";
 
 // Flowers
 import flower1 from "@/assets/flowers/flower 1.jpg";
@@ -56,8 +54,8 @@ export const images = {
   chairs: { chair1, chair2, chair3, chair4, chair5, chair6 },
   tables: { table2, table3 },
   tents: { tent1, tent2, tent3, tent4 },
-  flatware: { flatware1, flatware2, flatware3, flatware4, flatware5 },
-  others: { other1, other2, other3, other4, other5, other6 },
+  flatware: { flatware2, flatware4, flatware5 },
+  others: { other1, other3, other4, other5, other6, other7 },
   flowers: { flower1, flower2, flower3, flower4, flower5 },
   misc: { sistaEvents, sabout, sistalogo },
 };

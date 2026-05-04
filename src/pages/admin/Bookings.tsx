@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,16 +10,80 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { bookingAPI } from "@/lib/api";
+
+type BookingRow = {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  eventDate: string;
+  message: string;
+  createdAt: number;
+  source: "convex" | "server";
+};
 
 const Bookings: React.FC = () => {
   const { toast } = useToast();
-  const bookings = useQuery(api.bookings.getAllBookings) || [];
+  const convexBookings = useQuery(api.bookings.getAllBookings);
   const blockedDates = useQuery(api.bookings.getBlockedDates) || [];
   const blockDate = useMutation(api.bookings.blockDate);
   const unblockDate = useMutation(api.bookings.unblockDate);
+  const [serverBookings, setServerBookings] = useState<BookingRow[]>([]);
+  const [isUsingFallback, setIsUsingFallback] = useState(false);
   const [eventDate, setEventDate] = useState("");
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [reason, setReason] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadLegacyBookings = async () => {
+      if (convexBookings === undefined) return;
+
+      if (convexBookings.length > 0) {
+        setServerBookings([]);
+        setIsUsingFallback(false);
+        return;
+      }
+
+      try {
+        const response = await bookingAPI.getAllBookings();
+        const legacyBookings = Array.isArray(response?.bookings)
+          ? response.bookings.map((booking: Record<string, unknown>) => ({
+              _id: String(booking.id ?? booking._id ?? crypto.randomUUID()),
+              name: String(booking.name ?? ""),
+              email: String(booking.email ?? ""),
+              phone: String(booking.phone ?? ""),
+              eventDate: String(booking.eventDate ?? ""),
+              message: String(booking.message ?? ""),
+              createdAt: Number(new Date(String(booking.createdAt ?? Date.now())).getTime()),
+              source: "server" as const,
+            }))
+          : [];
+
+        if (cancelled) return;
+
+        setServerBookings(legacyBookings);
+        setIsUsingFallback(legacyBookings.length > 0);
+      } catch {
+        if (cancelled) return;
+        setServerBookings([]);
+        setIsUsingFallback(false);
+      }
+    };
+
+    void loadLegacyBookings();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [convexBookings]);
+
+  const bookings = useMemo(() => {
+    const source = convexBookings ?? serverBookings;
+    return [...source].sort((a, b) => a.eventDate.localeCompare(b.eventDate));
+  }, [convexBookings, serverBookings]);
 
   const formatIsoDate = (isoDate: string) => {
     const [year, month, day] = isoDate.split("-").map(Number);
@@ -87,6 +151,14 @@ const Bookings: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {isUsingFallback && (
+        <Card className="border-amber-200 bg-amber-50/60">
+          <CardContent className="p-4 text-sm text-amber-900">
+            Showing bookings from the legacy backend because Convex currently has no booking records.
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle>Booked dates</CardTitle>
@@ -213,10 +285,7 @@ const Bookings: React.FC = () => {
                 No bookings found
               </div>
             ) : (
-              bookings
-                .slice()
-                .sort((a, b) => a.eventDate.localeCompare(b.eventDate))
-                .map((b) => (
+              bookings.map((b) => (
                   <div key={b._id} className="rounded-xl border p-4 bg-white space-y-3">
                     <div className="flex items-center justify-between gap-3">
                       <p className="font-semibold text-gray-900 break-words">{b.name}</p>
@@ -253,10 +322,7 @@ const Bookings: React.FC = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  bookings
-                    .slice()
-                    .sort((a, b) => a.eventDate.localeCompare(b.eventDate))
-                    .map((b) => (
+                  bookings.map((b) => (
                       <TableRow key={b._id}>
                         <TableCell className="font-medium">{b.name}</TableCell>
                         <TableCell>{b.email}</TableCell>

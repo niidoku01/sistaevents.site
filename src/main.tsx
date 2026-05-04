@@ -41,15 +41,13 @@ class RootErrorBoundary extends React.Component<React.PropsWithChildren, RootErr
   }
 }
 
-const convexUrl = (import.meta.env.VITE_CONVEX_URL as string | undefined)?.trim();
+const convexUrl = (import.meta.env.VITE_CONVEX_URL as string | undefined)?.trim() || "http://localhost:8080";
 
 let convex: ConvexReactClient | null = null;
-if (convexUrl) {
-  try {
-    convex = new ConvexReactClient(convexUrl);
-  } catch (error) {
-    console.error("Invalid VITE_CONVEX_URL. Running without Convex provider.", error);
-  }
+try {
+  convex = new ConvexReactClient(convexUrl);
+} catch (error) {
+  console.error("Failed to create Convex client. Check VITE_CONVEX_URL.", error);
 }
 
 createRoot(document.getElementById("root")!).render(
@@ -59,7 +57,10 @@ createRoot(document.getElementById("root")!).render(
         <App />
       </ConvexProvider>
     ) : (
-      <App />
+      <div style={{ minHeight: "100vh", padding: 24, fontFamily: "system-ui, sans-serif" }}>
+        <h1 style={{ fontSize: 24, marginBottom: 8 }}>App failed to load</h1>
+        <p style={{ color: "#666" }}>Convex client unavailable. Set `VITE_CONVEX_URL` or start a local Convex dev server.</p>
+      </div>
     )}
   </RootErrorBoundary>
 );

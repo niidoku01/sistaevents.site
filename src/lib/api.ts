@@ -83,3 +83,48 @@ export const collectionAPI = {
     return response.json();
   },
 };
+
+export const popupAdAPI = {
+  async uploadImage(file: File) {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const response = await fetch(`${getNextApiBase()}/uploads/popup-ads`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) throw new Error("Failed to upload popup ad image");
+    return response.json();
+  },
+};
+
+export const reviewAPI = {
+  async getApprovedReviews() {
+    const response = await fetch(`${getNextApiBase()}/reviews`);
+    if (!response.ok) throw new Error("Failed to fetch approved reviews");
+    return response.json();
+  },
+
+  async getPendingReviews() {
+    const response = await fetch(`${getNextApiBase()}/reviews/pending`);
+    if (!response.ok) throw new Error("Failed to fetch pending reviews");
+    return response.json();
+  },
+
+  async approveReview(id: string | number) {
+    const response = await fetch(`${getNextApiBase()}/reviews/${id}/approve`, {
+      method: "PUT",
+    });
+    if (!response.ok) throw new Error("Failed to approve review");
+    return response.json();
+  },
+
+  async deleteReview(id: string | number) {
+    const response = await fetch(`${getNextApiBase()}/reviews/${id}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) throw new Error("Failed to delete review");
+    return response.json();
+  },
+};

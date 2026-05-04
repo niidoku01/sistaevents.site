@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, initError } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,9 +40,24 @@ const Login: React.FC = () => {
       <Card style={{ width: "100%", maxWidth: 600 }}>
         <CardHeader>
           <CardTitle>Admin Login</CardTitle>
-          <CardDescription>Sign in to access the admin dashboard</CardDescription>
+          <CardDescription>{initError ? "Firebase not configured" : "Sign in to access the admin dashboard"}</CardDescription>
         </CardHeader>
         <CardContent>
+          {initError && (
+            <div style={{ padding: "12px", marginBottom: "16px", backgroundColor: "#fee", border: "1px solid #f99", borderRadius: "4px", color: "#c00" }}>
+              <p style={{ margin: 0, fontWeight: "bold" }}>Firebase Configuration Error</p>
+              <p style={{ margin: "8px 0 0 0", fontSize: "14px" }}>Admin features require Firebase environment variables to be set:</p>
+              <ul style={{ margin: "8px 0 0 20px", fontSize: "14px" }}>
+                <li>VITE_FIREBASE_API_KEY</li>
+                <li>VITE_FIREBASE_AUTH_DOMAIN</li>
+                <li>VITE_FIREBASE_PROJECT_ID</li>
+                <li>VITE_FIREBASE_STORAGE_BUCKET</li>
+                <li>VITE_FIREBASE_MESSAGING_SENDER_ID</li>
+                <li>VITE_FIREBASE_APP_ID</li>
+              </ul>
+              <p style={{ margin: "8px 0 0 0", fontSize: "14px" }}>Add these to your .env file or environment variables and restart the app.</p>
+            </div>
+          )}
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div>
               <label htmlFor="email" style={{ display: "block", marginBottom: 8 }}>Email</label>
@@ -53,6 +68,7 @@ const Login: React.FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@mail.com"
                 required
+                disabled={!!initError}
               />
             </div>
             <div>
@@ -64,10 +80,11 @@ const Login: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="•••••••••••"
                 required
+                disabled={!!initError}
               />
             </div>
             {error && <p style={{ color: "red", fontSize: 14 }}>{error}</p>}
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || !!initError}>
               {loading ? "Signing you in..." : "Sign In"}
             </Button>
           </form>

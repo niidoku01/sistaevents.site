@@ -47,6 +47,8 @@ export const createPopupAd = mutation({
 		imageUrl: v.optional(v.string()),
 		ctaText: v.optional(v.string()),
 		ctaUrl: v.optional(v.string()),
+		startsAt: v.optional(v.number()),
+		endsAt: v.optional(v.number()),
 		active: v.boolean(),
 	},
 	handler: async (ctx, args) => {
@@ -75,6 +77,8 @@ export const createPopupAd = mutation({
 			ctaText: args.ctaText,
 			ctaUrl: args.ctaUrl,
 			isActive: args.active,
+			startsAt: args.startsAt,
+			endsAt: args.endsAt,
 			createdAt: now,
 			updatedAt: now,
 		});

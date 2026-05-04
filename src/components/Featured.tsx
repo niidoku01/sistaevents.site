@@ -78,12 +78,13 @@ const featuredItems: FeaturedItem[] = [
     available: true,
     images: [
       images.flatware.flatware2,
-      images.flatware.flatware1,
-      images.others.other2,
+      images.flatware.flatware5,
+      images.others.other1,
       images.others.other3,
       images.others.other4,
-      images.flatware.flatware5
-      
+      images.others.other5,
+      images.others.other6,
+      images.others.other7,
     ],
   },
   {

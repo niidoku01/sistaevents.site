@@ -9,7 +9,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, initError } from "@/lib/firebase";
 
 export type PopupAd = {
   id: string;
@@ -53,6 +53,10 @@ const mapDocToPopupAd = (id: string, data: Record<string, unknown>): PopupAd => 
 });
 
 const deactivateActiveAds = async () => {
+  if (!db) {
+    console.warn("Firebase not initialized: cannot deactivate active ads");
+    return;
+  }
   const activeQuery = query(
     collection(db, POPUP_ADS_COLLECTION),
     where("active", "==", true)
@@ -71,6 +75,10 @@ const deactivateActiveAds = async () => {
 };
 
 export const listPopupAds = async () => {
+  if (!db) {
+    console.warn("Firebase not initialized: returning empty popup ads list");
+    return [];
+  }
   const adsQuery = query(
     collection(db, POPUP_ADS_COLLECTION),
     orderBy("createdAt", "desc")

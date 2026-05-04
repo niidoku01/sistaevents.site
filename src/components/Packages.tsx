@@ -142,7 +142,7 @@ export const Packages = () => {
           <p className="hidden sm:block text-muted-foreground mb-4">
             Need a custom package? We'll create something perfect for your event.
           </p>
-          <Button variant="link" onClick={scrollToContact} className="text-primary hover:text-primary/80">
+          <Button variant="link" onClick={scrollToContact} className="text-accent hover:text-accent/80 active:text-accent transition-colors">
             Request a custom package quote
           </Button>
         </div>

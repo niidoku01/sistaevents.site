@@ -1,13 +1,66 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
 import { ReviewForm } from "./ReviewForm";
+import { reviewAPI } from "@/lib/api";
+
+type Review = {
+  _id: string;
+  name: string;
+  email: string;
+  event: string;
+  content: string;
+  rating: number;
+  createdAt: number;
+};
 
 const TestimonialsWithConvex = () => {
-  const testimonials = useQuery(api.reviews.getApprovedReviews) || [];
+  const convexTestimonials = useQuery(api.reviews.getApprovedReviews);
+  const [legacyTestimonials, setLegacyTestimonials] = useState<Review[]>([]);
+  const [usingFallback, setUsingFallback] = useState(false);
   const [showForm, setShowForm] = useState(false);
+
+  useEffect(() => {
+    if (convexTestimonials === undefined) {
+      return;
+    }
+
+    if (convexTestimonials.length === 0) {
+      void reviewAPI.getApprovedReviews()
+        .then((response) => {
+          const reviews = Array.isArray(response?.reviews)
+            ? response.reviews.map((review: Record<string, unknown>) => ({
+                _id: String(review.id ?? review._id),
+                name: String(review.name ?? ""),
+                email: String(review.email ?? ""),
+                event: String(review.event ?? ""),
+                content: String(review.content ?? ""),
+                rating: Number(review.rating ?? 0),
+                createdAt: new Date(String(review.createdAt ?? Date.now())).getTime(),
+              }))
+            : [];
+
+          setLegacyTestimonials(reviews);
+          setUsingFallback(reviews.length > 0);
+        })
+        .catch(() => {
+          setLegacyTestimonials([]);
+          setUsingFallback(false);
+        });
+      return;
+    }
+
+    setLegacyTestimonials([]);
+    setUsingFallback(false);
+  }, [convexTestimonials]);
+
+  const testimonials = useMemo(
+    () => (usingFallback ? legacyTestimonials : (convexTestimonials ?? [])),
+    [usingFallback, convexTestimonials, legacyTestimonials]
+  );
+
   const sortedTestimonials = [...testimonials].sort((a, b) => b.createdAt - a.createdAt);
 
   return (
@@ -25,7 +78,7 @@ const TestimonialsWithConvex = () => {
           </p>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="text-primary hover:text-primary/80 underline underline-offset-4 font-medium"
+            className="text-accent hover:text-accent/80 active:text-accent font-medium transition-colors"
           >
             {showForm ? "Hide Review Form" : "Share Your Experience"}
           </button>
@@ -34,6 +87,12 @@ const TestimonialsWithConvex = () => {
         {showForm && (
           <div className="mb-16">
             <ReviewForm />
+          </div>
+        )}
+
+        {usingFallback && (
+          <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            Showing approved reviews from the legacy backend because Convex currently has no approved review records.
           </div>
         )}
 
@@ -72,19 +131,37 @@ const TestimonialsWithConvex = () => {
 };
 
 const TestimonialsFallback = () => {
+  const [showForm, setShowForm] = useState(false);
+
   return (
-    <section id="testimonials" className="py-20 lg:py-32 bg-background">
+    <section id="testimonials" className="section-mobile-padding bg-background">
       <div className="container mx-auto px-4 lg:px-6">
-        <div className="text-center mb-16">
+        <div className="text-center mb-10 sm:mb-16" data-reveal>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
             What Our Clients Say
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
-            Don&apos;t just take our word for it - hear from our satisfied clients
+          <p className="hidden sm:block text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
+            Don't just take our word for it - hear from our satisfied clients
           </p>
-          <p className="text-muted-foreground">
-            Reviews are currently unavailable. Please check back soon.
+          <p className="sm:hidden text-sm text-muted-foreground max-w-2xl mx-auto mb-5">
+            Hear from our satisfied clients.
           </p>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="text-accent hover:text-accent/80 active:text-accent font-medium transition-colors"
+          >
+            {showForm ? "Hide Review Form" : "Share Your Experience"}
+          </button>
+        </div>
+
+        {showForm && (
+          <div className="mb-16">
+            <ReviewForm />
+          </div>
+        )}
+
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">No reviews yet. Be the first to share your experience!</p>
         </div>
       </div>
     </section>
@@ -92,10 +169,5 @@ const TestimonialsFallback = () => {
 };
 
 export const Testimonials = () => {
-  const convexUrl = import.meta.env.VITE_CONVEX_URL as string | undefined;
-  if (!convexUrl) {
-    return <TestimonialsFallback />;
-  }
-
   return <TestimonialsWithConvex />;
 };

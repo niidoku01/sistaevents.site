@@ -12,7 +12,7 @@ const navItems = [
 const AdminNav: React.FC = () => {
   return (
     <nav className="rounded-2xl border border-slate-200 bg-white shadow-sm p-2">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+      <div className="grid grid-cols-4 gap-3">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -20,7 +20,7 @@ const AdminNav: React.FC = () => {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
+                `rounded-xl px-2py-3 text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
                   isActive
                     ? "bg-amber-400 text-slate-900 shadow"
                     : "text-slate-600 hover:text-gold-700 hover:bg-blue-50"

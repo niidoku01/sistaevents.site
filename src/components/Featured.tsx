@@ -71,8 +71,8 @@ const featuredItems: FeaturedItem[] = [
     ],
   },
   {
-    key: "decorative-pieces",
-    title: "Decorative pieces",
+    key: "decoratives items ",
+    title: "Decorative items",
     category: "Aesthetics",
     description: "Rental option",
     available: true,
@@ -182,15 +182,17 @@ export const Featured = () => {
     }
   };
 
+  const isDecorativeDialog = selectedItem?.key.trim() === "decoratives";
+
   return (
-    <section id="featured" className="py-20 lg:py-32 bg-background">
-      <div className="container mx-auto px-4 lg:px-6">
+    <section id="featured" className="py-20 lg:py-25 bg-background">
+      <div className="container mx-auto px-3 lg:px-5">
         <div className="text-center mb-16" data-reveal>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-            Featured Logistics
+            Event Logistics
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Popular choices for creating memorable events
+          Decoratives for creating memorable events
           </p>
         </div>
 
@@ -230,7 +232,7 @@ export const Featured = () => {
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                   ) : (
-                    <div className="text-xs text-muted-foreground">No image enabled</div>
+                    <div className="text-sm text-muted-foreground">No image enabled</div>
                   )}
                 </div>
                 <CardContent className="p-6">
@@ -242,7 +244,7 @@ export const Featured = () => {
                       {item.available ? "Available" : "Rented Out"}
                     </span>
                   </div>
-                  <h3 className="text-xl font-semibold text-foreground mb-2 line-clamp-1">
+                  <h3 className="text-lg font-semibold text-foreground mb-2 line-clamp-1">
                     {item.title}
                   </h3>
                   <p className="text-muted-foreground text-sm line-clamp-2">
@@ -257,30 +259,25 @@ export const Featured = () => {
 
       {/* Image Gallery Dialog */}
       <Dialog open={!!selectedItem} onOpenChange={closeGallery}>
-        <DialogContent className={`p-0 bg-black/95 overflow-hidden ${
-          selectedItem?.category === "Lighting" || 
-          selectedItem?.category === "Seating" || 
-          selectedItem?.category === "Aesthetics" || 
-          selectedItem?.category === "Decor"
-            ? "w-[95vw] max-w-lg max-h-[90vh]"
-            : "w-[90vw] max-w-2xl max-h-[90vh]"
-        }`}>
+        <DialogContent className="p-0 bg-black/95 overflow-y-auto w-[96vw] sm:w-[94vw] md:w-[90vw] max-w-4xl max-h-[92vh] rounded-lg sm:rounded-2xl">
           {selectedItem && (
-            <div className="relative w-full h-full flex flex-col">
+            <div className="relative w-full h-full min-h-0 flex flex-col">
               <button
                 onClick={closeGallery}
-                className="absolute top-2 right-2 z-50 text-white hover:text-gray-300 transition-colors bg-black/60 rounded-full p-1.5"
+                className={`absolute z-50 text-white hover:text-gray-300 transition-colors bg-black/70 rounded-full ${
+                  isDecorativeDialog
+                    ? "top-1.5 right-1.5 p-1 sm:top-3 sm:right-3 sm:p-2"
+                    : "top-2 right-2 p-1.5 sm:top-3 sm:right-3 sm:p-2"
+                }`}
+                aria-label="Close gallery"
               >
-                <X className="w-5 h-5" />
+                <X className={`${isDecorativeDialog ? "w-4 h-4 sm:w-6 sm:h-6" : "w-5 h-5 sm:w-6 sm:h-6"}`} />
               </button>
 
               <div className={`relative w-full flex items-center justify-center ${
-                selectedItem.category === "Lighting" || 
-                selectedItem.category === "Seating" || 
-                selectedItem.category === "Aesthetics" || 
-                selectedItem.category === "Decor"
-                  ? "h-[60vh] p-4"
-                  : "h-[60vh] p-5"
+                isDecorativeDialog
+                  ? "h-[36vh] sm:h-[54vh] md:h-[62vh] p-1.5 sm:p-4 md:p-5"
+                  : "h-[44vh] sm:h-[58vh] md:h-[62vh] p-2 sm:p-4 md:p-5"
               }`}>
                 <img
                   src={selectedItem.images[currentImageIndex]}
@@ -295,40 +292,46 @@ export const Featured = () => {
                   <>
                     <button
                       onClick={prevImage}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/70 hover:bg-black/80 text-white p-2 rounded-full transition-colors shadow-lg border border-white/20"
+                      className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-black/70 hover:bg-black/80 text-white p-2 sm:p-2.5 rounded-full transition-colors shadow-lg border border-white/20"
                     >
-                      <ChevronLeft className="w-6 h-6" />
+                      <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                     <button
                       onClick={nextImage}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/70 hover:bg-black/80 text-white p-2 rounded-full transition-colors shadow-lg border border-white/20"
+                      className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-black/70 hover:bg-black/80 text-white p-2 sm:p-2.5 rounded-full transition-colors shadow-lg border border-white/20"
                     >
-                      <ChevronRight className="w-6 h-6" />
+                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                   </>
                 )}
               </div>
 
-              <div className="p-3 text-white border-t border-white/10">
+              <div className={`text-white border-t border-white/10 overflow-x-hidden ${
+                isDecorativeDialog
+                  ? "p-2 sm:p-4 max-h-[36vh] overflow-y-auto"
+                  : "p-3 sm:p-4"
+              }`}>
                 <div className="flex items-center mb-2">
                   <Badge variant="secondary" className="text-xs">
                     {selectedItem.category}
                   </Badge>
                 </div>
-                <h3 className="text-xl font-semibold mb-1">{selectedItem.title}</h3>
-                <p className="text-sm text-gray-300 mb-3">
+                <h3 className={`font-semibold mb-1 ${isDecorativeDialog ? "text-sm sm:text-lg" : "text-base sm:text-lg"}`}>
+                  {selectedItem.title}
+                </h3>
+                <p className={`text-gray-300 ${isDecorativeDialog ? "text-xs mb-2" : "text-xs sm:text-sm mb-3"}`}>
                   {selectedItem.title === "Floral Arrangements" && selectedItem.imageDescriptions
                     ? selectedItem.imageDescriptions[currentImageIndex]
                     : selectedItem.description}
                 </p>
 
                 {/* Thumbnail navigation */}
-                <div className="flex gap-1.5 overflow-x-auto pb-1">
+                <div className={`flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 ${isDecorativeDialog ? "pt-0.5" : ""}`}>
                   {selectedItem.images.map((img, idx) => (
                     <button
                       key={idx}
                       onClick={() => setCurrentImageIndex(idx)}
-                      className={`flex-shrink-0 w-12 h-12 rounded overflow-hidden border-2 transition-all ${
+                      className={`flex-shrink-0 ${isDecorativeDialog ? "w-10 h-10 sm:w-12 sm:h-12" : "w-11 h-11 sm:w-12 sm:h-12"} rounded overflow-hidden border-2 transition-all ${
                         idx === currentImageIndex ? "border-white" : "border-transparent opacity-60 hover:opacity-100"
                       }`}
                     >

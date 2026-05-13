@@ -85,7 +85,8 @@ export const ManageReviews = () => {
     setUsingFallback(false);
   }, [convexPendingReviews, convexApprovedReviews]);
 
-  const pendingReviews = useMemo(
+
+ const pendingReviews = useMemo(
     () => (usingFallback ? serverPendingReviews : (convexPendingReviews ?? [])),
     [usingFallback, convexPendingReviews, serverPendingReviews]
   );

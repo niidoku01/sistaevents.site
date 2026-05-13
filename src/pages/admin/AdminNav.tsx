@@ -20,7 +20,7 @@ const AdminNav: React.FC = () => {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `rounded-xl px-2py-3 text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
+                `rounded-xl px-3 py-4 text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
                   isActive
                     ? "bg-amber-400 text-slate-900 shadow"
                     : "text-slate-600 hover:text-gold-700 hover:bg-blue-50"

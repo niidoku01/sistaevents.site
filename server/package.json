@@ -23,7 +23,7 @@
     "express-validator": "^7.3.1",
     "firebase-admin": "^13.6.0",
     "helmet": "^8.1.0",
-    "multer": "^1.4.5-lts.1",
+    "multer": "^2.1.1",
     "photoswipe": "^5.4.4",
     "twilio": "^4.23.0"
   },

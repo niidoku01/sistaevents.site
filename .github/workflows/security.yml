@@ -1,0 +1,38 @@
+name: Security Checks
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 3 * * 0' # weekly
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies (root)
+        run: npm ci
+
+      - name: Run npm audit (root)
+        run: npm audit --audit-level=low || true
+
+      - name: Install dependencies (server)
+        working-directory: server
+        run: npm ci
+
+      - name: Run npm audit (server)
+        working-directory: server
+        run: npm audit --audit-level=low || true
+
+      - name: Run secret scan
+        run: npm run security:scan || true

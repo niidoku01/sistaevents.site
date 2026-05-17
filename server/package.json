@@ -30,4 +30,8 @@
   "devDependencies": {
     "nodemon": "^3.0.1"
   }
+  ,
+  "overrides": {
+    "protobufjs": "8.2.1"
+  }
 }

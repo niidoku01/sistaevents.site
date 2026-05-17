@@ -6,24 +6,54 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
+const getLoginErrorMessage = (err: unknown): string => {
+  const fallback = "Failed to login";
+
+  if (!(err instanceof Error)) {
+    return fallback;
+  }
+
+  const maybeCode = (err as { code?: string }).code;
+  if (maybeCode === "auth/network-request-failed") {
+    return "Network error while contacting Firebase Auth. Check internet/DNS/firewall or VPN, then ensure your current host is added to Firebase Authentication Authorized domains (include localhost for local dev).";
+  }
+
+  if (maybeCode === "auth/invalid-credential") {
+    return "Invalid email or password.";
+  }
+
+  return err.message || fallback;
+};
+
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const authUnavailable = !auth || !!initError;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (!navigator.onLine) {
+      setError("You are offline. Reconnect to the internet and try again.");
+      return;
+    }
+
+    if (!auth) {
+      setError("Firebase Auth is not initialized. Verify your Firebase environment variables and restart the app.");
+      return;
+    }
+
     setLoading(true);
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
       navigate("/admin/bookings");
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to login";
-      setError(message);
+      setError(getLoginErrorMessage(err));
       // Log failed login attempt
       fetch("/api/log", {
         method: "POST",
@@ -68,7 +98,7 @@ const Login: React.FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@mail.com"
                 required
-                disabled={!!initError}
+                disabled={authUnavailable}
               />
             </div>
             <div>
@@ -80,11 +110,11 @@ const Login: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="•••••••••••"
                 required
-                disabled={!!initError}
+                disabled={authUnavailable}
               />
             </div>
             {error && <p style={{ color: "red", fontSize: 14 }}>{error}</p>}
-            <Button type="submit" disabled={loading || !!initError}>
+            <Button type="submit" disabled={loading || authUnavailable}>
               {loading ? "Signing you in..." : "Sign In"}
             </Button>
           </form>

@@ -21,10 +21,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setLoading(false);
-    });
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      (user) => {
+        setUser(user);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Firebase auth state listener failed:", error);
+        setUser(null);
+        setLoading(false);
+      }
+    );
     
     return () => unsubscribe();
   }, []);

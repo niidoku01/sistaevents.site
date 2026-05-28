@@ -125,16 +125,25 @@ const ManageFeaturedAvailability = () => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Available items</CardTitle>
-        <div className="pt-2">
-          <Button type="button" variant="outline" size="sm" onClick={handleReset}>
-            Reset Logistics Defaults
+    <Card className="border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300 bg-white/50 backdrop-blur-sm">
+      <CardHeader className="pb-4 border-b border-slate-200/60">
+        <div className="space-y-1">
+          <CardTitle className="text-lg sm:text-xl font-bold text-slate-900">Logistics Availability</CardTitle>
+          <p className="text-sm text-slate-600">Control which items and images are displayed in the gallery</p>
+        </div>
+        <div className="pt-4">
+          <Button 
+            type="button" 
+            variant="outline" 
+            size="sm" 
+            onClick={handleReset}
+            className="rounded-lg border-slate-200/60 hover:bg-slate-50 text-slate-700 font-medium transition-colors"
+          >
+            Reset to Defaults
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="p-6 space-y-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {featuredItems.map((item) => {
             const isAvailable = availabilityMap.get(item.key) ?? true;
@@ -146,65 +155,81 @@ const ManageFeaturedAvailability = () => {
             const primaryImage = item.imageUrls[0];
 
             return (
-              <div key={item.key} className="rounded-lg border p-3 sm:p-4 bg-white space-y-3">
-                <div className="flex items-start gap-3">
-                  <img
-                    src={primaryImage}
-                    alt={item.title}
-                    className="w-14 h-14 rounded-md object-cover border border-slate-200 flex-none"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-slate-900 truncate">{item.title}</p>
-                    <div className="flex items-center flex-wrap gap-2 mt-1">
-                      <Badge variant="secondary" className="text-xs">
-                        {item.category}
-                      </Badge>
-                      <span className={`text-xs font-medium ${isAvailable ? "text-green-600" : "text-red-600"}`}>
-                        {isAvailable ? "Available" : "Unavailable"}
-                      </span>
-                      <span className="text-xs text-slate-500">
-                        {item.imageUrls.length} images | {unavailableCount} unavailable
-                      </span>
+              <div key={item.key} className="rounded-lg border border-slate-200/60 bg-gradient-to-br from-white to-slate-50/50 hover:shadow-md transition-all duration-200 overflow-hidden group">
+                {/* Item Header */}
+                <div className="p-4 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <img
+                      src={primaryImage}
+                      alt={item.title}
+                      className="w-16 h-16 rounded-lg object-cover border border-slate-200/60 flex-none shadow-sm"
+                      loading="lazy"
+                      decoding="async"
+                      fetchPriority="low"
+                      width={64}
+                      height={64}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-slate-900 text-sm">{item.title}</p>
+                      <div className="flex items-center flex-wrap gap-2 mt-2">
+                        <Badge variant="secondary" className="text-xs bg-slate-100 text-slate-700 border-slate-200">
+                          {item.category}
+                        </Badge>
+                        <Badge 
+                          className={`text-xs font-medium ${isAvailable ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}
+                        >
+                          {isAvailable ? '● Available' : '○ Unavailable'}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-2">
+                        {item.imageUrls.length} images {unavailableCount > 0 && `• ${unavailableCount} hidden`}
+                      </p>
                     </div>
+                    <Switch
+                      checked={isAvailable}
+                      onCheckedChange={(checked) => handleToggle(item.key, checked)}
+                      aria-label={`Toggle availability for ${item.title}`}
+                      className="flex-none mt-1"
+                    />
                   </div>
-                  <Switch
-                    checked={isAvailable}
-                    onCheckedChange={(checked) => handleToggle(item.key, checked)}
-                    aria-label={`Toggle availability for ${item.title}`}
-                  />
-                </div>
 
-                <div className="flex items-center justify-end gap-3 rounded-md border bg-slate-50 px-3 py-2">
+                  {/* Expand Button */}
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={() => toggleExpanded(item.key)}
-                    className="h-8"
+                    className="w-full rounded-lg border-slate-200/60 hover:bg-slate-50 text-slate-700 font-medium transition-colors text-sm h-8"
                   >
-                    {isExpanded ? "Hide details" : "Show details"}
+                    {isExpanded ? 'Hide Image Controls' : 'Show Image Controls'}
                   </Button>
                 </div>
 
-                {isExpanded ? (
-                  <div className="rounded-md bg-slate-50 border p-2.5 sm:p-3">
-                    <p className="text-xs text-slate-600 mb-2">Image controls</p>
+                {/* Image Controls */}
+                {isExpanded && (
+                  <div className="border-t border-slate-200/60 bg-slate-50/50 p-4">
+                    <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-3">Image Availability</p>
                     <div className="space-y-2">
                       {item.imageUrls.map((imageUrl, imageIndex) => {
                         const imageKey = `${item.key}:${imageIndex}`;
                         const imageIsAvailable = imageAvailabilityMap.get(imageKey) ?? true;
                         return (
-                          <div key={imageKey} className="rounded border bg-white px-2.5 py-2 flex items-center justify-between gap-2">
+                          <div key={imageKey} className="rounded-lg border border-slate-200/60 bg-white px-3 py-2.5 flex items-center justify-between gap-3 hover:shadow-sm transition-all">
                             <div className="flex items-center gap-2 min-w-0">
                               <img
                                 src={imageUrl}
                                 alt={`${item.title} ${imageIndex + 1}`}
-                                className="w-10 h-10 rounded object-cover border border-slate-200"
+                                className="w-11 h-11 rounded-lg object-cover border border-slate-200/60 flex-none shadow-sm"
+                                loading="lazy"
+                                decoding="async"
+                                fetchPriority="low"
+                                width={44}
+                                height={44}
                               />
                               <div className="min-w-0">
-                                <p className="text-xs font-medium text-slate-800 truncate">Image {imageIndex + 1}</p>
-                                <p className={`text-[11px] ${imageIsAvailable ? "text-green-600" : "text-red-600"}`}>
-                                  {imageIsAvailable ? "Available" : "Unavailable"}
+                                <p className="text-xs font-semibold text-slate-800">Image {imageIndex + 1}</p>
+                                <p className={`text-[11px] font-medium ${imageIsAvailable ? 'text-green-600' : 'text-red-600'}`}>
+                                  {imageIsAvailable ? '✓ Available' : '✕ Hidden'}
                                 </p>
                               </div>
                             </div>
@@ -218,7 +243,7 @@ const ManageFeaturedAvailability = () => {
                       })}
                     </div>
                   </div>
-                ) : null}
+                )}
               </div>
             );
           })}

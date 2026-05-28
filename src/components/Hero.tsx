@@ -4,13 +4,16 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { Calendar as CalendarIcon } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import heroImage from "@/assets/scover.jpeg";
 
 const HeroContent = () => {
   const navigate = useNavigate();
   const [eventDate, setEventDate] = useState("");
   const [dateError, setDateError] = useState("");
-  const [dateStatus, setDateStatus] = useState<"" | "available">("");
+  const [dateStatus, setDateStatus] = useState<"" | "available" | "unavailable">("");
+  const unavailableDates = useQuery(api.bookings.getUnavailableDates);
 
   const formatDate = (isoDate: string) => {
     const [year, month, day] = isoDate.split("-").map(Number);
@@ -46,6 +49,12 @@ const HeroContent = () => {
     }
 
     setDateError("");
+
+    if (unavailableDates && unavailableDates.includes(eventDate)) {
+      setDateStatus("unavailable");
+      return;
+    }
+
     setDateStatus("available");
   };
 
@@ -127,7 +136,10 @@ const HeroContent = () => {
           </div>
           {dateError ? <p className="text-[11px] mt-2 text-red-500 font-medium">{dateError}</p> : null}
           {!dateError && dateStatus === "available" ? (
-            <p className="text-[11px] mt-2 text-green-500 font-medium">This date is available. book now to secure it !</p>
+            <p className="text-[11px] mt-2 text-green-500 font-medium">This date is available. Book now to secure it!</p>
+          ) : null}
+          {!dateError && dateStatus === "unavailable" ? (
+            <p className="text-[11px] mt-2 text-red-500 font-medium">This date is unavailable. Please choose another date.</p>
           ) : null}
         </div>
       </div>

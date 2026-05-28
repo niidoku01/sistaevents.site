@@ -19,7 +19,7 @@ type Review = {
   source: "convex" | "server";
 };
 
-export const ManageReviews = () => {
+const ManageReviews = () => {
   const { toast } = useToast();
   const convexPendingReviews = useQuery(api.reviews.getPendingReviews);
   const convexApprovedReviews = useQuery(api.reviews.getApprovedReviews);
@@ -154,45 +154,61 @@ export const ManageReviews = () => {
   };
 
   const ReviewCard = ({ review, isPending }: { review: Review; isPending: boolean }) => (
-    <Card>
-      <CardContent className="p-6">
+    <Card className="border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300 bg-gradient-to-br from-white to-slate-50/50 hover:to-slate-50 backdrop-blur-sm overflow-hidden group">
+      <CardContent className="p-5">
         <div className="space-y-4">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="font-semibold">{review.name}</h3>
-              <p className="text-sm text-muted-foreground">{review.email}</p>
-              <p className="text-sm text-muted-foreground">{review.event}</p>
+          {/* Header with Author and Rating */}
+          <div className="flex justify-between items-start gap-3">
+            <div className="min-w-0">
+              <h3 className="font-semibold text-slate-900 truncate">{review.name}</h3>
+              <p className="text-xs text-slate-500 truncate">{review.email}</p>
+              <div className="flex items-center gap-1 mt-1.5">
+                <span className="text-xs font-medium text-slate-600 bg-slate-100/60 px-2 py-1 rounded">
+                  {review.event}
+                </span>
+              </div>
             </div>
-            <div className="flex gap-1">
-              {[...Array(review.rating)].map((_, i) => (
-                <Star key={i} className="w-4 h-4 fill-accent text-accent" />
+            <div className="flex gap-0.5 flex-shrink-0">
+              {[...Array(5)].map((_, i) => (
+                <Star 
+                  key={i} 
+                  className={`w-4 h-4 ${i < review.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`} 
+                />
               ))}
             </div>
           </div>
 
-          <p className="text-sm italic">"{review.content}"</p>
+          {/* Review Content */}
+          <p className="text-sm text-slate-700 leading-relaxed italic border-l-2 border-amber-300 pl-3">
+            "{review.content}"
+          </p>
 
-          <div className="flex justify-between items-center pt-4 border-t">
-            <p className="text-xs text-muted-foreground">
-              {new Date(review.createdAt).toLocaleDateString()}
+          {/* Footer with Date and Actions */}
+          <div className="flex justify-between items-center pt-4 border-t border-slate-200/60">
+            <p className="text-xs text-slate-500 font-medium">
+              {new Date(review.createdAt).toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+              })}
             </p>
             <div className="flex gap-2">
               {isPending && (
                 <Button
                   size="sm"
-                  variant="default"
+                  className="rounded-lg bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
                   onClick={() => handleApprove(review)}
                 >
-                  <Check className="w-4 h-4 mr-1" />
+                  <Check className="w-3.5 h-3.5 mr-1.5" />
                   Approve
                 </Button>
               )}
               <Button
                 size="sm"
-                variant="destructive"
+                className="rounded-lg bg-red-500/10 text-red-700 hover:bg-red-500/20 border border-red-200/60 font-medium transition-colors"
                 onClick={() => handleDelete(review)}
               >
-                <Trash2 className="w-4 h-4 mr-1" />
+                <Trash2 className="w-3.5 h-3.5 mr-1.5" />
                 Delete
               </Button>
             </div>
@@ -205,22 +221,34 @@ export const ManageReviews = () => {
   return (
     <div className="space-y-8">
       {usingFallback && (
-        <Card className="border-amber-200 bg-amber-50/60">
-          <CardContent className="p-4 text-sm text-amber-900">
-            Showing reviews from the legacy backend because Convex currently has no review records.
+        <Card className="border-amber-200/60 bg-gradient-to-r from-amber-50/60 to-orange-50/60 shadow-sm">
+          <CardContent className="p-4 text-sm text-amber-900 font-medium">
+            ℹ️ Showing reviews from legacy backend as Convex has no records yet
           </CardContent>
         </Card>
       )}
 
+      {/* Pending Reviews Section */}
       <div>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">Pending Reviews ({pendingReviews.length})</h2>
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Pending Reviews</h2>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-amber-100 text-amber-700 font-bold text-sm">
+                {pendingReviews.length}
+              </span>
+              <p className="text-sm text-slate-600">Awaiting approval</p>
+            </div>
+          </div>
         </div>
 
         {pendingReviews.length === 0 ? (
-          <Card>
-            <CardContent className="p-6 text-center text-muted-foreground">
-              No pending reviews
+          <Card className="border-slate-200/60 shadow-sm bg-white/50 backdrop-blur-sm">
+            <CardContent className="p-8 text-center">
+              <div className="text-slate-500">
+                <p className="font-medium">No pending reviews</p>
+                <p className="text-sm mt-1">All reviews have been processed</p>
+              </div>
             </CardContent>
           </Card>
         ) : (
@@ -232,12 +260,27 @@ export const ManageReviews = () => {
         )}
       </div>
 
+      {/* Approved Reviews Section */}
       <div>
-        <h2 className="text-2xl font-bold mb-6">Approved Reviews ({approvedReviews.length})</h2>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Approved Reviews</h2>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-green-100 text-green-700 font-bold text-sm">
+                {approvedReviews.length}
+              </span>
+              <p className="text-sm text-slate-600">Published and visible</p>
+            </div>
+          </div>
+        </div>
+
         {approvedReviews.length === 0 ? (
-          <Card>
-            <CardContent className="p-6 text-center text-muted-foreground">
-              No approved reviews yet
+          <Card className="border-slate-200/60 shadow-sm bg-white/50 backdrop-blur-sm">
+            <CardContent className="p-8 text-center">
+              <div className="text-slate-500">
+                <p className="font-medium">No approved reviews yet</p>
+                <p className="text-sm mt-1">Approve pending reviews to display them</p>
+              </div>
             </CardContent>
           </Card>
         ) : (
@@ -251,3 +294,5 @@ export const ManageReviews = () => {
     </div>
   );
 };
+
+export default ManageReviews;

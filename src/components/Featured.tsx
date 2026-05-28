@@ -206,10 +206,19 @@ export const Featured = () => {
               : item.description;
             return (
               <Card
-                key={index}
+                key={item.key}
                 className="group overflow-hidden hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 border-border cursor-pointer"
                 data-reveal
                 data-reveal-item
+                tabIndex={item.images.length > 0 ? 0 : -1}
+                role="button"
+                aria-label={item.images.length > 0 ? `View ${item.title} gallery` : `${item.title} has no images`}
+                onKeyDown={(e) => {
+                  if ((e.key === "Enter" || e.key === " ") && item.images.length > 0) {
+                    e.preventDefault();
+                    openGallery(item, previewIdx);
+                  }
+                }}
                 onClick={() => {
                   if (item.images.length === 0) {
                     return;
@@ -227,8 +236,9 @@ export const Featured = () => {
                       className={`w-full h-full transition-transform duration-300 group-hover:scale-105 ${
                         item.category === "Aesthetics" || item.category === "Decor" ? "object-cover" : "object-contain"
                       }`}
-                      loading="lazy"
-                      decoding="async"
+                      loading={index < 3 ? "eager" : "lazy"}
+                      fetchPriority={index < 3 ? "high" : "auto"}
+                      decoding={index < 3 ? "sync" : "async"}
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                   ) : (
@@ -283,9 +293,9 @@ export const Featured = () => {
                   src={selectedItem.images[currentImageIndex]}
                   alt={`${selectedItem.title} - Image ${currentImageIndex + 1}`}
                   className="w-full h-full object-contain"
-                  loading="eager"
+                  loading={currentImageIndex === 0 ? "eager" : "lazy"}
                   fetchPriority="high"
-                  decoding="async"
+                  decoding="sync"
                 />
 
                 {selectedItem.images.length > 1 && (
@@ -329,7 +339,7 @@ export const Featured = () => {
                 <div className={`flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 ${isDecorativeDialog ? "pt-0.5" : ""}`}>
                   {selectedItem.images.map((img, idx) => (
                     <button
-                      key={idx}
+                      key={`${selectedItem.key}-thumb-${idx}`}
                       onClick={() => setCurrentImageIndex(idx)}
                       className={`flex-shrink-0 ${isDecorativeDialog ? "w-10 h-10 sm:w-12 sm:h-12" : "w-11 h-11 sm:w-12 sm:h-12"} rounded overflow-hidden border-2 transition-all ${
                         idx === currentImageIndex ? "border-white" : "border-transparent opacity-60 hover:opacity-100"

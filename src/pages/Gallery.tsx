@@ -189,6 +189,15 @@ export default function OurCollection() {
           <div 
             key={img._id || i} 
             className="group relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer"
+            tabIndex={0}
+            role="button"
+            aria-label={`View ${img.originalName || `image ${i + 1}`}`}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setCurrentImageIndex(i);
+              }
+            }}
             onClick={() => setCurrentImageIndex(i)}
             style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}
           >
@@ -198,9 +207,12 @@ export default function OurCollection() {
                 alt={img.originalName || `Image ${i + 1}`} 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 loading={i < PRIORITY_GRID_IMAGES ? "eager" : "lazy"}
-                fetchPriority={i === 0 ? "high" : "auto"}
-                decoding="async"
+                fetchPriority={i === 0 ? "high" : i < PRIORITY_GRID_IMAGES ? "high" : "low"}
+                decoding={i < PRIORITY_GRID_IMAGES ? "sync" : "async"}
                 sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                width={800}
+                height={600}
+                style={{ contentVisibility: "auto" }}
               />
             </div>
           </div>
@@ -242,12 +254,15 @@ export default function OurCollection() {
                           <div className="aspect-[4/5] bg-slate-100">
                             <img
                               src={getCoverImage(images, category)}
-                              alt={category}
+                              alt={categoryTitleMap[category]}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                               loading={category === "weddings" ? "eager" : "lazy"}
                               fetchPriority={category === "weddings" ? "high" : "auto"}
-                              decoding="async"
+                              decoding={category === "weddings" ? "sync" : "async"}
                               sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                              width={1200}
+                              height={1500}
+                              style={{ contentVisibility: "auto" }}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                             <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
@@ -368,11 +383,14 @@ export default function OurCollection() {
             <div className="w-full h-full flex items-center justify-center p-4 sm:p-6">
               <img
                 src={currentImage}
-                alt="Full size view"
+                alt={currentImageIndex !== null && categoryImages ? categoryImages[currentImageIndex]?.originalName || "Full size view" : "Full size view"}
                 className="max-w-full max-h-full object-contain select-none"
+                style={{ contentVisibility: "auto" }}
                 decoding="async"
                 fetchPriority="high"
                 sizes="100vw"
+                width={1600}
+                height={1200}
                 draggable={false}
               />
             </div>

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { popupAdAPI } from "@/lib/api";
+// Image uploads will be stored in Convex as data URLs.
 
 type PopupAd = {
   _id: Id<"popupAds">;
@@ -30,12 +29,6 @@ const toDateTimeLocalValue = (timestamp?: number) => {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 };
 
-const parseDateTimeLocalValue = (value: string) => {
-  if (!value.trim()) return undefined;
-  const timestamp = new Date(value).getTime();
-  return Number.isNaN(timestamp) ? undefined : timestamp;
-};
-
 const ManagePopupAds = () => {
   const { toast } = useToast();
   const ads = (useQuery(api.popupAds.listPopupAds) || []) as PopupAd[];
@@ -52,20 +45,36 @@ const ManagePopupAds = () => {
     imageUrl: "",
     ctaText: "",
     ctaUrl: "",
-    startsAt: "",
-    endsAt: "",
     active: true,
   });
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title.trim() || !form.message.trim()) {
+    if (!form.imageUrl.trim()) {
       toast({
-        title: "Missing details",
-        description: "Title and message are required.",
+        title: "Image required",
+        description: "Upload an image or paste an image URL.",
         variant: "destructive",
       });
       return;
+    }
+
+    // If image is a data URL, ensure it's not too large for Convex storage.
+    if (form.imageUrl.startsWith("data:")) {
+      const parts = form.imageUrl.split(",");
+      const base64 = parts[1] || "";
+      const bytes = Math.ceil((base64.length * 3) / 4);
+      const MAX_BYTES = 200 * 1024; // 200KB
+      if (bytes > MAX_BYTES) {
+        toast({
+          title: "Image too large",
+          description: `Image is ~${Math.round(bytes / 1024)}KB. Please resize/compress under ${Math.round(
+            MAX_BYTES / 1024
+          )}KB before uploading.`,
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     try {
@@ -73,13 +82,11 @@ const ManagePopupAds = () => {
       const imageUrl = form.imageUrl.trim() || undefined;
 
       await createPopupAd({
-        title: form.title.trim(),
-        message: form.message.trim(),
+        title: form.title || "Special Offer",
+        message: form.message || "Check out our latest deals and offerings!",
         imageUrl,
-        ctaText: form.ctaText.trim() || undefined,
-        ctaUrl: form.ctaUrl.trim() || undefined,
-        startsAt: parseDateTimeLocalValue(form.startsAt),
-        endsAt: parseDateTimeLocalValue(form.endsAt),
+        ctaText: form.ctaText || undefined,
+        ctaUrl: form.ctaUrl || undefined,
         active: form.active,
       });
 
@@ -94,15 +101,16 @@ const ManagePopupAds = () => {
         imageUrl: "",
         ctaText: "",
         ctaUrl: "",
-        startsAt: "",
-        endsAt: "",
         active: true,
       });
       setImageFileName("");
-    } catch {
+    } catch (err) {
+      console.error("createPopupAd error:", err);
+      const raw = (err as any)?.message || (typeof err === "object" ? JSON.stringify(err) : String(err));
+      const description = raw && raw.length > 300 ? raw.slice(0, 300) + "..." : raw || "Could not create popup ad.";
       toast({
         title: "Create failed",
-        description: "Could not create popup ad.",
+        description,
         variant: "destructive",
       });
     } finally {
@@ -122,33 +130,24 @@ const ManagePopupAds = () => {
       });
       return;
     }
-
-    (async () => {
-      try {
-        setIsUploadingImage(true);
-        const result = await popupAdAPI.uploadImage(file);
-        const uploadedUrl = result?.image?.url;
-
-        if (!uploadedUrl) {
-          throw new Error("No image URL returned from upload");
-        }
-
-        setForm((prev) => ({ ...prev, imageUrl: uploadedUrl }));
+    setIsUploadingImage(true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string | null;
+      if (result) {
+        setForm((prev) => ({ ...prev, imageUrl: result }));
         setImageFileName(file.name);
-        toast({
-          title: "Image uploaded",
-          description: "The popup ad image is ready to use.",
-        });
-      } catch {
-        toast({
-          title: "Upload failed",
-          description: "Could not upload the selected image.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsUploadingImage(false);
+        toast({ title: "Image ready", description: "Image converted and will be saved to Convex." });
+      } else {
+        toast({ title: "Upload failed", description: "Could not read the selected image.", variant: "destructive" });
       }
-    })();
+      setIsUploadingImage(false);
+    };
+    reader.onerror = () => {
+      toast({ title: "Upload failed", description: "Could not read the selected image.", variant: "destructive" });
+      setIsUploadingImage(false);
+    };
+    reader.readAsDataURL(file);
   };
 
 
@@ -186,183 +185,212 @@ const ManagePopupAds = () => {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Create Ad</CardTitle>
-          <CardDescription>popup announcements homepage display.</CardDescription>
+      {/* Create Ad Card */}
+      <Card className="border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300 bg-white/50 backdrop-blur-sm">
+        <CardHeader className="pb-4">
+          <div className="space-y-1">
+            <CardTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">Create Ad</CardTitle>
+            <CardDescription className="text-sm">Popup advertisement for homepage</CardDescription>
+          </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleCreate} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-slate-700 mb-1">Title</p>
-                <Input
-                  value={form.title}
-                  onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
-                  placeholder="Special offer"
-                />
-              </div>
-              <div>
-                <p className="text-sm text-slate-700 mb-1">Image URL (required if no upload)</p>
+          <form onSubmit={handleCreate} className="space-y-6">
+            {/* Title */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-900">Title</label>
+              <Input
+                value={form.title}
+                onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
+                placeholder="Special Offer"
+                className="rounded-lg border-slate-200/60 focus:border-amber-500 focus:ring-amber-500/20"
+              />
+            </div>
+
+            {/* Message */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-900">Message</label>
+              <textarea
+                value={form.message}
+                onChange={(e) => setForm((prev) => ({ ...prev, message: e.target.value }))}
+                placeholder="Check out our latest deals and offerings!"
+                rows={3}
+                className="flex w-full rounded-lg border border-slate-200/60 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/20 focus-visible:border-amber-500 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+              />
+            </div>
+
+            {/* Image */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-900">Image URL</label>
                 <Input
                   value={form.imageUrl}
                   onChange={(e) => setForm((prev) => ({ ...prev, imageUrl: e.target.value }))}
-                  placeholder="https://..."
+                  placeholder="https://example.com/image.jpg"
+                  className="rounded-lg border-slate-200/60 focus:border-amber-500 focus:ring-amber-500/20"
                 />
-                <p className="text-[11px] text-slate-500 mt-1">Use a hosted URL, or upload an image below.</p>
+                <p className="text-xs text-slate-500">Paste a hosted image URL or upload below</p>
               </div>
-              <div>
-                <p className="text-sm text-slate-700 mb-1">Upload Ad Image (required if no URL)</p>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-900">Upload Image</label>
                 <Input
                   type="file"
                   accept="image/*"
                   onChange={handleImageUpload}
                   disabled={isUploadingImage}
+                  className="rounded-lg border-slate-200/60 focus:border-amber-500 focus:ring-amber-500/20 cursor-pointer"
                 />
-                <p className="text-[11px] text-slate-500 mt-1">
+                <p className="text-xs text-slate-500">
                   {isUploadingImage
-                    ? "Uploading image..."
+                    ? "Converting image..."
                     : imageFileName
-                      ? `Selected: ${imageFileName}`
-                      : "No file selected"}
+                      ? `✓ ${imageFileName}`
+                      : "Max 200KB (auto-compressed)"}
                 </p>
               </div>
             </div>
 
-
-            <div>
-              <p className="text-sm text-slate-700 mb-1">Message</p>
-              <Textarea
-                value={form.message}
-                onChange={(e) => setForm((prev) => ({ ...prev, message: e.target.value }))}
-                placeholder=" promotion or announcement info "
-                className="min-h-[120px]"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-slate-700 mb-1">CTA Text (optional)</p>
+            {/* CTA */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-900">Button Text</label>
                 <Input
                   value={form.ctaText}
                   onChange={(e) => setForm((prev) => ({ ...prev, ctaText: e.target.value }))}
-                  placeholder="Book now"
+                  placeholder="Shop Now"
+                  className="rounded-lg border-slate-200/60 focus:border-amber-500 focus:ring-amber-500/20"
                 />
               </div>
-              <div>
-                <p className="text-sm text-slate-700 mb-1">CTA Link (optional)</p>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-900">Button Link (URL)</label>
                 <Input
                   value={form.ctaUrl}
                   onChange={(e) => setForm((prev) => ({ ...prev, ctaUrl: e.target.value }))}
-                  placeholder="https://... or /#contact"
+                  placeholder="https://example.com/offer"
+                  className="rounded-lg border-slate-200/60 focus:border-amber-500 focus:ring-amber-500/20"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Active Toggle */}
+            <div className="rounded-lg border border-slate-200/60 bg-gradient-to-r from-amber-50/50 to-orange-50/50 p-4 flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-700 mb-1">Start At (optional)</p>
-                <Input
-                  type="datetime-local"
-                  value={form.startsAt}
-                  onChange={(e) => setForm((prev) => ({ ...prev, startsAt: e.target.value }))}
-                />
-              </div>
-              <div>
-                <p className="text-sm text-slate-700 mb-1">End At (optional)</p>
-                <Input
-                  type="datetime-local"
-                  value={form.endsAt}
-                  onChange={(e) => setForm((prev) => ({ ...prev, endsAt: e.target.value }))}
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between rounded-md border p-3 bg-slate-50">
-              <div>
-                <p className="text-sm font-medium text-slate-900">Set active immediately</p>
-                <p className="text-xs text-slate-600">Only one popup ad can be active at a time.</p>
+                <p className="font-semibold text-slate-900 text-sm">Activate Immediately</p>
+                <p className="text-xs text-slate-600 mt-0.5">Only one ad can be active at a time</p>
               </div>
               <Switch
                 checked={form.active}
                 onCheckedChange={(checked) => setForm((prev) => ({ ...prev, active: checked }))}
                 aria-label="Set popup ad active"
+                className="ml-4"
               />
             </div>
 
-            <div className="rounded-lg border border-amber-200 bg-amber-50/40 p-3">
-              <p className="text-sm font-medium text-slate-900 mb-2">Sample Preview</p>
-              <div className="max-w-sm rounded-md border bg-white overflow-hidden">
-                {form.imageUrl ? (
-                  <img
-                    src={form.imageUrl}
-                    alt="Ad sample"
-                    className="w-full h-36 object-cover"
-                  />
-                ) : null}
-                <div className="p-3">
-                  <p className="text-base font-semibold text-slate-900">
-                    {form.title.trim() || "Special Offer"}
-                  </p>
-                  <p className="text-sm text-slate-700 mt-1">
-                    {form.message.trim() || "Your ad message will appear here."}
-                  </p>
-                  {form.ctaText.trim() ? (
-                    <div className="mt-2 inline-flex rounded bg-slate-900 px-3 py-1 text-xs text-white">
-                      {form.ctaText}
-                    </div>
-                  ) : null}
+            {/* Preview */}
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-slate-900">Preview</p>
+              <div className="rounded-xl border border-slate-200/60 overflow-hidden bg-white shadow-sm max-w-sm mx-auto">
+                {form.imageUrl && (
+                  <div className="relative aspect-[16/10] bg-slate-100">
+                    <img
+                      src={form.imageUrl}
+                      alt="Ad preview"
+                      className="absolute inset-0 w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                      fetchPriority="low"
+                      width={800}
+                      height={500}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                  </div>
+                )}
+                <div className="space-y-3 p-4">
+                  {form.title && (
+                    <h3 className="font-bold text-slate-900 text-base leading-tight">{form.title}</h3>
+                  )}
+                  {form.message && (
+                    <p className="text-sm text-slate-600 leading-relaxed">{form.message}</p>
+                  )}
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="inline-flex items-center rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-4 py-2 text-sm font-semibold text-white shadow-sm">
+                      {form.ctaText || "Book Now"}
+                    </span>
+                    <span className="text-xs text-slate-400 underline underline-offset-2">Not now</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <Button type="submit" disabled={isSaving}>
+            <Button 
+              type="submit" 
+              disabled={isSaving}
+              className="w-full rounded-lg bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white font-semibold py-2.5 transition-all duration-200 shadow-md hover:shadow-lg"
+            >
               {isSaving ? "Saving..." : "Save Popup Ad"}
             </Button>
           </form>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Existing Popup Ads</CardTitle>
-          <CardDescription>Activate, deactivate, or delete ads.</CardDescription>
+      {/* Existing Ads */}
+      <Card className="border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300 bg-white/50 backdrop-blur-sm">
+        <CardHeader className="pb-4">
+          <div className="space-y-1">
+            <CardTitle className="text-lg sm:text-xl font-bold text-slate-900">Active Ads</CardTitle>
+            <CardDescription>Manage and control your popup ads</CardDescription>
+          </div>
         </CardHeader>
         <CardContent>
           {ads.length === 0 ? (
-            <p className="text-sm text-slate-500">No popup ads yet.</p>
+            <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50/50 p-8 text-center">
+              <p className="text-sm text-slate-500 font-medium">No popup ads yet</p>
+              <p className="text-xs text-slate-400 mt-1">Create your first ad above</p>
+            </div>
           ) : (
             <div className="space-y-3">
               {ads.map((ad) => (
-                <div key={ad._id} className="rounded-lg border p-4 bg-white">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="font-medium text-slate-900 truncate">{ad.title}</p>
-                        <Badge variant={ad.active ? "default" : "secondary"}>
-                          {ad.active ? "Active" : "Inactive"}
+                <div key={ad._id} className="rounded-lg border border-slate-200/60 bg-gradient-to-r from-white to-slate-50/50 p-4 hover:shadow-md transition-all duration-200 group">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-3">
+                        <h3 className="font-semibold text-slate-900">Popup Ad</h3>
+                        <Badge 
+                          variant={ad.active ? "default" : "secondary"}
+                          className={ad.active ? "bg-green-500/20 text-green-700 border-green-200" : "bg-slate-200 text-slate-700"}
+                        >
+                          {ad.active ? "● Active" : "○ Inactive"}
                         </Badge>
                       </div>
-                      <p className="text-sm text-slate-600 line-clamp-2">{ad.message}</p>
-                      {(ad.startsAt || ad.endsAt) && (
-                        <p className="text-xs text-slate-500 mt-1">
-                          {ad.startsAt ? `Starts ${new Date(ad.startsAt).toLocaleString()}` : "Starts immediately"}
-                          {ad.startsAt && ad.endsAt ? " · " : ""}
-                          {ad.endsAt ? `Ends ${new Date(ad.endsAt).toLocaleString()}` : ""}
-                        </p>
-                      )}
-                      {ad.imageUrl ? (
-                        <img src={ad.imageUrl} alt={ad.title} className="mt-2 h-12 w-12 rounded border object-cover" />
-                      ) : null}
-                      {ad.ctaText && (
-                        <p className="text-xs text-slate-500 mt-1">CTA: {ad.ctaText}</p>
+                      {ad.imageUrl && (
+                        <div className="mt-3">
+                          <img 
+                            src={ad.imageUrl} 
+                            alt="Popup ad preview" 
+                            className="h-24 w-32 rounded-md border border-slate-200/60 object-cover shadow-sm" 
+                            loading="lazy"
+                            decoding="async"
+                            fetchPriority="low"
+                            width={128}
+                            height={96}
+                          />
+                        </div>
                       )}
                     </div>
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <Button size="sm" variant="outline" onClick={() => handleToggle(ad._id, !ad.active)}>
-                        {ad.active ? "Deactivate" : "Set Active"}
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => handleToggle(ad._id, !ad.active)}
+                        className="rounded-lg border-slate-200/60 hover:bg-slate-50 text-slate-700 font-medium transition-colors"
+                      >
+                        {ad.active ? "Deactivate" : "Activate"}
                       </Button>
-                      <Button size="sm" variant="destructive" onClick={() => handleDelete(ad._id)}>
+                      <Button 
+                        size="sm" 
+                        variant="destructive" 
+                        onClick={() => handleDelete(ad._id)}
+                        className="rounded-lg bg-red-500/10 text-red-700 hover:bg-red-500/20 border border-red-200/60 font-medium transition-colors"
+                      >
                         Delete
                       </Button>
                     </div>

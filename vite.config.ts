@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import { visualizer } from "rollup-plugin-visualizer";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -16,7 +17,15 @@ export default defineConfig({
       "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
     },
   },
-  plugins: [react()],
+  plugins: [
+    react(),
+    visualizer({
+      open: true,
+      gzipSize: true,
+      brotliSize: true,
+      filename: "dist/stats.html",
+    }),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -28,6 +37,7 @@ export default defineConfig({
     sourcemap: false,
     target: "es2020",
     chunkSizeWarningLimit: 1000, // Increase chunk size warning limit to 1000kb
+    assetsInlineLimit: 0, // Don't inline images, let them be external files
     rollupOptions: {
       output: {
         manualChunks: {

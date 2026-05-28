@@ -11,8 +11,8 @@ const navItems = [
 
 const AdminNav: React.FC = () => {
   return (
-    <nav className="rounded-2xl border border-slate-200 bg-white shadow-sm p-2">
-      <div className="grid grid-cols-4 gap-3">
+    <nav className="rounded-xl border border-slate-200/60 bg-white shadow-sm p-1 backdrop-blur-sm">
+      <div className="grid grid-cols-4 gap-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -20,15 +20,16 @@ const AdminNav: React.FC = () => {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `rounded-xl px-3 py-4 text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
+                `rounded-lg px-3 py-3 sm:py-4 text-xs sm:text-sm font-medium transition-all duration-200 flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 ${
                   isActive
-                    ? "bg-amber-400 text-slate-900 shadow"
-                    : "text-slate-600 hover:text-gold-700 hover:bg-blue-50"
+                    ? "bg-gradient-to-br from-amber-400 to-amber-500 text-white shadow-md hover:shadow-lg"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 }`
               }
             >
-              <Icon className="w-4 h-4" />
-              <span>{item.label}</span>
+              <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">{item.label}</span>
+              <span className="sm:hidden text-[10px]">{item.label}</span>
             </NavLink>
           );
         })}

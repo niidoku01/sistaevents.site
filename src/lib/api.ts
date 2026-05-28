@@ -94,8 +94,27 @@ export const popupAdAPI = {
       body: formData,
     });
 
-    if (!response.ok) throw new Error("Failed to upload popup ad image");
-    return response.json();
+    const contentType = response.headers.get("content-type") || "";
+    let body: any;
+    try {
+      if (contentType.includes("application/json")) {
+        body = await response.json();
+      } else {
+        body = await response.text();
+      }
+    } catch (e) {
+      body = undefined;
+    }
+
+    if (!response.ok) {
+      const message =
+        typeof body === "string"
+          ? body
+          : body?.error || body?.message || `Upload failed: ${response.status} ${response.statusText}`;
+      throw new Error(message);
+    }
+
+    return body;
   },
 };
 

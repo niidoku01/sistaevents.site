@@ -40,10 +40,11 @@ export const Header = () => {
                 filter: "contrast(1.0) saturate(1.9) brightness(1.1)",
                 shapeRendering: "crispEdges",
                 WebkitFontSmoothing: "antialiased",
-                backfaceVisibility: "hidden",
-                transform: "translateZ(0)"
+                backfaceVisibility: "hidden"
               }}
               loading="eager"
+              width={80}
+              height={80}
               decoding="async"
               fetchPriority="high"
             />

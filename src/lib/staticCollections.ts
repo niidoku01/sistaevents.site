@@ -84,7 +84,7 @@ const getRecencyScore = (path: string): number => {
     return leadingSequence;
   }
 
-  return 0;
+  return Infinity;
 };
 
 const compareOldestFirst = (a: { path: string }, b: { path: string }): number => {

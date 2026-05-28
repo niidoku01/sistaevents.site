@@ -63,8 +63,8 @@ export const Packages = () => {
     element?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const scrollToContactWithPackage = () => {
-    sessionStorage.removeItem('selectedPackage');
+  const scrollToContactWithPackage = (packageName: string) => {
+    sessionStorage.setItem('selectedPackage', packageName);
     const element = document.getElementById("contact");
     element?.scrollIntoView({ behavior: "smooth" });
   };
@@ -129,7 +129,7 @@ export const Packages = () => {
                 <Button 
                   className="w-full" 
                   variant={pkg.popular ? "default" : "outline"}
-                  onClick={scrollToContactWithPackage}
+                  onClick={() => scrollToContactWithPackage(pkg.name)}
                 >
                   Get Quote
                 </Button>

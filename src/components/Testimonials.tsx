@@ -56,6 +56,8 @@ const TestimonialsWithConvex = () => {
     setUsingFallback(false);
   }, [convexTestimonials]);
 
+  const isLoading = convexTestimonials === undefined && !usingFallback;
+
   const testimonials = useMemo(
     () => (usingFallback ? legacyTestimonials : (convexTestimonials ?? [])),
     [usingFallback, convexTestimonials, legacyTestimonials]
@@ -90,13 +92,22 @@ const TestimonialsWithConvex = () => {
           </div>
         )}
 
+        {isLoading && (
+          <div className="text-center py-12">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" role="status">
+              <span className="sr-only">Loading reviews...</span>
+            </div>
+            <p className="mt-3 text-muted-foreground">Loading reviews...</p>
+          </div>
+        )}
+
         {usingFallback && (
           <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
             Showing approved reviews from the legacy backend because Convex currently has no approved review records.
           </div>
         )}
 
-        {sortedTestimonials.length === 0 ? (
+        {!isLoading && sortedTestimonials.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-muted-foreground">No reviews yet. Be the first to share your experience!</p>
           </div>

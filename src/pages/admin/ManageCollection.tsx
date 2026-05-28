@@ -85,7 +85,18 @@ const ManageCollection: React.FC = () => {
                           {getCategoryLabel(img.category)}
                         </Badge>
                       </div>
-                      <img src={img.url} alt={img.originalName} className="w-full h-full object-cover rounded-2xl" />
+                      <img
+                        src={img.url}
+                        alt={img.originalName}
+                        className="w-full h-full object-cover rounded-2xl"
+                        loading="lazy"
+                        decoding="async"
+                        fetchPriority="low"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                        width={800}
+                        height={600}
+                      />
+
                     </div>
                     <CardContent className="p-4">
                       <p className="text-sm font-medium truncate mb-2">{img.originalName}</p>

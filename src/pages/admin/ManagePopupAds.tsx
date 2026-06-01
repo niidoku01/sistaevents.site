@@ -22,13 +22,6 @@ type PopupAd = {
   endsAt?: number;
 };
 
-const toDateTimeLocalValue = (timestamp?: number) => {
-  if (!timestamp) return "";
-  const date = new Date(timestamp);
-  const pad = (value: number) => String(value).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-};
-
 const ManagePopupAds = () => {
   const { toast } = useToast();
   const ads = (useQuery(api.popupAds.listPopupAds) || []) as PopupAd[];
@@ -40,11 +33,7 @@ const ManagePopupAds = () => {
 
   const [isSaving, setIsSaving] = useState(false);
   const [form, setForm] = useState({
-    title: "",
-    message: "",
     imageUrl: "",
-    ctaText: "",
-    ctaUrl: "",
     active: true,
   });
 
@@ -82,11 +71,9 @@ const ManagePopupAds = () => {
       const imageUrl = form.imageUrl.trim() || undefined;
 
       await createPopupAd({
-        title: form.title || "Special Offer",
-        message: form.message || "Check out our latest deals and offerings!",
+        title: "",
+        message: "",
         imageUrl,
-        ctaText: form.ctaText || undefined,
-        ctaUrl: form.ctaUrl || undefined,
         active: form.active,
       });
 
@@ -96,11 +83,7 @@ const ManagePopupAds = () => {
       });
 
       setForm({
-        title: "",
-        message: "",
         imageUrl: "",
-        ctaText: "",
-        ctaUrl: "",
         active: true,
       });
       setImageFileName("");
@@ -195,81 +178,26 @@ const ManagePopupAds = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleCreate} className="space-y-6">
-            {/* Title */}
+            {/* Image Upload */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-900">Title</label>
+              <label className="text-sm font-semibold text-slate-900">Upload Image</label>
               <Input
-                value={form.title}
-                onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
-                placeholder="Special Offer"
-                className="rounded-lg border-slate-200/60 focus:border-amber-500 focus:ring-amber-500/20"
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={isUploadingImage}
+                className="rounded-lg border-slate-200/60 focus:border-amber-500 focus:ring-amber-500/20 cursor-pointer"
               />
+              <p className="text-xs text-slate-500">
+                {isUploadingImage
+                  ? "Converting image..."
+                  : imageFileName
+                    ? `✓ ${imageFileName}`
+                    : "Max 200KB (auto-compressed)"}
+              </p>
             </div>
 
-            {/* Message */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-900">Message</label>
-              <textarea
-                value={form.message}
-                onChange={(e) => setForm((prev) => ({ ...prev, message: e.target.value }))}
-                placeholder="Check out our latest deals and offerings!"
-                rows={3}
-                className="flex w-full rounded-lg border border-slate-200/60 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/20 focus-visible:border-amber-500 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-              />
-            </div>
 
-            {/* Image */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-900">Image URL</label>
-                <Input
-                  value={form.imageUrl}
-                  onChange={(e) => setForm((prev) => ({ ...prev, imageUrl: e.target.value }))}
-                  placeholder="https://example.com/image.jpg"
-                  className="rounded-lg border-slate-200/60 focus:border-amber-500 focus:ring-amber-500/20"
-                />
-                <p className="text-xs text-slate-500">Paste a hosted image URL or upload below</p>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-900">Upload Image</label>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  disabled={isUploadingImage}
-                  className="rounded-lg border-slate-200/60 focus:border-amber-500 focus:ring-amber-500/20 cursor-pointer"
-                />
-                <p className="text-xs text-slate-500">
-                  {isUploadingImage
-                    ? "Converting image..."
-                    : imageFileName
-                      ? `✓ ${imageFileName}`
-                      : "Max 200KB (auto-compressed)"}
-                </p>
-              </div>
-            </div>
-
-            {/* CTA */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-900">Button Text</label>
-                <Input
-                  value={form.ctaText}
-                  onChange={(e) => setForm((prev) => ({ ...prev, ctaText: e.target.value }))}
-                  placeholder="Shop Now"
-                  className="rounded-lg border-slate-200/60 focus:border-amber-500 focus:ring-amber-500/20"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-900">Button Link (URL)</label>
-                <Input
-                  value={form.ctaUrl}
-                  onChange={(e) => setForm((prev) => ({ ...prev, ctaUrl: e.target.value }))}
-                  placeholder="https://example.com/offer"
-                  className="rounded-lg border-slate-200/60 focus:border-amber-500 focus:ring-amber-500/20"
-                />
-              </div>
-            </div>
 
             {/* Active Toggle */}
             <div className="rounded-lg border border-slate-200/60 bg-gradient-to-r from-amber-50/50 to-orange-50/50 p-4 flex items-center justify-between">
@@ -304,19 +232,10 @@ const ManagePopupAds = () => {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
                   </div>
                 )}
-                <div className="space-y-3 p-4">
-                  {form.title && (
-                    <h3 className="font-bold text-slate-900 text-base leading-tight">{form.title}</h3>
-                  )}
-                  {form.message && (
-                    <p className="text-sm text-slate-600 leading-relaxed">{form.message}</p>
-                  )}
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="inline-flex items-center rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-4 py-2 text-sm font-semibold text-white shadow-sm">
-                      {form.ctaText || "Book Now"}
-                    </span>
-                    <span className="text-xs text-slate-400 underline underline-offset-2">Not now</span>
-                  </div>
+                <div className="bg-gradient-to-br from-amber-50 to-white px-4 py-3">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white">
+                    Book Now
+                  </span>
                 </div>
               </div>
             </div>

@@ -212,7 +212,6 @@ export default function OurCollection() {
                 sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
                 width={800}
                 height={600}
-                style={{ contentVisibility: "auto" }}
               />
             </div>
           </div>
@@ -222,13 +221,12 @@ export default function OurCollection() {
   };
 
   return (
+
     <div className="min-h-screen flex flex-col overflow-x-hidden bg-slate-50">
       <Header />
-
-      <main className="flex-1 overflow-x-hidden pt-20 sm:pt-24 pb-10">
-        <section className="pt-6 sm:pt-10">
-          <div className="container mx-auto px-4 lg:px-6 max-w-7xl">
-            <div className="relative overflow-hidden rounded-3xl border border-amber-100 bg-gradient-to-br from-amber-50 via-white to-sky-50 px-6 sm:px-8 py-8 sm:py-10 mb-8 sm:mb-10">
+      <main className="flex-1 pt-14 sm:pt-16 lg:pt-20">
+        <div className="container mx-auto px-4 lg:px-6 max-w-7xl">
+          <div className="relative overflow-hidden rounded-3xl border border-amber-100 bg-gradient-to-br from-amber-50 via-white to-sky-50 px-6 sm:px-8 py-8 sm:py-10 mb-8 sm:mb-10">
               <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-amber-200/35 blur-3xl" />
               <div className="absolute -bottom-16 -left-16 h-44 w-44 rounded-full bg-sky-200/35 blur-3xl" />
 
@@ -250,7 +248,7 @@ export default function OurCollection() {
                         className="group text-left"
                         onClick={() => setSelectedCategory(category)}
                       >
-                        <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm hover:shadow-2xl transition-all duration-300">
+                        <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm hover:shadow-2xl transition-all duration-300" style={{ contentVisibility: "auto", containIntrinsicSize: "400px 500px" }}>
                           <div className="aspect-[4/5] bg-slate-100">
                             <img
                               src={getCoverImage(images, category)}
@@ -262,7 +260,6 @@ export default function OurCollection() {
                               sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
                               width={1200}
                               height={1500}
-                              style={{ contentVisibility: "auto" }}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                             <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
@@ -337,7 +334,6 @@ export default function OurCollection() {
               </div>
             )}
           </div>
-        </section>
       </main>
 
       {/* Image Viewer Modal */}
@@ -385,7 +381,6 @@ export default function OurCollection() {
                 src={currentImage}
                 alt={currentImageIndex !== null && categoryImages ? categoryImages[currentImageIndex]?.originalName || "Full size view" : "Full size view"}
                 className="max-w-full max-h-full object-contain select-none"
-                style={{ contentVisibility: "auto" }}
                 decoding="async"
                 fetchPriority="high"
                 sizes="100vw"

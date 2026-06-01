@@ -56,12 +56,6 @@ const Login: React.FC = () => {
       navigate("/admin/bookings");
     } catch (err: unknown) {
       setError(getLoginErrorMessage(err));
-      // Log failed login attempt
-      fetch("/api/log", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event: "admin_login_failed", email, time: new Date().toISOString() })
-      });
     } finally {
       setLoading(false);
     }

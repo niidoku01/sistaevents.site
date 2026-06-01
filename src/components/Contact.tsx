@@ -158,8 +158,7 @@ export const Contact = () => {
     const loadPackageData = () => {
       const data = sessionStorage.getItem('selectedPackage');
       if (data) {
-        const pkg = JSON.parse(data);
-        setFormData(prev => ({ ...prev, message: pkg.message }));
+        setFormData(prev => ({ ...prev, message: `Interested in the ${data} package.` }));
         sessionStorage.removeItem('selectedPackage');
       }
     };

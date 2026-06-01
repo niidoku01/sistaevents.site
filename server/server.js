@@ -160,8 +160,8 @@ const isAllowedOrigin = (origin) => allowedOrigins.includes(origin);
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, Postman, etc.)
-    if (!origin) return callback(null, true);
+    // Reject requests with no origin when credentials are enabled
+    if (!origin) return callback(null, false);
     if (!isAllowedOrigin(origin)) {
       const msg = "The CORS policy for this site does not allow access from the specified Origin.";
       return callback(new Error(msg), false);
@@ -182,7 +182,9 @@ app.use((req, res, next) => {
   if (!["POST", "PUT", "PATCH", "DELETE"].includes(method)) return next();
 
   const origin = req.headers.origin;
-  if (!origin) return next();
+  if (!origin) {
+    return res.status(403).json({ error: "Forbidden — missing origin" });
+  }
 
   if (!isAllowedOrigin(origin)) {
     return res.status(403).json({ error: "Forbidden origin" });
@@ -201,6 +203,34 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+// Firebase Auth middleware — verifies Firebase ID tokens for admin routes
+const verifyAdmin = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Unauthorized — missing or invalid token" });
+    }
+
+    const token = authHeader.split("Bearer ")[1];
+    const decoded = await admin.auth().verifyIdToken(token);
+
+    // Check against allowed admin emails from environment
+    const adminEmails = (process.env.FIREBASE_ADMIN_EMAILS || "")
+      .split(",")
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
+
+    if (adminEmails.length > 0 && (!decoded.email || !adminEmails.includes(decoded.email.toLowerCase()))) {
+      return res.status(403).json({ error: "Forbidden — not an admin user" });
+    }
+
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: "Unauthorized — invalid token" });
+  }
+};
 
 // Create uploads directory if it doesn't exist
 const uploadsRoot = isServerlessRuntime ? path.join("/tmp", "uploads") : path.join(__dirname, "uploads");
@@ -409,9 +439,9 @@ app.post(
 
 /**
  * POST /api/uploads/collections
- * Upload collection images
+ * Upload collection images (admin)
  */
-app.post("/api/uploads/collections", upload.array("images", 10), (req, res) => {
+app.post("/api/uploads/collections", verifyAdmin, upload.array("images", 10), (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: "No images provided" });
@@ -435,9 +465,9 @@ app.post("/api/uploads/collections", upload.array("images", 10), (req, res) => {
 
 /**
  * POST /api/uploads/popup-ads
- * Upload popup ad image
+ * Upload popup ad image (admin)
  */
-app.post("/api/uploads/popup-ads", popupAdUpload.single("image"), (req, res) => {
+app.post("/api/uploads/popup-ads", verifyAdmin, popupAdUpload.single("image"), (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No image provided" });
@@ -485,9 +515,9 @@ app.get("/api/collections", (req, res) => {
 
 /**
  * GET /api/bookings
- * Get all bookings (for admin panel)
+ * Get all bookings (admin only)
  */
-app.get("/api/bookings", async (req, res) => {
+app.get("/api/bookings", verifyAdmin, async (req, res) => {
   try {
     // Try Firestore first
     try {
@@ -520,9 +550,9 @@ app.get("/api/bookings", async (req, res) => {
 
 /**
  * POST /api/bookings/:id/resend
- * Resend SMS notifications for a booking (admin action)
+ * Resend SMS notifications for a booking (admin only)
  */
-app.post("/api/bookings/:id/resend", (req, res) => {
+app.post("/api/bookings/:id/resend", verifyAdmin, (req, res) => {
   try {
     const bookingsFile = path.join(bookingsDir, "bookings.json");
     if (!fs.existsSync(bookingsFile)) return res.status(404).json({ error: "No bookings found" });
@@ -575,9 +605,9 @@ app.post("/api/bookings/:id/resend", (req, res) => {
 
 /**
  * DELETE /api/bookings/:id
- * Delete a booking by id
+ * Delete a booking by id (admin only)
  */
-app.delete("/api/bookings/:id", async (req, res) => {
+app.delete("/api/bookings/:id", verifyAdmin, async (req, res) => {
   try {
     const id = req.params.id;
 
@@ -608,9 +638,9 @@ app.delete("/api/bookings/:id", async (req, res) => {
 
 /**
  * DELETE /api/collections/:filename
- * Delete a collection image
+ * Delete a collection image (admin only)
  */
-app.delete("/api/collections/:filename", (req, res) => {
+app.delete("/api/collections/:filename", verifyAdmin, (req, res) => {
   try {
     const safeFilename = path.basename(req.params.filename);
     if (safeFilename !== req.params.filename) {
@@ -757,7 +787,7 @@ app.get("/api/reviews", async (req, res) => {
  * GET /api/reviews/pending
  * Get all pending reviews (admin only)
  */
-app.get("/api/reviews/pending", async (req, res) => {
+app.get("/api/reviews/pending", verifyAdmin, async (req, res) => {
   try {
     let reviews = [];
 
@@ -790,7 +820,7 @@ app.get("/api/reviews/pending", async (req, res) => {
  * PUT /api/reviews/:id/approve
  * Approve a review (admin only)
  */
-app.put("/api/reviews/:id/approve", async (req, res) => {
+app.put("/api/reviews/:id/approve", verifyAdmin, async (req, res) => {
   try {
     const reviewId = req.params.id;
 
@@ -826,7 +856,7 @@ app.put("/api/reviews/:id/approve", async (req, res) => {
  * DELETE /api/reviews/:id
  * Delete a review (admin only)
  */
-app.delete("/api/reviews/:id", async (req, res) => {
+app.delete("/api/reviews/:id", verifyAdmin, async (req, res) => {
   try {
     const reviewId = req.params.id;
 
@@ -866,7 +896,7 @@ app.use((err, req, res, next) => {
     return res.status(403).json({ error: "Forbidden origin" });
   }
 
-  return res.status(500).json({ error: isProduction ? "Internal server error" : err.message });
+  return res.status(500).json({ error: "Internal server error" });
 });
 
 // Start server only for local/node runtime.

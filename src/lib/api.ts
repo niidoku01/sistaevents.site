@@ -10,11 +10,23 @@ const apiBases = (configuredApiUrls && configuredApiUrls.length > 0 ? configured
 );
 
 let apiRotationIndex = 0;
+let _authToken: string | null = null;
+
+export const setAuthToken = (token: string | null) => {
+  _authToken = token;
+};
 
 const getNextApiBase = () => {
   const next = apiBases[apiRotationIndex];
   apiRotationIndex = (apiRotationIndex + 1) % apiBases.length;
   return `${next}/api`;
+};
+
+const authHeaders = (): Record<string, string> => {
+  if (_authToken) {
+    return { Authorization: `Bearer ${_authToken}` };
+  }
+  return {};
 };
 
 export const bookingAPI = {
@@ -36,19 +48,19 @@ export const bookingAPI = {
   },
 
   async getAllBookings() {
-    const response = await fetch(`${getNextApiBase()}/bookings`);
+    const response = await fetch(`${getNextApiBase()}/bookings`, { headers: authHeaders() });
     if (!response.ok) throw new Error("Failed to fetch bookings");
     return response.json();
   },
 
   async resendBooking(id: number | string) {
-    const response = await fetch(`${getNextApiBase()}/bookings/${id}/resend`, { method: "POST" });
+    const response = await fetch(`${getNextApiBase()}/bookings/${id}/resend`, { method: "POST", headers: authHeaders() });
     if (!response.ok) throw new Error("Failed to resend booking SMS");
     return response.json();
   },
 
   async deleteBooking(id: number | string) {
-    const response = await fetch(`${getNextApiBase()}/bookings/${id}`, { method: "DELETE" });
+    const response = await fetch(`${getNextApiBase()}/bookings/${id}`, { method: "DELETE", headers: authHeaders() });
     if (!response.ok) throw new Error("Failed to delete booking");
     return response.json();
   },
@@ -61,6 +73,7 @@ export const collectionAPI = {
 
     const response = await fetch(`${getNextApiBase()}/uploads/collections`, {
       method: "POST",
+      headers: authHeaders(),
       body: formData,
     });
 
@@ -77,6 +90,7 @@ export const collectionAPI = {
   async deleteImage(filename: string) {
     const response = await fetch(`${getNextApiBase()}/collections/${filename}`, {
       method: "DELETE",
+      headers: authHeaders(),
     });
 
     if (!response.ok) throw new Error("Failed to delete image");
@@ -91,6 +105,7 @@ export const popupAdAPI = {
 
     const response = await fetch(`${getNextApiBase()}/uploads/popup-ads`, {
       method: "POST",
+      headers: authHeaders(),
       body: formData,
     });
 
@@ -126,7 +141,7 @@ export const reviewAPI = {
   },
 
   async getPendingReviews() {
-    const response = await fetch(`${getNextApiBase()}/reviews/pending`);
+    const response = await fetch(`${getNextApiBase()}/reviews/pending`, { headers: authHeaders() });
     if (!response.ok) throw new Error("Failed to fetch pending reviews");
     return response.json();
   },
@@ -134,6 +149,7 @@ export const reviewAPI = {
   async approveReview(id: string | number) {
     const response = await fetch(`${getNextApiBase()}/reviews/${id}/approve`, {
       method: "PUT",
+      headers: authHeaders(),
     });
     if (!response.ok) throw new Error("Failed to approve review");
     return response.json();
@@ -142,6 +158,7 @@ export const reviewAPI = {
   async deleteReview(id: string | number) {
     const response = await fetch(`${getNextApiBase()}/reviews/${id}`, {
       method: "DELETE",
+      headers: authHeaders(),
     });
     if (!response.ok) throw new Error("Failed to delete review");
     return response.json();

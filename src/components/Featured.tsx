@@ -240,6 +240,8 @@ export const Featured = () => {
                       fetchPriority={index < 3 ? "high" : "auto"}
                       decoding={index < 3 ? "sync" : "async"}
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      width={800}
+                      height={600}
                     />
                   ) : (
                     <div className="text-sm text-muted-foreground">No image enabled</div>
@@ -296,6 +298,8 @@ export const Featured = () => {
                   loading={currentImageIndex === 0 ? "eager" : "lazy"}
                   fetchPriority="high"
                   decoding="sync"
+                  width={1600}
+                  height={1200}
                 />
 
                 {selectedItem.images.length > 1 && (
@@ -351,6 +355,8 @@ export const Featured = () => {
                         className="w-full h-full object-cover"
                         loading="lazy"
                         decoding="async"
+                        width={48}
+                        height={48}
                       />
                     </button>
                   ))}

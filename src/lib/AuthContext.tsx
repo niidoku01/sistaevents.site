@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User, onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
 import { auth, initError } from "@/lib/firebase";
+import { setAuthToken } from "@/lib/api";
 
 type AuthContextType = {
   user: User | null;
@@ -16,20 +17,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     if (!auth) {
-      // Firebase not initialized, set loading to false immediately
       setLoading(false);
       return;
     }
 
     const unsubscribe = onAuthStateChanged(
       auth,
-      (user) => {
+      async (user) => {
         setUser(user);
+        if (user) {
+          try {
+            const token = await user.getIdToken();
+            setAuthToken(token);
+          } catch {
+            setAuthToken(null);
+          }
+        } else {
+          setAuthToken(null);
+        }
         setLoading(false);
       },
       (error) => {
         console.error("Firebase auth state listener failed:", error);
         setUser(null);
+        setAuthToken(null);
         setLoading(false);
       }
     );
@@ -40,6 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     if (auth) {
       await firebaseSignOut(auth);
+      setAuthToken(null);
     }
   };
 

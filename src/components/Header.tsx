@@ -36,11 +36,8 @@ export const Header = () => {
               alt="Sista Events Logo" 
               className="h-8 w-8 sm:h-12 sm:w-12 md:h-16 md:w-16 lg:h-20 lg:w-20 flex-shrink-0 drop-shadow-[0_2px_12px_rgba(0,0,0,0.4)] hover:drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)] hover:scale-110 transition-all duration-300" 
               style={{ 
-                imageRendering: "crisp-edges",
-                filter: "contrast(1.0) saturate(1.9) brightness(1.1)",
-                shapeRendering: "crispEdges",
-                WebkitFontSmoothing: "antialiased",
-                backfaceVisibility: "hidden"
+                filter: "contrast(1.0) saturate(1.2) brightness(1.05)",
+                WebkitFontSmoothing: "antialiased"
               }}
               loading="eager"
               width={80}
@@ -93,7 +90,7 @@ export const Header = () => {
                 <button
                   onClick={() => handleNavigation("/")}
                   aria-label="Go to home"
-                  className="inline-flex items-center justify-center h-10 w-10 rounded-full border border-slate-200/80 bg-white/70 text-slate-700 shadow-sm backdrop-blur hover:bg-white hover:text-amber-600 hover:shadow-md transition-all duration-200"
+                  className="inline-flex items-center justify-center h-10 w-10 rounded-lg border border-slate-200/80 bg-white/70 text-slate-700 shadow-sm backdrop-blur hover:bg-white hover:text-amber-600 hover:shadow-md transition-all duration-200"
                 >
                   <MdHome className="w-5 h-5 text-accent" />
                 </button>
@@ -115,7 +112,7 @@ export const Header = () => {
             </button>
           ) : (
             <button
-              className="md:hidden inline-flex items-center justify-center h-10 w-10 rounded-full border border-slate-200/80 bg-white/70 text-slate-700 shadow-sm backdrop-blur hover:bg-white hover:text-amber-600 hover:shadow-md transition-all duration-200"
+              className="md:hidden inline-flex items-center justify-center h-10 w-10 rounded-lg border border-slate-200/80 bg-white/70 text-slate-700 shadow-sm backdrop-blur hover:bg-white hover:text-amber-600 hover:shadow-md transition-all duration-200"
               onClick={() => handleNavigation("/")}
               aria-label="Go to home"
             >

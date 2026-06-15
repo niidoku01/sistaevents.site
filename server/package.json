@@ -29,7 +29,7 @@
     "twilio": "^4.23.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.1.14"
   },
   "overrides": {
     "protobufjs": "8.2.1"

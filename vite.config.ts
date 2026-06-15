@@ -40,11 +40,11 @@ export default defineConfig({
     assetsInlineLimit: 0, // Don't inline images, let them be external files
     rollupOptions: {
       output: {
-        manualChunks: {
-          "vendor-react": ["react", "react-dom", "react-router-dom"],
-          "vendor-firebase": ["firebase/app", "firebase/auth", "firebase/firestore", "firebase/storage"],
-          "vendor-convex": ["convex/react", "convex/browser"],
-          "vendor-ui": ["@radix-ui/react-dialog", "@radix-ui/react-popover", "@radix-ui/react-accordion"],
+        manualChunks(id: string) {
+          if (id.includes("node_modules/react") || id.includes("node_modules/react-dom") || id.includes("node_modules/react-router")) return "vendor-react";
+          if (id.includes("node_modules/firebase")) return "vendor-firebase";
+          if (id.includes("node_modules/convex")) return "vendor-convex";
+          if (id.includes("node_modules/@radix-ui")) return "vendor-ui";
         },
       },
     },

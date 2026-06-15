@@ -10,7 +10,6 @@
 
 import type * as bookings from "../bookings.js";
 import type * as popupAds from "../popupAds.js";
-import type * as reviews from "../reviews.js";
 
 import type {
   ApiFromModules,
@@ -21,7 +20,6 @@ import type {
 declare const fullApi: ApiFromModules<{
   bookings: typeof bookings;
   popupAds: typeof popupAds;
-  reviews: typeof reviews;
 }>;
 
 /**

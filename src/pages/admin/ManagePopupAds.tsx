@@ -34,7 +34,9 @@ const ManagePopupAds = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [form, setForm] = useState({
     imageUrl: "",
-    active: true,
+    ctaText: "",
+    ctaUrl: "",
+    active: false,
   });
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -74,6 +76,8 @@ const ManagePopupAds = () => {
         title: "",
         message: "",
         imageUrl,
+        ctaText: form.ctaText || undefined,
+        ctaUrl: form.ctaUrl || undefined,
         active: form.active,
       });
 
@@ -84,6 +88,8 @@ const ManagePopupAds = () => {
 
       setForm({
         imageUrl: "",
+        ctaText: "",
+        ctaUrl: "",
         active: true,
       });
       setImageFileName("");
@@ -178,26 +184,58 @@ const ManagePopupAds = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleCreate} className="space-y-6">
-            {/* Image Upload */}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-900">Upload Image</label>
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                disabled={isUploadingImage}
-                className="rounded-lg border-slate-200/60 focus:border-amber-500 focus:ring-amber-500/20 cursor-pointer"
-              />
-              <p className="text-xs text-slate-500">
-                {isUploadingImage
-                  ? "Converting image..."
-                  : imageFileName
-                    ? `✓ ${imageFileName}`
-                    : "Max 200KB (auto-compressed)"}
-              </p>
+            {/* Image */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-900">Image URL</label>
+                <Input
+                  value={form.imageUrl}
+                  onChange={(e) => setForm((prev) => ({ ...prev, imageUrl: e.target.value }))}
+                  placeholder="https://example.com/image.jpg"
+                  className="rounded-lg border-slate-200/60 focus:border-amber-500 focus:ring-amber-500/20"
+                />
+                <p className="text-xs text-slate-500">Paste a hosted image URL or upload below</p>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-900">Upload Image</label>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={isUploadingImage}
+                  className="rounded-lg border-slate-200/60 focus:border-amber-500 focus:ring-amber-500/20 cursor-pointer"
+                />
+                <p className="text-xs text-slate-500">
+                  {isUploadingImage
+                    ? "Converting image..."
+                    : imageFileName
+                      ? `✓ ${imageFileName}`
+                      : "Max 200KB (auto-compressed)"}
+                </p>
+              </div>
             </div>
 
-
+            {/* CTA */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-900">Button Text</label>
+                <Input
+                  value={form.ctaText}
+                  onChange={(e) => setForm((prev) => ({ ...prev, ctaText: e.target.value }))}
+                  placeholder="Shop Now"
+                  className="rounded-lg border-slate-200/60 focus:border-amber-500 focus:ring-amber-500/20"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-900">Button Link (URL)</label>
+                <Input
+                  value={form.ctaUrl}
+                  onChange={(e) => setForm((prev) => ({ ...prev, ctaUrl: e.target.value }))}
+                  placeholder="https://example.com/offer"
+                  className="rounded-lg border-slate-200/60 focus:border-amber-500 focus:ring-amber-500/20"
+                />
+              </div>
+            </div>
 
             {/* Active Toggle */}
             <div className="rounded-lg border border-slate-200/60 bg-gradient-to-r from-amber-50/50 to-orange-50/50 p-4 flex items-center justify-between">
@@ -234,7 +272,7 @@ const ManagePopupAds = () => {
                 )}
                 <div className="bg-gradient-to-br from-amber-50 to-white px-4 py-3">
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white">
-                    Book Now
+                    {form.ctaText || "Book Now"}
                   </span>
                 </div>
               </div>

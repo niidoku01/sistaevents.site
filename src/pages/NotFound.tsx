@@ -20,7 +20,7 @@ const NotFound = () => {
           The page "{location.pathname}" does not exist. It may have been moved or deleted.
         </p>
         <Button onClick={() => navigate("/")} size="lg">
-          Go Home
+          Go home
         </Button>
       </div>
     </div>

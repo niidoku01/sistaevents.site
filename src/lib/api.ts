@@ -134,6 +134,22 @@ export const popupAdAPI = {
 };
 
 export const reviewAPI = {
+  async submitReview(reviewData: {
+    name: string;
+    email: string;
+    event: string;
+    content: string;
+    rating: number;
+  }) {
+    const response = await fetch(`${getNextApiBase()}/reviews`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(reviewData),
+    });
+    if (!response.ok) throw new Error("Failed to submit review");
+    return response.json();
+  },
+
   async getApprovedReviews() {
     const response = await fetch(`${getNextApiBase()}/reviews`);
     if (!response.ok) throw new Error("Failed to fetch approved reviews");

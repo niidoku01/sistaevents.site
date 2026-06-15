@@ -345,7 +345,8 @@ const Bookings: React.FC = () => {
             {bookings.length === 0 ? (
               <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50/50 p-8 text-center">
                 <p className="text-sm text-slate-500 font-medium">No bookings yet</p>
-                <p className="text-xs text-slate-400 mt-1">New bookings will appear here</p>
+                <p className="text-xs text-slate-400 mt-1">New bookings will appear here</p>bvnv
+
               </div>
             ) : (
               bookings.map((b, idx) => (

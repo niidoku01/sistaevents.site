@@ -9,6 +9,8 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const admin = require("firebase-admin");
+const { initDb } = require("./db");
+const reviewRoutes = require("./routes/reviews");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
@@ -77,6 +79,8 @@ try {
   console.warn("Firebase Admin initialization failed:", err.message);
   console.log("Will fall back to JSON file storage");
 }
+
+initDb().catch((err) => console.warn("PostgreSQL init failed:", err.message));
 
 // Twilio setup (optional) - configure via environment variables
 const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID || null;
@@ -665,224 +669,14 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "Backend is running" });
 });
 
-/**
- * POST /api/reviews
- * Submit a new review
- */
-app.post(
-  "/api/reviews",
-  bookingLimiter,
-  [
-    body("name")
-      .trim()
-      .notEmpty().withMessage("Name is required")
-      .isLength({ min: 2, max: 100 }).withMessage("Name must be between 2-100 characters"),
-    body("email")
-      .trim()
-      .notEmpty().withMessage("Email is required")
-      .isEmail().withMessage("Invalid email format")
-      .normalizeEmail(),
-    body("event")
-      .trim()
-      .notEmpty().withMessage("Event type is required")
-      .isLength({ max: 100 }).withMessage("Event type too long"),
-    body("content")
-      .trim()
-      .notEmpty().withMessage("Review content is required")
-      .isLength({ min: 10, max: 1000 }).withMessage("Review must be between 10-1000 characters"),
-    body("rating")
-      .isInt({ min: 1, max: 5 }).withMessage("Rating must be between 1-5"),
-  ],
-  async (req, res) => {
-    try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ 
-          error: "Validation failed",
-          details: errors.array() 
-        });
-      }
+// Review routes (PostgreSQL)
+app.use("/api/reviews", reviewRoutes);
 
-      const { name, email, event, content, rating } = req.body;
-
-      const review = {
-        id: Date.now(),
-        name,
-        email,
-        event,
-        content,
-        rating,
-        approved: false,
-        createdAt: new Date().toISOString(),
-      };
-
-      // Save to Firestore
-      try {
-        const db = admin.firestore();
-        await db.collection("reviews").doc(review.id.toString()).set(review);
-        console.log("Review saved to Firestore");
-      } catch (firestoreErr) {
-        console.error("Failed to save to Firestore:", firestoreErr.message);
-      }
-
-      // Save to JSON file as backup
-      const reviewsFile = path.join(reviewsDir, "reviews.json");
-      let reviews = [];
-
-      if (fs.existsSync(reviewsFile)) {
-        const data = fs.readFileSync(reviewsFile, "utf-8");
-        reviews = JSON.parse(data);
-      }
-
-      reviews.push(review);
-      fs.writeFileSync(reviewsFile, JSON.stringify(reviews, null, 2));
-
-      res.status(201).json({
-        success: true,
-        message: "Review submitted successfully. It will be published after approval.",
-        review,
-      });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  }
-);
-
-/**
- * GET /api/reviews
- * Get all approved reviews
- */
-app.get("/api/reviews", async (req, res) => {
-  try {
-    let reviews = [];
-
-    // Try to get from Firestore first
-    try {
-      const db = admin.firestore();
-      const snapshot = await db.collection("reviews").where("approved", "==", true).get();
-      reviews = snapshot.docs.map((doc) => doc.data());
-      console.log("Reviews fetched from Firestore");
-    } catch (firestoreErr) {
-      console.error("Failed to fetch from Firestore:", firestoreErr.message);
-      
-      // Fallback to JSON file
-      const reviewsFile = path.join(reviewsDir, "reviews.json");
-      if (fs.existsSync(reviewsFile)) {
-        const data = fs.readFileSync(reviewsFile, "utf-8");
-        const allReviews = JSON.parse(data);
-        reviews = allReviews.filter((r) => r.approved === true);
-      }
-    }
-
-    // Sort by creation date (newest first)
-    reviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-    res.json({ reviews });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-/**
- * GET /api/reviews/pending
- * Get all pending reviews (admin only)
- */
-app.get("/api/reviews/pending", verifyAdmin, async (req, res) => {
-  try {
-    let reviews = [];
-
-    // Try to get from Firestore first
-    try {
-      const db = admin.firestore();
-      const snapshot = await db.collection("reviews").where("approved", "==", false).get();
-      reviews = snapshot.docs.map((doc) => doc.data());
-    } catch (firestoreErr) {
-      console.error("Failed to fetch from Firestore:", firestoreErr.message);
-      
-      // Fallback to JSON file
-      const reviewsFile = path.join(reviewsDir, "reviews.json");
-      if (fs.existsSync(reviewsFile)) {
-        const data = fs.readFileSync(reviewsFile, "utf-8");
-        const allReviews = JSON.parse(data);
-        reviews = allReviews.filter((r) => r.approved === false);
-      }
-    }
-
-    reviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-    res.json({ reviews });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-/**
- * PUT /api/reviews/:id/approve
- * Approve a review (admin only)
- */
-app.put("/api/reviews/:id/approve", verifyAdmin, async (req, res) => {
-  try {
-    const reviewId = req.params.id;
-
-    // Update in Firestore
-    try {
-      const db = admin.firestore();
-      await db.collection("reviews").doc(reviewId).update({ approved: true });
-      console.log("Review approved in Firestore");
-    } catch (firestoreErr) {
-      console.error("Failed to update in Firestore:", firestoreErr.message);
-    }
-
-    // Update in JSON file
-    const reviewsFile = path.join(reviewsDir, "reviews.json");
-    if (fs.existsSync(reviewsFile)) {
-      const data = fs.readFileSync(reviewsFile, "utf-8");
-      const reviews = JSON.parse(data);
-      const review = reviews.find((r) => r.id.toString() === reviewId);
-      
-      if (review) {
-        review.approved = true;
-        fs.writeFileSync(reviewsFile, JSON.stringify(reviews, null, 2));
-      }
-    }
-
-    res.json({ success: true, message: "Review approved" });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-/**
- * DELETE /api/reviews/:id
- * Delete a review (admin only)
- */
-app.delete("/api/reviews/:id", verifyAdmin, async (req, res) => {
-  try {
-    const reviewId = req.params.id;
-
-    // Delete from Firestore
-    try {
-      const db = admin.firestore();
-      await db.collection("reviews").doc(reviewId).delete();
-      console.log("Review deleted from Firestore");
-    } catch (firestoreErr) {
-      console.error("Failed to delete from Firestore:", firestoreErr.message);
-    }
-
-    // Delete from JSON file
-    const reviewsFile = path.join(reviewsDir, "reviews.json");
-    if (fs.existsSync(reviewsFile)) {
-      const data = fs.readFileSync(reviewsFile, "utf-8");
-      let reviews = JSON.parse(data);
-      reviews = reviews.filter((r) => r.id.toString() !== reviewId);
-      fs.writeFileSync(reviewsFile, JSON.stringify(reviews, null, 2));
-    }
-
-    res.json({ success: true, message: "Review deleted" });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// Legacy review routes (Firestore + JSON) - kept for migration fallback
+// They are mounted after the PostgreSQL routes
+// and will 404 if PostgreSQL routes catch the request first, so they remain
+// only as a manual fallback path.
+// The old inline review code has been replaced by the router above.
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -900,10 +694,21 @@ app.use((err, req, res, next) => {
 });
 
 // Start server only for local/node runtime.
-if (!isServerlessRuntime) {
+const startServer = async () => {
+  try {
+    await initDb();
+    console.log("Database initialized");
+  } catch (err) {
+    console.warn("Database init failed (db may already exist):", err.message);
+  }
+
   app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
   });
+};
+
+if (!isServerlessRuntime) {
+  startServer();
 }
 
 module.exports = app;

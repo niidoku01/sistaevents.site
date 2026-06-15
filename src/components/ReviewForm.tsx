@@ -5,12 +5,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { reviewAPI } from "@/lib/api";
 
 export const ReviewForm = () => {
   const { toast } = useToast();
-  const createReview = useMutation(api.reviews.createReview);
   const [rating, setRating] = useState(5);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [formData, setFormData] = useState({
@@ -26,7 +24,7 @@ export const ReviewForm = () => {
     setIsSubmitting(true);
 
     try {
-      await createReview({
+      await reviewAPI.submitReview({
         name: formData.name,
         email: formData.email,
         event: formData.event,
@@ -93,7 +91,7 @@ export const ReviewForm = () => {
 
           <div className="space-y-2">
             <label htmlFor="name" className="text-sm font-medium">
-              Your Name *
+              Your Name 
             </label>
             <Input
               id="name"

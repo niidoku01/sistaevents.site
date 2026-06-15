@@ -45,7 +45,7 @@ export const ScrollProgress = () => {
     <div className="fixed top-0 left-0 w-full h-1 bg-muted/30 z-50">
       <div
         ref={progressRef}
-        className="h-full bg-gradient-to-r from-accent to-primary origin-left will-change-transform"
+        className="h-full bg-accent origin-left will-change-transform"
         style={{ transform: "scaleX(0)" }}
       />
     </div>

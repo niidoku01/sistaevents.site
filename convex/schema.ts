@@ -19,17 +19,6 @@ export default defineSchema({
   })
     .index("by_event_date", ["eventDate"])
     .index("by_created_at", ["createdAt"]),
-  reviews: defineTable({
-    name: v.string(),
-    email: v.string(),
-    event: v.string(),
-    content: v.string(),
-    rating: v.number(),
-    approved: v.boolean(),
-    createdAt: v.number(),
-  })
-    .index("by_approved", ["approved"])
-    .index("by_created_at", ["createdAt"]),
   popupAds: defineTable({
     title: v.string(),
     message: v.string(),

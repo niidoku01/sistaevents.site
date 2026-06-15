@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { MdHome } from "react-icons/md";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -108,7 +108,11 @@ export const Header = () => {
               aria-expanded={isMenuOpen}
               aria-controls="mobile-nav"
             >
-              <Menu className="h-5 w-5" />
+              <div className="transition-transform duration-300 ease-in-out rotate-0 data-[open='true']:rotate-90"
+                data-open={isMenuOpen}
+              >
+                {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </div>
             </button>
           ) : (
             <button

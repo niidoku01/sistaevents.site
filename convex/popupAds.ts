@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { adminSecretArg, validateAdminSecret } from "./admin";
 
 const sortNewestFirst = <T extends { createdAt: number }>(items: T[]) =>
 	items.sort((a, b) => b.createdAt - a.createdAt);
@@ -50,8 +51,30 @@ export const createPopupAd = mutation({
 		startsAt: v.optional(v.number()),
 		endsAt: v.optional(v.number()),
 		active: v.boolean(),
+		...adminSecretArg,
 	},
 	handler: async (ctx, args) => {
+		validateAdminSecret(args.secret);
+
+		if (args.title.length > 200) {
+			throw new Error("Title too long (max 200 characters)");
+		}
+		if (args.message.length > 500) {
+			throw new Error("Message too long (max 500 characters)");
+		}
+		if (args.imageUrl && args.imageUrl.length > 5000) {
+			throw new Error("Image URL too long");
+		}
+		if (args.ctaUrl && args.ctaUrl.length > 2000) {
+			throw new Error("CTA URL too long");
+		}
+		if (args.imageUrl && !/^https?:\/\//i.test(args.imageUrl) && !args.imageUrl.startsWith("data:")) {
+			throw new Error("Image URL must be an HTTP/HTTPS or data URL");
+		}
+		if (args.ctaUrl && !/^https?:\/\//i.test(args.ctaUrl)) {
+			throw new Error("CTA URL must be an HTTP or HTTPS URL");
+		}
+
 		const now = Date.now();
 
 		if (args.active) {
@@ -89,8 +112,10 @@ export const setPopupAdActive = mutation({
 	args: {
 		id: v.id("popupAds"),
 		active: v.boolean(),
+		...adminSecretArg,
 	},
 	handler: async (ctx, args) => {
+		validateAdminSecret(args.secret);
 		const now = Date.now();
 
 		if (args.active) {
@@ -119,8 +144,10 @@ export const setPopupAdActive = mutation({
 export const deletePopupAd = mutation({
 	args: {
 		id: v.id("popupAds"),
+		...adminSecretArg,
 	},
 	handler: async (ctx, args) => {
+		validateAdminSecret(args.secret);
 		await ctx.db.delete(args.id);
 	},
 });

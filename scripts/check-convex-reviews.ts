@@ -31,8 +31,8 @@ async function main() {
   try {
     const reviews = await client.query(api.reviews.getApprovedReviews);
     console.log(JSON.stringify(reviews ?? [], null, 2));
-  } catch (err: any) {
-    console.error("Failed to query Convex:", err?.message ?? err);
+  } catch (err: unknown) {
+    console.error("Failed to query Convex:", err instanceof Error ? err.message : err);
     process.exit(2);
   }
 }

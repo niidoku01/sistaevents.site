@@ -8,6 +8,7 @@ const { body, validationResult } = require("express-validator");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const crypto = require("crypto");
 const admin = require("firebase-admin");
 const { initDb } = require("./db");
 const reviewRoutes = require("./routes/reviews");
@@ -20,14 +21,8 @@ const isServerlessRuntime = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA
 app.disable("x-powered-by");
 
 // Initialize Firebase Admin SDK
+let firebaseAdminReady = false;
 try {
-  // Priority order for credentials:
-  // 1) SERVICE_ACCOUNT_JSON_BASE64 (env var with base64-encoded JSON)
-  // 2) SERVICE_ACCOUNT_JSON (raw JSON string)
-  // 3) server/serviceAccountKey.json file (local development)
-  // 4) GOOGLE_APPLICATION_CREDENTIALS (path to credential file)
-  // 5) Application Default Credentials (ADC)
-  
   const serviceAccountJsonB64 = process.env.SERVICE_ACCOUNT_JSON_BASE64;
   const serviceAccountJson = process.env.SERVICE_ACCOUNT_JSON;
   const serviceAccountPath = path.join(__dirname, "serviceAccountKey.json");
@@ -63,24 +58,21 @@ try {
     });
     console.log("Firebase Admin initialized using serviceAccountKey.json");
   } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-    // Use ADC if provided in environment
     admin.initializeApp({
       credential: admin.credential.applicationDefault(),
       projectId: process.env.FIREBASE_PROJECT_ID || "sistaer",
     });
     console.log("Firebase Admin initialized using application default credentials");
   } else {
-    // Attempt minimal init (may work in some hosted environments)
     admin.initializeApp({ projectId: process.env.FIREBASE_PROJECT_ID || "sistaer" });
     console.log("Firebase Admin initialized without explicit credentials (may be limited)");
   }
+  firebaseAdminReady = true;
   const db = admin.firestore();
 } catch (err) {
-  console.warn("Firebase Admin initialization failed:", err.message);
-  console.log("Will fall back to JSON file storage");
+  console.error("Firebase Admin initialization failed:", err.message);
+  firebaseAdminReady = false;
 }
-
-initDb().catch((err) => console.warn("PostgreSQL init failed:", err.message));
 
 // Twilio setup (optional) - configure via environment variables
 const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID || null;
@@ -123,12 +115,19 @@ app.use(helmet({
       }
     : false,
   crossOriginEmbedderPolicy: false,
+  referrerPolicy: { policy: "strict-origin-when-cross-origin" },
 }));
+
+// Additional security headers not covered by Helmet
+app.use((req, res, next) => {
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  next();
+});
 
 // Rate limiting - Prevent brute force and DoS attacks
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 10 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 60,
   message: "Too many requests from this IP, please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
@@ -136,9 +135,16 @@ const limiter = rateLimit({
 
 // Stricter rate limit for booking endpoint
 const bookingLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 10 minutes
-  max: 5, // Limit each IP to 5 booking attempts per 10 minutes
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,
   message: "Too many booking attempts, please try again later.",
+});
+
+// Strict rate limit for admin endpoints (convex-token, etc.)
+const adminLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30,
+  message: "Too many admin requests, please try again later.",
 });
 
 // Apply rate limiting
@@ -161,6 +167,13 @@ const frontendUrl = (process.env.FRONTEND_URL || "").trim();
 const allowedOrigins = [...defaultAllowedOrigins, ...configuredOrigins, frontendUrl].filter(Boolean);
 
 const isAllowedOrigin = (origin) => allowedOrigins.includes(origin);
+
+const getBaseUrl = (req) => {
+  if (process.env.BASE_URL) return process.env.BASE_URL.replace(/\/+$/, "");
+  return `${req.protocol}://${req.get("host")}`;
+};
+
+const VALID_CATEGORIES = ["weddings", "birthdays", "corporate", "social", "decor", "other"];
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -208,18 +221,32 @@ app.use((req, res, next) => {
   next();
 });
 
+// HTTPS redirect for production
+if (isProduction) {
+  app.use((req, res, next) => {
+    if (req.headers["x-forwarded-proto"] !== "https") {
+      return res.redirect(301, `https://${req.headers.host}${req.url}`);
+    }
+    next();
+  });
+}
+
 // Firebase Auth middleware — verifies Firebase ID tokens for admin routes
 const verifyAdmin = async (req, res, next) => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ error: "Unauthorized — missing or invalid token" });
-    }
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Unauthorized — missing or invalid token" });
+  }
 
-    const token = authHeader.split("Bearer ")[1];
+  const token = authHeader.split("Bearer ")[1];
+
+  if (!firebaseAdminReady) {
+    return res.status(503).json({ error: "Authentication service unavailable" });
+  }
+
+  try {
     const decoded = await admin.auth().verifyIdToken(token);
 
-    // Check against allowed admin emails from environment
     const adminEmails = (process.env.FIREBASE_ADMIN_EMAILS || "")
       .split(",")
       .map((e) => e.trim().toLowerCase())
@@ -256,21 +283,30 @@ const storage = multer.diskStorage({
     cb(null, collectionDir);
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const uniqueSuffix = Date.now() + "-" + crypto.randomUUID().slice(0, 8);
     cb(null, uniqueSuffix + path.extname(file.originalname));
   },
 });
+
+const VALID_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
+
+const isAllowedExtension = (filename) => {
+  const ext = path.extname(filename).toLowerCase();
+  return VALID_EXTENSIONS.includes(ext);
+};
 
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
   fileFilter: (req, file, cb) => {
     const allowedMimes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
-    if (allowedMimes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error("Only image files are allowed"));
+    if (!allowedMimes.includes(file.mimetype)) {
+      return cb(new Error("Only image files are allowed"));
     }
+    if (!isAllowedExtension(file.originalname)) {
+      return cb(new Error("File extension not allowed"));
+    }
+    cb(null, true);
   },
 });
 
@@ -279,7 +315,7 @@ const popupAdStorage = multer.diskStorage({
     cb(null, popupAdsDir);
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const uniqueSuffix = Date.now() + "-" + crypto.randomUUID().slice(0, 8);
     cb(null, uniqueSuffix + path.extname(file.originalname));
   },
 });
@@ -289,11 +325,13 @@ const popupAdUpload = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowedMimes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
-    if (allowedMimes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error("Only image files are allowed"));
+    if (!allowedMimes.includes(file.mimetype)) {
+      return cb(new Error("Only image files are allowed"));
     }
+    if (!isAllowedExtension(file.originalname)) {
+      return cb(new Error("File extension not allowed"));
+    }
+    cb(null, true);
   },
 });
 
@@ -307,10 +345,18 @@ app.use("/uploads", express.static(uploadsDir, {
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("X-Frame-Options", "DENY");
     res.setHeader("X-XSS-Protection", "1; mode=block");
+    res.setHeader("Cross-Origin-Resource-Policy", "same-site");
   }
 }));
 
-// Routes
+// Sanitize user-provided text for SMS to prevent injection
+const sanitizeForSms = (text) => {
+  return text
+    .replace(/[\0\n\r\t\v\f]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 120);
+};
 
 /**
  * POST /api/bookings
@@ -395,7 +441,7 @@ app.post(
       const recipients = BOOKINGS_SMS_TO.split(",").map((s) => s.trim()).filter(Boolean);
 
       // Build an organized message, truncate message body to keep SMS concise
-      const preview = booking.message ? booking.message.replace(/\s+/g, " ").trim() : "-";
+      const preview = sanitizeForSms(booking.message || "-");
       const truncated = preview.length > 120 ? preview.slice(0, 117) + "..." : preview;
 
       const smsLines = [
@@ -437,9 +483,26 @@ app.post(
       booking,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
+
+const metaPath = path.join(collectionDir, "collections-meta.json");
+
+const readMeta = () => {
+  try {
+    if (fs.existsSync(metaPath)) {
+      return JSON.parse(fs.readFileSync(metaPath, "utf8"));
+    }
+  } catch (e) {
+    console.error("Failed to read collections meta:", e.message);
+  }
+  return {};
+};
+
+const writeMeta = (meta) => {
+  fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2));
+};
 
 /**
  * POST /api/uploads/collections
@@ -451,19 +514,31 @@ app.post("/api/uploads/collections", verifyAdmin, upload.array("images", 10), (r
       return res.status(400).json({ error: "No images provided" });
     }
 
-    // Return URLs for uploaded images
-    const imageUrls = req.files.map((file) => ({
-      url: `/uploads/collections/${file.filename}`,
-      name: file.originalname,
-    }));
+    const baseUrl = getBaseUrl(req);
+    const category = req.body.category || "weddings";
+    const meta = readMeta();
+
+    const imageEntries = req.files.map((file) => {
+      const entry = {
+        filename: file.filename,
+        originalName: file.originalname,
+        url: `${baseUrl}/uploads/collections/${file.filename}`,
+        category,
+        uploadedAt: new Date().toISOString(),
+      };
+      meta[file.filename] = entry;
+      return entry;
+    });
+
+    writeMeta(meta);
 
     res.status(201).json({
       success: true,
       message: "Images uploaded successfully",
-      images: imageUrls,
+      images: imageEntries,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -477,7 +552,7 @@ app.post("/api/uploads/popup-ads", verifyAdmin, popupAdUpload.single("image"), (
       return res.status(400).json({ error: "No image provided" });
     }
 
-    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    const baseUrl = getBaseUrl(req);
     return res.status(201).json({
       success: true,
       message: "Popup ad image uploaded successfully",
@@ -487,33 +562,78 @@ app.post("/api/uploads/popup-ads", verifyAdmin, popupAdUpload.single("image"), (
       },
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 /**
  * GET /api/collections
- * Get all collection images
+ * Get all collection images with metadata
  */
 app.get("/api/collections", (req, res) => {
   try {
+    const baseUrl = getBaseUrl(req);
+    const meta = readMeta();
     const files = fs.readdirSync(collectionDir);
     const images = files
-      .filter(file => !file.startsWith('.')) // Exclude hidden files
+      .filter(file => !file.startsWith('.'))
+      .filter(file => file !== "collections-meta.json")
       .map((file) => {
         const filePath = path.join(collectionDir, file);
         const stats = fs.statSync(filePath);
+        const entry = meta[file] || {};
         return {
           id: file,
           filename: file,
-          url: `/uploads/collections/${file}`,
-          uploadedAt: stats.birthtime.toISOString(),
+          originalName: entry.originalName || file,
+          url: `${baseUrl}/uploads/collections/${file}`,
+          category: entry.category || "uncategorized",
+          uploadedAt: entry.uploadedAt || stats.birthtime.toISOString(),
         };
       });
 
     res.json(images);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * PUT /api/collections/:filename
+ * Update collection image metadata (admin only)
+ */
+app.put("/api/collections/:filename", verifyAdmin, (req, res) => {
+  try {
+    const safeFilename = path.basename(req.params.filename);
+    if (safeFilename !== req.params.filename) {
+      return res.status(400).json({ error: "Invalid filename" });
+    }
+
+    const filePath = path.join(collectionDir, safeFilename);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: "File not found" });
+    }
+
+    const meta = readMeta();
+    if (!meta[safeFilename]) {
+      meta[safeFilename] = { filename: safeFilename };
+    }
+
+    if (req.body.category) {
+      if (!VALID_CATEGORIES.includes(req.body.category)) {
+        return res.status(400).json({ error: "Invalid category" });
+      }
+      meta[safeFilename].category = req.body.category;
+    }
+    if (req.body.originalName) {
+      meta[safeFilename].originalName = req.body.originalName;
+    }
+
+    writeMeta(meta);
+
+    res.json({ success: true, message: "Image metadata updated", image: meta[safeFilename] });
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -521,7 +641,7 @@ app.get("/api/collections", (req, res) => {
  * GET /api/bookings
  * Get all bookings (admin only)
  */
-app.get("/api/bookings", verifyAdmin, async (req, res) => {
+app.get("/api/bookings", adminLimiter, verifyAdmin, async (req, res) => {
   try {
     // Try Firestore first
     try {
@@ -548,7 +668,7 @@ app.get("/api/bookings", verifyAdmin, async (req, res) => {
 
     res.json({ success: true, bookings });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -556,8 +676,13 @@ app.get("/api/bookings", verifyAdmin, async (req, res) => {
  * POST /api/bookings/:id/resend
  * Resend SMS notifications for a booking (admin only)
  */
-app.post("/api/bookings/:id/resend", verifyAdmin, (req, res) => {
+app.post("/api/bookings/:id/resend", adminLimiter, verifyAdmin, (req, res) => {
   try {
+    const id = Number(req.params.id);
+    if (isNaN(id) || id <= 0) {
+      return res.status(400).json({ error: "Invalid booking ID" });
+    }
+
     const bookingsFile = path.join(bookingsDir, "bookings.json");
     if (!fs.existsSync(bookingsFile)) return res.status(404).json({ error: "No bookings found" });
 
@@ -570,8 +695,8 @@ app.post("/api/bookings/:id/resend", verifyAdmin, (req, res) => {
     // Build admin SMS body same as initial send
     if (twilioClient && TWILIO_FROM && BOOKINGS_SMS_TO) {
       const recipients = BOOKINGS_SMS_TO.split(",").map((s) => s.trim()).filter(Boolean);
-      const preview = booking.message ? booking.message.replace(/\s+/g, " ").trim() : "-";
-      const truncated = preview.length > 120 ? preview.slice(0, 117) + "..." : preview;
+      const preview = sanitizeForSms(booking.message || "-");
+      const truncated = preview;
       const smsLines = [
         `Resent Booking #${booking.id}`,
         `Name: ${booking.name}`,
@@ -603,7 +728,7 @@ app.post("/api/bookings/:id/resend", verifyAdmin, (req, res) => {
 
     res.status(400).json({ error: "Twilio not configured or recipients missing" });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -613,7 +738,10 @@ app.post("/api/bookings/:id/resend", verifyAdmin, (req, res) => {
  */
 app.delete("/api/bookings/:id", verifyAdmin, async (req, res) => {
   try {
-    const id = req.params.id;
+    const id = Number(req.params.id);
+    if (isNaN(id) || id <= 0) {
+      return res.status(400).json({ error: "Invalid booking ID" });
+    }
 
     // Try to delete from Firestore first
     try {
@@ -636,7 +764,7 @@ app.delete("/api/bookings/:id", verifyAdmin, async (req, res) => {
 
     res.json({ success: true, message: "Booking deleted" });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -658,15 +786,30 @@ app.delete("/api/collections/:filename", verifyAdmin, (req, res) => {
     }
 
     fs.unlinkSync(filePath);
+
+    // Clean up metadata
+    const meta = readMeta();
+    delete meta[safeFilename];
+    writeMeta(meta);
+
     res.json({ success: true, message: "Image deleted successfully" });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // Health check
 app.get("/api/health", (req, res) => {
   res.json({ status: "Backend is running" });
+});
+
+// Convex admin token endpoint — provides admin secret to authenticated admin clients
+app.get("/api/admin/convex-token", adminLimiter, verifyAdmin, (req, res) => {
+  const token = process.env.CONVEX_ADMIN_SECRET;
+  if (!token) {
+    return res.status(500).json({ error: "Admin token not configured on server" });
+  }
+  res.json({ token });
 });
 
 // Review routes (PostgreSQL)
@@ -694,12 +837,12 @@ app.use((err, req, res, next) => {
 });
 
 // Start server only for local/node runtime.
-const startServer = async () => {
+const startServer = () => {
+  // Initialize SQLite database
   try {
-    await initDb();
-    console.log("Database initialized");
+    initDb();
   } catch (err) {
-    console.warn("Database init failed (db may already exist):", err.message);
+    console.warn("Database init failed:", err.message);
   }
 
   app.listen(PORT, () => {

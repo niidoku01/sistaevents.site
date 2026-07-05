@@ -1,8 +1,29 @@
 const { Router } = require("express");
 const { body, validationResult } = require("express-validator");
-const { pool } = require("../db");
+const rateLimit = require("express-rate-limit");
+const admin = require("firebase-admin");
+const { db } = require("../db");
 
 const router = Router();
+
+const verifyAdmin = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  try {
+    await admin.auth().verifyIdToken(authHeader.split("Bearer ")[1]);
+    next();
+  } catch {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+};
+
+const reviewLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 3,
+  message: "Too many review submissions, please try again later.",
+});
 
 const validateReview = [
   body("name")
@@ -26,7 +47,7 @@ const validateReview = [
     .isInt({ min: 1, max: 5 }).withMessage("Rating must be between 1-5"),
 ];
 
-router.post("/", validateReview, async (req, res) => {
+router.post("/", reviewLimiter, validateReview, (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -36,91 +57,90 @@ router.post("/", validateReview, async (req, res) => {
     const { name, email, event, content, rating } = req.body;
     const createdAt = Date.now();
 
-    const result = await pool.query(
+    const stmt = db.prepare(
       `INSERT INTO reviews (name, email, event, content, rating, approved, created_at)
-       VALUES ($1, $2, $3, $4, $5, false, $6)
-       RETURNING id, name, email, event, content, rating, approved, created_at`,
-      [name, email, event, content, rating, createdAt]
+       VALUES (?, ?, ?, ?, ?, 0, ?)`
     );
+    const result = stmt.run(name, email, event, content, rating, createdAt);
 
     res.status(201).json({
       success: true,
       message: "Review submitted successfully. It will be published after approval.",
-      review: result.rows[0],
+      review: { id: result.lastInsertRowid, name, email, event, content, rating, approved: false, created_at: createdAt },
     });
   } catch (error) {
     console.error("POST /api/reviews error:", error.message);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", (req, res) => {
   try {
-    const result = await pool.query(
+    const rows = db.prepare(
       `SELECT id, name, email, event, content, rating, approved, created_at
        FROM reviews
-       WHERE approved = true
+       WHERE approved = 1
        ORDER BY created_at DESC`
-    );
+    ).all();
 
-    res.json({ reviews: result.rows });
+    res.json({ reviews: rows });
   } catch (error) {
     console.error("GET /api/reviews error:", error.message);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-router.get("/pending", async (req, res) => {
+router.get("/pending", (req, res) => {
   try {
-    const result = await pool.query(
+    const rows = db.prepare(
       `SELECT id, name, email, event, content, rating, approved, created_at
        FROM reviews
-       WHERE approved = false
+       WHERE approved = 0
        ORDER BY created_at DESC`
-    );
+    ).all();
 
-    res.json({ reviews: result.rows });
+    res.json({ reviews: rows });
   } catch (error) {
     console.error("GET /api/reviews/pending error:", error.message);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-router.put("/:id/approve", async (req, res) => {
+router.put("/:id/approve", verifyAdmin, (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query(
-      `UPDATE reviews SET approved = true WHERE id = $1 RETURNING id, name, email, event, content, rating, approved, created_at`,
-      [id]
-    );
+    const result = db.prepare(
+      `UPDATE reviews SET approved = 1 WHERE id = ?`
+    ).run(id);
 
-    if (result.rows.length === 0) {
+    if (result.changes === 0) {
       return res.status(404).json({ error: "Review not found" });
     }
 
-    res.json({ success: true, message: "Review approved", review: result.rows[0] });
+    const review = db.prepare(
+      `SELECT id, name, email, event, content, rating, approved, created_at FROM reviews WHERE id = ?`
+    ).get(id);
+
+    res.json({ success: true, message: "Review approved", review });
   } catch (error) {
     console.error("PUT /api/reviews/:id/approve error:", error.message);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", verifyAdmin, (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query(
-      `DELETE FROM reviews WHERE id = $1 RETURNING id`,
-      [id]
-    );
+    const result = db.prepare(`DELETE FROM reviews WHERE id = ?`).run(id);
 
-    if (result.rows.length === 0) {
+    if (result.changes === 0) {
       return res.status(404).json({ error: "Review not found" });
     }
 
     res.json({ success: true, message: "Review deleted" });
   } catch (error) {
     console.error("DELETE /api/reviews/:id error:", error.message);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

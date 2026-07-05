@@ -1,4 +1,4 @@
-import { Armchair, Tent, Utensils, Lightbulb, Flower2, MessageSquare } from "lucide-react";
+import { Armchair, Tent, Utensils, Lightbulb, MessageCircleMore, Flower2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 const services = [
@@ -28,7 +28,7 @@ const services = [
     description: "Centerpieces, backdrops, and styling elements",
   },
   {
-    icon: MessageSquare,
+    icon: MessageCircleMore,
     title: "Event Consultation",
     description: "Expert guidance and planning assistance for your perfect event",
   },

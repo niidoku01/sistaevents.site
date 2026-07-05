@@ -6,7 +6,7 @@ import { visualizer } from "rollup-plugin-visualizer";
 // https://vitejs.dev/config/
 export default defineConfig({
   server: {
-    host: "::",
+    host: "127.0.0.1",
     port: 8080,
     headers: {
       // Security headers
@@ -15,6 +15,8 @@ export default defineConfig({
       "X-XSS-Protection": "1; mode=block",
       "Referrer-Policy": "strict-origin-when-cross-origin",
       "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Cross-Origin-Resource-Policy": "same-site",
     },
   },
   plugins: [

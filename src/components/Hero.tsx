@@ -134,12 +134,12 @@ const HeroContent = () => {
               Check Date
             </Button>
           </div>
-          {dateError ? <p className="text-[11px] mt-2 text-red-500 font-medium">{dateError}</p> : null}
+          {dateError ? <p className="text-[11px] mt-2 text-red-500 font-medium animate-fade-in">{dateError}</p> : null}
           {!dateError && dateStatus === "available" ? (
-            <p className="text-[11px] mt-2 text-green-500 font-medium">This date is available. Book now to secure it!</p>
+            <p className="text-[11px] mt-2 text-green-500 font-medium animate-fade-in">This date is available. Book now to secure it!</p>
           ) : null}
           {!dateError && dateStatus === "unavailable" ? (
-            <p className="text-[11px] mt-2 text-red-500 font-medium">This date is unavailable. Please choose another date.</p>
+            <p className="text-[11px] mt-2 text-red-500 font-medium animate-fade-in">This date is unavailable. Please choose another date.</p>
           ) : null}
         </div>
       </div>

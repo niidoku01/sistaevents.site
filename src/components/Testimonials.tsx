@@ -1,18 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
 import { ReviewForm } from "./ReviewForm";
-import { reviewAPI } from "@/lib/api";
-
-type Review = {
-  _id: string;
-  name: string;
-  email: string;
-  event: string;
-  content: string;
-  rating: number;
-  createdAt: number;
-};
+import { useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 
 const shimmerBase = "bg-[length:200%_100%] bg-gradient-to-r from-muted via-muted/50 via-[50%] to-muted animate-shimmer";
 
@@ -39,54 +30,21 @@ const SkeletonCard = ({ delay }: { delay: number }) => (
 );
 
 const TestimonialsWithApi = () => {
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-
-  const fetchReviews = useCallback(async (retries = 3) => {
-    for (let attempt = 0; attempt <= retries; attempt++) {
-      try {
-        const response = await reviewAPI.getApprovedReviews();
-        const mapped = Array.isArray(response?.reviews)
-          ? response.reviews.map((review: Record<string, unknown>) => ({
-              _id: String(review.id ?? review._id ?? crypto.randomUUID()),
-              name: String(review.name ?? ""),
-              email: String(review.email ?? ""),
-              event: String(review.event ?? ""),
-              content: String(review.content ?? ""),
-              rating: Number(review.rating ?? 0),
-              createdAt: new Date(String(review.createdAt ?? Date.now())).getTime(),
-            }))
-          : [];
-        setReviews(mapped);
-        setLoading(false);
-        return;
-      } catch {
-        if (attempt < retries) {
-          await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt)));
-        }
-      }
-    }
-    setErrorMsg("Could not load reviews at this time.");
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    fetchReviews();
-  }, [fetchReviews]);
+  const reviews = useQuery(api.reviews.getApprovedReviews);
 
   const sortedTestimonials = useMemo(
-    () => [...reviews].sort((a, b) => b.createdAt - a.createdAt),
+    () => (reviews ?? []).slice().sort((a, b) => b.createdAt - a.createdAt),
     [reviews]
   );
 
-  const showEmpty = !loading && sortedTestimonials.length === 0 && !errorMsg;
+  const loading = reviews === undefined;
+  const showEmpty = !loading && sortedTestimonials.length === 0;
 
   return (
     <section id="testimonials" className="section-mobile-padding bg-background">
       <div className="container mx-auto px-4 lg:px-6">
-        <div className="text-center mb-10 sm:mb-16" data-reveal>
+        <div className="text-center mb-10 sm:mb-16">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
             What Our Clients Say
           </h2>
@@ -106,12 +64,6 @@ const TestimonialsWithApi = () => {
           </div>
         )}
 
-        {errorMsg && !loading && sortedTestimonials.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">{errorMsg}</p>
-          </div>
-        )}
-
         {showEmpty && (
           <div className="text-center py-12">
             <p className="text-muted-foreground">No reviews yet. Be the first to share your experience!</p>
@@ -119,9 +71,9 @@ const TestimonialsWithApi = () => {
         )}
 
         {sortedTestimonials.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-10 sm:mb-16" data-reveal-stagger>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-10 sm:mb-16">
             {sortedTestimonials.map((testimonial) => (
-              <Card key={testimonial._id} className="border-border" data-reveal data-reveal-item>
+              <Card key={testimonial._id} className="border-border">
                 <CardContent className="p-4 sm:p-6 lg:p-8">
                   <div className="flex gap-1 mb-4">
                     {[...Array(5)].map((_, i) => (
@@ -131,7 +83,7 @@ const TestimonialsWithApi = () => {
                       />
                     ))}
                   </div>
-                  <p className="text-sm sm:text-base text-foreground mb-4 sm:mb-6 italic whitespace-pre-line break-words line-clamp-4 sm:line-clamp-none">
+                  <p className="text-sm sm:text-base text-foreground mb-4 sm:mb-6 italic whitespace-pre-line break-words">
                     "{testimonial.content}"
                   </p>
                   <div>
@@ -147,7 +99,7 @@ const TestimonialsWithApi = () => {
           </div>
         )}
 
-        <div className="text-center" data-reveal>
+        <div className="text-center">
           <button
             onClick={() => setShowForm(!showForm)}
             className="inline-flex items-center gap-2 rounded-xl bg-accent px-6 py-3 text-white font-semibold hover:bg-accent/90 active:bg-accent transition-colors"

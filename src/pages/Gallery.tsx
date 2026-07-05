@@ -1,10 +1,12 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
-import { staticCollectionImagesByCategory } from "../lib/staticCollections";
+import { getOrderedImages, ensureImagesInOrder } from "../lib/collectionOrder";
+import { staticCollectionImagesByCategory } from "@/lib/staticCollections";
+import { collectionAPI } from "@/lib/api";
 
 type Category = "weddings" | "funerals" | "corporate";
 
@@ -22,13 +24,25 @@ const categoryMobileLabelMap: Record<Category, string> = {
   corporate: "Corporate",
 };
 
-type CollectionImage = {
-  _id?: string;
-  url: string;
-  originalName?: string;
+type UploadedImage = {
+  _id: string;
+  storageId: string;
+  originalName: string;
+  size: number;
+  contentType: string;
+  category: string;
+  uploadedAt: number;
+  url: string | null;
 };
 
-const PRIORITY_GRID_IMAGES = 4;
+type CollectionImage = {
+  _id: string;
+  url: string | null;
+  originalName: string;
+  category: string;
+};
+
+const PRIORITY_GRID_IMAGES = 8;
 const INITIAL_VISIBLE_IMAGES = 12;
 const LOAD_MORE_STEP = 12;
 
@@ -38,13 +52,59 @@ export default function OurCollection() {
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const [visibleCount, setVisibleCount] = useState<number>(INITIAL_VISIBLE_IMAGES);
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
-  const imagesByCategory: Record<Category, CollectionImage[]> = {
-    weddings: staticCollectionImagesByCategory.weddings,
-    funerals: staticCollectionImagesByCategory.funerals,
-    corporate: staticCollectionImagesByCategory.corporate,
-  };
+  useEffect(() => {
+    collectionAPI.getAllImages()
+      .then((data) => {
+        const images = Array.isArray(data) ? data : [];
+        setUploadedImages(images);
+        for (const cat of categoryOrder) {
+          const ids = images.filter((img) => img.category === cat).map((img) => img._id);
+          if (ids.length > 0) ensureImagesInOrder(cat, ids);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const combinedByCategory: Record<Category, CollectionImage[]> = React.useMemo(() => {
+    const result: Record<Category, CollectionImage[]> = {
+      weddings: [],
+      funerals: [],
+      corporate: [],
+    };
+    for (const category of categoryOrder) {
+      const staticImages: CollectionImage[] = staticCollectionImagesByCategory[category].map((img) => ({
+        _id: img._id,
+        url: img.url,
+        originalName: img.originalName,
+        category: img.category,
+      }));
+      const uploaded: CollectionImage[] = uploadedImages
+        .filter((img) => img.category === category)
+        .map((img) => ({
+          _id: img._id,
+          url: img.url,
+          originalName: img.originalName,
+          category: img.category,
+        }));
+      result[category] = [...staticImages, ...uploaded];
+    }
+    return result;
+  }, [uploadedImages]);
+
+  const imagesByCategory: Record<Category, CollectionImage[]> = React.useMemo(() => {
+    const result: Record<Category, CollectionImage[]> = {
+      weddings: [],
+      funerals: [],
+      corporate: [],
+    };
+    for (const category of categoryOrder) {
+      result[category] = getOrderedImages(category, combinedByCategory[category]);
+    }
+    return result;
+  }, [combinedByCategory]);
 
   const categoryImages = selectedCategory ? imagesByCategory[selectedCategory] : null;
   const visibleCategoryImages = useMemo(() => {
@@ -66,29 +126,29 @@ export default function OurCollection() {
   const minSwipeDistance = 50;
 
   // Navigation functions
-  const goToNextImage = () => {
+  const goToNextImage = useCallback(() => {
     if (currentImageIndex !== null && categoryImages && currentImageIndex < categoryImages.length - 1) {
       setCurrentImageIndex(currentImageIndex + 1);
     }
-  };
+  }, [currentImageIndex, categoryImages]);
 
-  const goToPreviousImage = () => {
+  const goToPreviousImage = useCallback(() => {
     if (currentImageIndex !== null && currentImageIndex > 0) {
       setCurrentImageIndex(currentImageIndex - 1);
     }
-  };
+  }, [currentImageIndex]);
 
-  const closeViewer = () => {
+  const closeViewer = useCallback(() => {
     setCurrentImageIndex(null);
-  };
+  }, []);
 
-  const loadMoreImages = () => {
+  const loadMoreImages = useCallback(() => {
     if (!categoryImages) {
       return;
     }
 
     setVisibleCount((previous) => Math.min(previous + LOAD_MORE_STEP, categoryImages.length));
-  };
+  }, [categoryImages]);
 
   useEffect(() => {
     if (!selectedCategory) {
@@ -116,7 +176,7 @@ export default function OurCollection() {
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [selectedCategory, hasMoreImages, visibleCount, categoryImages]);
+  }, [selectedCategory, hasMoreImages, visibleCount, categoryImages, loadMoreImages]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -134,7 +194,7 @@ export default function OurCollection() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentImageIndex, categoryImages]);
+  }, [currentImageIndex, categoryImages, goToNextImage, goToPreviousImage, closeViewer]);
 
   // Touch handlers for swipe
   const onTouchStart = (e: React.TouchEvent) => {
@@ -202,9 +262,9 @@ export default function OurCollection() {
             style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}
           >
             <div className="aspect-[4/3] bg-slate-100">
-              <img 
-                src={img.url} 
-                alt={img.originalName || `Image ${i + 1}`} 
+              <img
+                src={img.url || ""}
+                alt={img.originalName || `Image ${i + 1}`}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 loading={i < PRIORITY_GRID_IMAGES ? "eager" : "lazy"}
                 fetchPriority={i === 0 ? "high" : i < PRIORITY_GRID_IMAGES ? "high" : "low"}

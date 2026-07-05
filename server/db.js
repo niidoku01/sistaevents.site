@@ -1,51 +1,44 @@
-const { Pool } = require("pg");
+const Database = require("better-sqlite3");
+const path = require("path");
+const fs = require("fs");
 
-const pool = process.env.DATABASE_URL
-  ? new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
-      max: 10,
-      idleTimeoutMillis: 30000,
-    })
-  : new Pool({
-      host: process.env.PGHOST || "localhost",
-      port: Number(process.env.PGPORT) || 5432,
-      database: process.env.PGDATABASE || "sista_events",
-      user: process.env.PGUSER || "postgres",
-      password: process.env.PGPASSWORD || "",
-      max: 10,
-      idleTimeoutMillis: 30000,
-    });
+const dbDir = path.join(__dirname, "data");
+if (!fs.existsSync(dbDir)) {
+  fs.mkdirSync(dbDir, { recursive: true });
+}
 
-pool.on("error", (err) => {
-  console.error("Unexpected PostgreSQL pool error:", err.message);
-});
+const dbPath = process.env.SQLITE_DB_PATH || path.join(dbDir, "sista.db");
+const db = new Database(dbPath);
 
-const initDb = async () => {
-  const client = await pool.connect();
+db.pragma("journal_mode = WAL");
+db.pragma("foreign_keys = ON");
+
+const initDb = () => {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS reviews (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      event TEXT NOT NULL,
+      content TEXT NOT NULL,
+      rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+      approved INTEGER NOT NULL DEFAULT 0,
+      created_at INTEGER NOT NULL,
+      convex_id TEXT,
+      created_at_local TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_reviews_approved ON reviews (approved);
+    CREATE INDEX IF NOT EXISTS idx_reviews_created_at ON reviews (created_at DESC);
+  `);
+
   try {
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS reviews (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(100) NOT NULL,
-        email VARCHAR(255) NOT NULL,
-        event VARCHAR(100) NOT NULL,
-        content TEXT NOT NULL,
-        rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
-        approved BOOLEAN NOT NULL DEFAULT false,
-        created_at BIGINT NOT NULL,
-        convex_id VARCHAR(255),
-        created_at_local TIMESTAMPTZ DEFAULT NOW()
-      );
-
-      CREATE INDEX IF NOT EXISTS idx_reviews_approved ON reviews (approved);
-      CREATE INDEX IF NOT EXISTS idx_reviews_created_at ON reviews (created_at DESC);
-      CREATE UNIQUE INDEX IF NOT EXISTS idx_reviews_convex_id ON reviews (convex_id);
-    `);
-    console.log("PostgreSQL schema initialized");
-  } finally {
-    client.release();
+    db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_reviews_convex_id ON reviews (convex_id)`);
+  } catch {
+    // convex_id may be null for all rows, unique index with nulls is fine in SQLite
   }
+
+  console.log("SQLite database initialized");
 };
 
-module.exports = { pool, initDb };
+module.exports = { db, initDb };

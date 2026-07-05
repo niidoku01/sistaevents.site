@@ -100,10 +100,10 @@
           "key": "Referrer-Policy",
           "value": "strict-origin-when-cross-origin"
         },
-        {
-          "key": "Content-Security-Policy",
-          "value": "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' https: wss:; media-src 'self' https:;"
-        }
+{
+  "key": "Content-Security-Policy",
+  "value": "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; form-action 'self'; script-src 'self' 'sha256-t6AAuZOLT33425NvW7JovSV8bNTYqTzfxK8h84OGDao=' 'sha256-4JjqAwFhUAsqYw4qfTcmb2yh507xmxTWv7PTCgFQAxw=' 'sha256-SkdgeT4ROQCIlmDweVBeyR0wrETeEVkl9616LUFqiRw='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' https: wss:; media-src 'self' https:;"
+}
       ]
     }
   ]

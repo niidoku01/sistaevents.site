@@ -10,6 +10,8 @@ const Bookings = lazy(() => import("./admin/Bookings"));
 const ManageReviews = lazy(() => import("./admin/ManageReviews"));
 const ManageFeaturedAvailability = lazy(() => import("./admin/ManageFeaturedAvailability"));
 const ManagePopupAds = lazy(() => import("./admin/ManagePopupAds"));
+const UploadCollection = lazy(() => import("./admin/UploadCollection"));
+const ManageCollection = lazy(() => import("./admin/ManageCollection"));
 
 const Admin: React.FC = () => {
   const { user, loading, signOut } = useAuth();
@@ -74,6 +76,8 @@ const Admin: React.FC = () => {
                   <Route path="bookings" element={<Bookings />} />
                   <Route path="reviews" element={<ManageReviews />} />
                   <Route path="featured" element={<ManageFeaturedAvailability />} />
+                  <Route path="upload" element={<UploadCollection />} />
+                  <Route path="manage" element={<ManageCollection />} />
                   <Route path="popup-ads" element={<ManagePopupAds />} />
                   <Route path="*" element={<Navigate to="bookings" replace />} />
                 </Routes>

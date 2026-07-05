@@ -98,8 +98,8 @@ const PopupAdWithConvex = () => {
       onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
     >
       <div
-        className={`relative w-full max-w-[min(100vw-1.5rem,420px)] overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-2xl mt-16 sm:mt-0 transition-all duration-300 ease-out ${
-          animateIn ? "scale-100 opacity-100 translate-y-0" : "scale-75 opacity-0 translate-y-8"
+        className={`relative w-full max-w-[min(100vw-1.5rem,420px)] overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-2xl mt-16 sm:mt-0 ${
+          animateIn ? "animate-bounce-in" : "scale-75 opacity-0 translate-y-8"
         }`}
       >
         <button

@@ -5,7 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { reviewAPI } from "@/lib/api";
+import { useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
 
 export const ReviewForm = () => {
   const { toast } = useToast();
@@ -18,13 +19,14 @@ export const ReviewForm = () => {
     content: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitReview = useMutation(api.reviews.submitReview);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      await reviewAPI.submitReview({
+      await submitReview({
         name: formData.name,
         email: formData.email,
         event: formData.event,
@@ -37,7 +39,6 @@ export const ReviewForm = () => {
         description: "Thank you for your feedback. Your review will be published after admin approval.",
       });
 
-      // Reset form
       setFormData({ name: "", email: "", event: "", content: "" });
       setRating(5);
     } catch (error) {

@@ -1,18 +1,20 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { CalendarClock, MessageSquareQuote, ListChecks, Megaphone } from "lucide-react";
+import { CalendarClock, MessageSquareQuote, ListChecks, Megaphone, Upload, Images } from "lucide-react";
 
 const navItems = [
   { to: "/admin/bookings", label: "Bookings", icon: CalendarClock },
   { to: "/admin/reviews", label: "Reviews", icon: MessageSquareQuote },
   { to: "/admin/featured", label: "logistics", icon: ListChecks },
+  { to: "/admin/upload", label: "Upload", icon: Upload },
+  { to: "/admin/manage", label: "Manage", icon: Images },
   { to: "/admin/popup-ads", label: "Ads", icon: Megaphone },
 ];
 
 const AdminNav: React.FC = () => {
   return (
     <nav className="rounded-xl border border-slate-200/60 bg-white shadow-sm p-1 backdrop-blur-sm">
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-6 gap-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (

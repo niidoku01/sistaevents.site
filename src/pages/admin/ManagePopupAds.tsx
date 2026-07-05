@@ -93,9 +93,9 @@ const ManagePopupAds = () => {
         active: true,
       });
       setImageFileName("");
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("createPopupAd error:", err);
-      const raw = (err as any)?.message || (typeof err === "object" ? JSON.stringify(err) : String(err));
+      const raw = err instanceof Error ? err.message : typeof err === "object" ? JSON.stringify(err) : String(err);
       const description = raw && raw.length > 300 ? raw.slice(0, 300) + "..." : raw || "Could not create popup ad.";
       toast({
         title: "Create failed",

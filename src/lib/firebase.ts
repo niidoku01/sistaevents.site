@@ -1,8 +1,8 @@
 // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getStorage } from "firebase/storage";
-import { getFirestore } from "firebase/firestore";
+import { initializeApp, type FirebaseApp } from "firebase/app";
+import { getAuth, type Auth } from "firebase/auth";
+import { getStorage, type FirebaseStorage } from "firebase/storage";
+import { getFirestore, type Firestore } from "firebase/firestore";
 
 const getRequiredEnv = (name: keyof ImportMetaEnv) => {
   const value = (import.meta.env[name] as string | undefined)?.trim();
@@ -13,10 +13,10 @@ const getRequiredEnv = (name: keyof ImportMetaEnv) => {
 };
 
 // Initialize Firebase
-let app: any = null;
-let auth: any = null;
-let storage: any = null;
-let db: any = null;
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
+let storage: FirebaseStorage | null = null;
+let db: Firestore | null = null;
 let initError: Error | null = null;
 
 try {

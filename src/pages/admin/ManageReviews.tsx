@@ -1,65 +1,24 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Star, Check, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { reviewAPI } from "@/lib/api";
-
-type Review = {
-  _id: string;
-  name: string;
-  email: string;
-  event: string;
-  content: string;
-  rating: number;
-  createdAt: number;
-};
+import { useQuery, useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
 
 const ManageReviews = () => {
   const { toast } = useToast();
-  const [pendingReviews, setPendingReviews] = useState<Review[]>([]);
-  const [approvedReviews, setApprovedReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
+  const pendingReviews = useQuery(api.reviews.getPendingReviews);
+  const approvedReviews = useQuery(api.reviews.getApprovedReviews);
+  const approveReview = useMutation(api.reviews.approveReview);
+  const deleteReview = useMutation(api.reviews.deleteReview);
 
-  const fetchReviews = async () => {
+  const loading = pendingReviews === undefined || approvedReviews === undefined;
+
+  const handleApprove = async (id: Id<"reviews">) => {
     try {
-      const [pendingResponse, approvedResponse] = await Promise.all([
-        reviewAPI.getPendingReviews(),
-        reviewAPI.getApprovedReviews(),
-      ]);
-
-      const mapReview = (review: Record<string, unknown>): Review => ({
-        _id: String(review.id ?? review._id ?? crypto.randomUUID()),
-        name: String(review.name ?? ""),
-        email: String(review.email ?? ""),
-        event: String(review.event ?? ""),
-        content: String(review.content ?? ""),
-        rating: Number(review.rating ?? 0),
-        createdAt: new Date(String(review.createdAt ?? Date.now())).getTime(),
-      });
-
-      setPendingReviews(
-        Array.isArray(pendingResponse?.reviews) ? pendingResponse.reviews.map(mapReview) : []
-      );
-      setApprovedReviews(
-        Array.isArray(approvedResponse?.reviews) ? approvedResponse.reviews.map(mapReview) : []
-      );
-    } catch {
-      setPendingReviews([]);
-      setApprovedReviews([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchReviews();
-  }, []);
-
-  const handleApprove = async (review: Review) => {
-    try {
-      await reviewAPI.approveReview(review._id);
-      await fetchReviews();
+      await approveReview({ id });
       toast({
         title: "Success",
         description: "Review approved successfully",
@@ -73,12 +32,11 @@ const ManageReviews = () => {
     }
   };
 
-  const handleDelete = async (review: Review) => {
+  const handleDelete = async (id: Id<"reviews">) => {
     if (!confirm("Are you sure you want to delete this review?")) return;
 
     try {
-      await reviewAPI.deleteReview(review._id);
-      await fetchReviews();
+      await deleteReview({ id });
       toast({
         title: "Success",
         description: "Review deleted successfully",
@@ -92,11 +50,10 @@ const ManageReviews = () => {
     }
   };
 
-  const ReviewCard = ({ review, isPending }: { review: Review; isPending: boolean }) => (
+  const ReviewCard = ({ review, isPending }: { review: NonNullable<typeof pendingReviews>[number]; isPending: boolean }) => (
     <Card className="border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300 bg-gradient-to-br from-white to-slate-50/50 hover:to-slate-50 backdrop-blur-sm overflow-hidden group">
       <CardContent className="p-5">
         <div className="space-y-4">
-          {/* Header with Author and Rating */}
           <div className="flex justify-between items-start gap-3">
             <div className="min-w-0">
               <h3 className="font-semibold text-slate-900 truncate">{review.name}</h3>
@@ -117,12 +74,10 @@ const ManageReviews = () => {
             </div>
           </div>
 
-          {/* Review Content */}
           <p className="text-sm text-slate-700 leading-relaxed italic border-l-2 border-amber-300 pl-3">
             "{review.content}"
           </p>
 
-          {/* Footer with Date and Actions */}
           <div className="flex justify-between items-center pt-4 border-t border-slate-200/60">
             <p className="text-xs text-slate-500 font-medium">
               {new Date(review.createdAt).toLocaleDateString('en-US', { 
@@ -136,7 +91,7 @@ const ManageReviews = () => {
                 <Button
                   size="sm"
                   className="rounded-lg bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
-                  onClick={() => handleApprove(review)}
+                  onClick={() => handleApprove(review._id)}
                 >
                   <Check className="w-3.5 h-3.5 mr-1.5" />
                   Approve
@@ -145,7 +100,7 @@ const ManageReviews = () => {
               <Button
                 size="sm"
                 className="rounded-lg bg-red-500/10 text-red-700 hover:bg-red-500/20 border border-red-200/60 font-medium transition-colors"
-                onClick={() => handleDelete(review)}
+                onClick={() => handleDelete(review._id)}
               >
                 <Trash2 className="w-3.5 h-3.5 mr-1.5" />
                 Delete
@@ -167,7 +122,6 @@ const ManageReviews = () => {
 
   return (
     <div className="space-y-8">
-      {/* Pending Reviews Section */}
       <div>
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -199,7 +153,6 @@ const ManageReviews = () => {
         )}
       </div>
 
-      {/* Approved Reviews Section */}
       <div>
         <div className="flex items-center justify-between mb-6">
           <div>

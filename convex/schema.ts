@@ -19,6 +19,27 @@ export default defineSchema({
   })
     .index("by_event_date", ["eventDate"])
     .index("by_created_at", ["createdAt"]),
+  reviews: defineTable({
+    name: v.string(),
+    email: v.string(),
+    event: v.string(),
+    content: v.string(),
+    rating: v.number(),
+    approved: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_approved", ["approved"])
+    .index("by_created_at", ["createdAt"]),
+  collectionImages: defineTable({
+    storageId: v.id("_storage"),
+    originalName: v.string(),
+    size: v.number(),
+    contentType: v.string(),
+    category: v.string(),
+    uploadedAt: v.number(),
+  })
+    .index("by_category", ["category"])
+    .index("by_uploaded_at", ["uploadedAt"]),
   popupAds: defineTable({
     title: v.string(),
     message: v.string(),

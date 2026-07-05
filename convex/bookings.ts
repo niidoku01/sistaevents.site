@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { adminSecretArg, validateAdminSecret } from "./admin";
 
 export const createBooking = mutation({
   args: {
@@ -10,6 +11,22 @@ export const createBooking = mutation({
     message: v.string(),
   },
   handler: async (ctx, args) => {
+    if (args.name.length < 2 || args.name.length > 100) {
+      throw new Error("Name must be between 2 and 100 characters");
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(args.email)) {
+      throw new Error("Invalid email format");
+    }
+    if (!/^[\d\s()+-]{10,20}$/.test(args.phone)) {
+      throw new Error("Invalid phone format");
+    }
+    if (isNaN(Date.parse(args.eventDate))) {
+      throw new Error("Invalid date format");
+    }
+    if (args.message.length > 1000) {
+      throw new Error("Message too long (max 1000 characters)");
+    }
+
     const blockedDate = await ctx.db
       .query("blockedDates")
       .withIndex("by_event_date", (q) => q.eq("eventDate", args.eventDate))
@@ -61,8 +78,10 @@ export const blockDate = mutation({
   args: {
     eventDate: v.string(),
     reason: v.optional(v.string()),
+    ...adminSecretArg,
   },
   handler: async (ctx, args) => {
+    validateAdminSecret(args.secret);
     const existingBlockedDate = await ctx.db
       .query("blockedDates")
       .withIndex("by_event_date", (q) => q.eq("eventDate", args.eventDate))
@@ -83,8 +102,10 @@ export const blockDate = mutation({
 export const unblockDate = mutation({
   args: {
     id: v.id("blockedDates"),
+    ...adminSecretArg,
   },
   handler: async (ctx, args) => {
+    validateAdminSecret(args.secret);
     await ctx.db.delete(args.id);
   },
 });
@@ -92,8 +113,10 @@ export const unblockDate = mutation({
 export const deleteBooking = mutation({
   args: {
     id: v.id("bookings"),
+    ...adminSecretArg,
   },
   handler: async (ctx, args) => {
+    validateAdminSecret(args.secret);
     await ctx.db.delete(args.id);
   },
 });

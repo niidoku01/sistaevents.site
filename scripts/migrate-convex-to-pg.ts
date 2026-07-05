@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
+import type { Doc } from "../convex/_generated/dataModel.js";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../convex/_generated/api.js";
 
@@ -32,7 +33,7 @@ async function main() {
 
   const client = new ConvexHttpClient(convexUrl);
 
-  let convexReviews: any[];
+  let convexReviews: Doc<"reviews">[];
   try {
     const [approved, pending] = await Promise.all([
       client.query(api.reviews.getApprovedReviews),
@@ -42,8 +43,8 @@ async function main() {
     console.log(
       `Found ${convexReviews.length} reviews in Convex (${approved?.length ?? 0} approved, ${pending?.length ?? 0} pending)`
     );
-  } catch (err: any) {
-    console.error("Failed to query Convex:", err?.message ?? err);
+  } catch (err: unknown) {
+    console.error("Failed to query Convex:", err instanceof Error ? err.message : err);
     process.exit(2);
   }
 
@@ -74,8 +75,8 @@ async function main() {
         ]
       );
       migrated++;
-    } catch (err: any) {
-      console.error(`Failed to migrate review ${review._id}:`, err.message);
+    } catch (err: unknown) {
+      console.error(`Failed to migrate review ${review._id}:`, err instanceof Error ? err.message : err);
     }
   }
 

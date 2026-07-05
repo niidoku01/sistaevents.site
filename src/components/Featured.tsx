@@ -5,7 +5,6 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { images } from "@/lib/imageImports";
 import { getLogisticsAvailability, LOGISTICS_AVAILABILITY_EVENT } from "@/lib/logisticsAvailability";
-
 type FeaturedItem = {
   key: string;
   title: string;
@@ -182,16 +181,14 @@ export const Featured = () => {
     }
   };
 
-  const isDecorativeDialog = selectedItem?.key.trim() === "decoratives";
-
   return (
     <section id="featured" className="py-20 lg:py-25 bg-background">
       <div className="container mx-auto px-3 lg:px-5">
-        <div className="text-center mb-16" data-reveal>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4" data-reveal>
             Event Logistics
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto" data-reveal style={{ animationDelay: "0.15s" }}>
           Decoratives for creating memorable events
           </p>
         </div>
@@ -207,7 +204,7 @@ export const Featured = () => {
             return (
               <Card
                 key={item.key}
-                className="group overflow-hidden hover:shadow-elegant transition-all duration-300 hover:-translate-y-1 border-border cursor-pointer"
+                className="group overflow-hidden hover:shadow-elegant hover:border-accent/30 transition-all duration-300 hover:-translate-y-1 border-border cursor-pointer"
                 data-reveal
                 data-reveal-item
                 tabIndex={item.images.length > 0 ? 0 : -1}
@@ -276,21 +273,13 @@ export const Featured = () => {
             <div className="relative w-full h-full min-h-0 flex flex-col">
               <button
                 onClick={closeGallery}
-                className={`absolute z-50 text-white hover:text-gray-300 transition-colors bg-black/70 rounded-full ${
-                  isDecorativeDialog
-                    ? "top-1.5 right-1.5 p-1 sm:top-3 sm:right-3 sm:p-2"
-                    : "top-2 right-2 p-1.5 sm:top-3 sm:right-3 sm:p-2"
-                }`}
+                className="absolute top-2 right-2 p-1.5 sm:top-3 sm:right-3 sm:p-2 z-50 text-white hover:text-gray-300 transition-colors bg-black/70 rounded-full"
                 aria-label="Close gallery"
               >
-                <X className={`${isDecorativeDialog ? "w-4 h-4 sm:w-6 sm:h-6" : "w-5 h-5 sm:w-6 sm:h-6"}`} />
+                <X className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
 
-              <div className={`relative w-full flex items-center justify-center ${
-                isDecorativeDialog
-                  ? "h-[36vh] sm:h-[54vh] md:h-[62vh] p-1.5 sm:p-4 md:p-5"
-                  : "h-[44vh] sm:h-[58vh] md:h-[62vh] p-2 sm:p-4 md:p-5"
-              }`}>
+              <div className="relative w-full flex items-center justify-center h-[44vh] sm:h-[58vh] md:h-[62vh] p-2 sm:p-4 md:p-5">
                 <img
                   src={selectedItem.images[currentImageIndex]}
                   alt={`${selectedItem.title} - Image ${currentImageIndex + 1}`}
@@ -298,8 +287,10 @@ export const Featured = () => {
                   loading={currentImageIndex === 0 ? "eager" : "lazy"}
                   fetchPriority="high"
                   decoding="sync"
+                  sizes="100vw"
                   width={1600}
                   height={1200}
+                  draggable={false}
                 />
 
                 {selectedItem.images.length > 1 && (
@@ -320,32 +311,28 @@ export const Featured = () => {
                 )}
               </div>
 
-              <div className={`text-white border-t border-white/10 overflow-x-hidden ${
-                isDecorativeDialog
-                  ? "p-2 sm:p-4 max-h-[36vh] overflow-y-auto"
-                  : "p-3 sm:p-4"
-              }`}>
+              <div className="text-white border-t border-white/10 overflow-x-hidden p-3 sm:p-4">
                 <div className="flex items-center mb-2">
                   <Badge variant="secondary" className="text-xs">
                     {selectedItem.category}
                   </Badge>
                 </div>
-                <h3 className={`font-semibold mb-1 ${isDecorativeDialog ? "text-sm sm:text-lg" : "text-base sm:text-lg"}`}>
+                <h3 className="font-semibold mb-1 text-base sm:text-lg">
                   {selectedItem.title}
                 </h3>
-                <p className={`text-gray-300 ${isDecorativeDialog ? "text-xs mb-2" : "text-xs sm:text-sm mb-3"}`}>
+                <p className="text-gray-300 text-xs sm:text-sm mb-3">
                   {selectedItem.title === "Floral Arrangements" && selectedItem.imageDescriptions
                     ? selectedItem.imageDescriptions[currentImageIndex]
                     : selectedItem.description}
                 </p>
 
                 {/* Thumbnail navigation */}
-                <div className={`flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 ${isDecorativeDialog ? "pt-0.5" : ""}`}>
+                <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1">
                   {selectedItem.images.map((img, idx) => (
                     <button
                       key={`${selectedItem.key}-thumb-${idx}`}
                       onClick={() => setCurrentImageIndex(idx)}
-                      className={`flex-shrink-0 ${isDecorativeDialog ? "w-10 h-10 sm:w-12 sm:h-12" : "w-11 h-11 sm:w-12 sm:h-12"} rounded overflow-hidden border-2 transition-all ${
+                      className={`flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded overflow-hidden border-2 transition-all ${
                         idx === currentImageIndex ? "border-white" : "border-transparent opacity-60 hover:opacity-100"
                       }`}
                     >
@@ -355,8 +342,10 @@ export const Featured = () => {
                         className="w-full h-full object-cover"
                         loading="lazy"
                         decoding="async"
+                        sizes="48px"
                         width={48}
                         height={48}
+                        draggable={false}
                       />
                     </button>
                   ))}

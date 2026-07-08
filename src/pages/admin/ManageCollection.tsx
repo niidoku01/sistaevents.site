@@ -178,19 +178,21 @@ const ManageCollection = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <CardTitle>Manage Collection</CardTitle>
               <CardDescription>Reorder, hide, or delete collection images. Uploaded images have an orange badge.</CardDescription>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleReset} className="gap-2">
-                <RotateCcw className="h-4 w-4" />
-                Reset Order
+            <div className="flex gap-2 shrink-0">
+              <Button variant="outline" size="sm" onClick={handleReset} className="gap-1.5 h-8 px-2.5 text-xs sm:h-9 sm:px-3 sm:text-sm">
+                <RotateCcw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Reset Order</span>
+                <span className="sm:hidden">Reset</span>
               </Button>
-              <Button variant="outline" size="sm" onClick={() => { setLoading(true); fetchUploaded(); }} disabled={loading} className="gap-2">
-                <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-                Refresh
+              <Button variant="outline" size="sm" onClick={() => { setLoading(true); fetchUploaded(); }} disabled={loading} className="gap-1.5 h-8 px-2.5 text-xs sm:h-9 sm:px-3 sm:text-sm">
+                <RefreshCw className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${loading ? "animate-spin" : ""}`} />
+                <span className="hidden sm:inline">Refresh</span>
+                <span className="sm:hidden">Refr.</span>
               </Button>
             </div>
           </div>
@@ -232,7 +234,7 @@ const ManageCollection = () => {
                   combinedByCategory[c].map((img) => (
                     <Card key={img._id} className="overflow-hidden rounded-2xl">
                       <div className="group relative aspect-[4/3] cursor-pointer bg-muted" onClick={() => img.url && setPreview({ url: img.url, name: img.originalName })}>
-                        <img src={img.url || ""} alt={img.originalName} className="h-full w-full object-cover transition-opacity group-hover:opacity-90" loading="lazy" decoding="async" fetchPriority="low" sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw" width={400} height={300} />
+                        <img src={img.url || ""} alt={img.originalName} className="h-full w-full object-cover transition-opacity group-hover:opacity-90" loading="lazy" decoding="sync" sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw" width={400} height={300} />
                         <Badge className={`absolute right-2 top-2 ${getCategoryColor(img.category)}`} variant="secondary">
                           {getCategoryLabel(img.category)}
                         </Badge>
@@ -293,7 +295,7 @@ const ManageCollection = () => {
                         className="h-14 w-20 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-muted sm:h-16 sm:w-24"
                         onClick={() => img.url && setPreview({ url: img.url, name: img.originalName })}
                       >
-                        <img src={img.url || ""} alt={img.originalName} className="h-full w-full object-cover" loading="lazy" decoding="async" fetchPriority="low" sizes="80px" width={160} height={120} />
+                        <img src={img.url || ""} alt={img.originalName} className="h-full w-full object-cover" loading="lazy" decoding="sync" sizes="80px" width={160} height={120} />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
@@ -351,7 +353,7 @@ const ManageCollection = () => {
             <button onClick={() => setPreview(null)} className="absolute -right-3 -top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-background shadow-lg">
               <X className="h-4 w-4" />
             </button>
-            <img src={preview.url} alt={preview.name} className="max-h-[85vh] rounded-xl object-contain shadow-2xl" />
+            <img src={preview.url} alt={preview.name} className="max-h-[85vh] rounded-xl object-contain shadow-2xl" decoding="sync" fetchPriority="high" />
             <p className="mt-2 text-center text-sm text-white/80">{preview.name}</p>
           </div>
         </div>

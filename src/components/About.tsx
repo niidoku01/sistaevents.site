@@ -47,12 +47,11 @@ export const About = () => {
                 alt="Event Setup" 
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
                 style={{
-                  imageRendering: "-webkit-optimize-contrast",
-                  WebkitFontSmoothing: "antialiased",
                   objectPosition: "center"
                 }}
-                loading="lazy"
-                decoding="async"
+                loading="eager"
+                decoding="sync"
+                fetchPriority="high"
                 width={1200}
                 height={1200}
                 sizes="(max-width: 1024px) 100vw, 50vw"

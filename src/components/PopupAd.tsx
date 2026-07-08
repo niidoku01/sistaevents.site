@@ -116,7 +116,7 @@ const PopupAdWithConvex = () => {
             alt=""
             className="absolute inset-0 h-full w-full object-cover"
             loading="eager"
-            decoding="async"
+            decoding="sync"
             fetchPriority="high"
             sizes="(max-width: 640px) 100vw, 420px"
             width={420}

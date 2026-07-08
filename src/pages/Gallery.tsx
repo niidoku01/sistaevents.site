@@ -51,6 +51,8 @@ export default function OurCollection() {
   const [currentImageIndex, setCurrentImageIndex] = useState<number | null>(null);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const [isSwiping, setIsSwiping] = useState(false);
   const [visibleCount, setVisibleCount] = useState<number>(INITIAL_VISIBLE_IMAGES);
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -196,17 +198,23 @@ export default function OurCollection() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [currentImageIndex, categoryImages, goToNextImage, goToPreviousImage, closeViewer]);
 
-  // Touch handlers for swipe
+  // Touch handlers for swipe with smooth tracking
   const onTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
+    setSwipeOffset(0);
+    setIsSwiping(true);
   };
 
   const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
+    if (touchStart === null) return;
+    const currentX = e.targetTouches[0].clientX;
+    setTouchEnd(currentX);
+    setSwipeOffset(currentX - touchStart);
   };
 
   const onTouchEnd = () => {
+    setIsSwiping(false);
     if (!touchStart || !touchEnd) return;
     
     const distance = touchStart - touchEnd;
@@ -215,10 +223,10 @@ export default function OurCollection() {
     
     if (isLeftSwipe) {
       goToNextImage();
-    }
-    if (isRightSwipe) {
+    } else if (isRightSwipe) {
       goToPreviousImage();
     }
+    setSwipeOffset(0);
   };
 
   // Helper function to get cover image for a category
@@ -244,11 +252,11 @@ export default function OurCollection() {
     }
 
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5">
+      <div className="columns-1 sm:columns-2 xl:columns-3 2xl:columns-4 gap-4 sm:gap-5 space-y-4 sm:space-y-5">
         {images.map((img, i) => (
           <div 
             key={img._id || i} 
-            className="group relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer"
+            className="group relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer break-inside-avoid"
             tabIndex={0}
             role="button"
             aria-label={`View ${img.originalName || `image ${i + 1}`}`}
@@ -261,14 +269,14 @@ export default function OurCollection() {
             onClick={() => setCurrentImageIndex(i)}
             style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}
           >
-            <div className="aspect-[4/3] bg-slate-100">
+            <div className="bg-slate-100">
               <img
                 src={img.url || ""}
                 alt={img.originalName || `Image ${i + 1}`}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 loading={i < PRIORITY_GRID_IMAGES ? "eager" : "lazy"}
-                fetchPriority={i === 0 ? "high" : i < PRIORITY_GRID_IMAGES ? "high" : "low"}
-                decoding={i < PRIORITY_GRID_IMAGES ? "sync" : "async"}
+                fetchPriority={i < PRIORITY_GRID_IMAGES ? "high" : "auto"}
+                decoding="sync"
                 sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
                 width={800}
                 height={600}
@@ -298,22 +306,23 @@ export default function OurCollection() {
 
             {!selectedCategory ? (
               <div>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6 max-w-6xl mx-auto">
+                <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 max-w-6xl mx-auto">
                   {categoryOrder.map((category) => {
                     const images = imagesByCategory[category];
+                    const cover = getCoverImage(images, category);
                     return (
                       <button
                         key={category}
                         type="button"
-                        className="group text-left"
+                        className="group text-left w-full sm:flex-1 sm:min-w-0"
                         onClick={() => setSelectedCategory(category)}
                       >
                         <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm hover:shadow-2xl transition-all duration-300" style={{ contentVisibility: "auto", containIntrinsicSize: "400px 500px" }}>
-                          <div className="aspect-[4/5] bg-slate-100">
+                          <div className="bg-slate-100 min-h-[280px] sm:min-h-[350px]">
                             <img
-                              src={getCoverImage(images, category)}
+                              src={cover}
                               alt={categoryTitleMap[category]}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                               loading={category === "weddings" ? "eager" : "lazy"}
                               fetchPriority={category === "weddings" ? "high" : "auto"}
                               decoding={category === "weddings" ? "sync" : "async"}
@@ -321,9 +330,9 @@ export default function OurCollection() {
                               width={1200}
                               height={1500}
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                            <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
-                              <h3 className="text-white text-lg sm:text-xl font-semibold">
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                            <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
+                              <h3 className="text-white text-xl sm:text-2xl font-bold">
                                 {categoryTitleMap[category]}
                               </h3>
                             </div>
@@ -399,7 +408,7 @@ export default function OurCollection() {
       {/* Image Viewer Modal */}
       <Dialog open={currentImageIndex !== null} onOpenChange={(open) => !open && closeViewer()}>
         <DialogContent
-          className="max-w-7xl w-full h-[92vh] p-0 bg-black/95 border-none"
+          className="max-w-7xl w-full h-[92vh] p-0 bg-black/95 border-none overflow-hidden"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
@@ -436,12 +445,18 @@ export default function OurCollection() {
           )}
 
           {currentImage && (
-            <div className="w-full h-full flex items-center justify-center p-4 sm:p-6">
+            <div
+              className="w-full h-full flex items-center justify-center p-4 sm:p-6"
+              style={{
+                transform: isSwiping ? `translateX(${swipeOffset * 0.4}px)` : "translateX(0)",
+                transition: isSwiping ? "none" : "transform 0.3s ease-out",
+              }}
+            >
               <img
                 src={currentImage}
                 alt={currentImageIndex !== null && categoryImages ? categoryImages[currentImageIndex]?.originalName || "Full size view" : "Full size view"}
                 className="max-w-full max-h-full object-contain select-none"
-                decoding="async"
+                decoding="sync"
                 fetchPriority="high"
                 sizes="100vw"
                 width={1600}

@@ -124,7 +124,7 @@ const UploadCollection = () => {
                 {files.map((f, i) => (
                   <div key={i} className="group relative overflow-hidden rounded-lg border bg-background">
                     <div className="aspect-square">
-                      <img src={URL.createObjectURL(f)} alt={f.name} className="h-full w-full object-cover" />
+                      <img src={URL.createObjectURL(f)} alt={f.name} className="h-full w-full object-cover" decoding="sync" />
                     </div>
                     <button
                       onClick={() => removeFile(i)}

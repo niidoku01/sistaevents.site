@@ -164,8 +164,7 @@ const ManageFeaturedAvailability = () => {
                       alt={item.title}
                       className="w-16 h-16 rounded-lg object-cover border border-slate-200/60 flex-none shadow-sm"
                       loading="lazy"
-                      decoding="async"
-                      fetchPriority="low"
+                      decoding="sync"
                       width={64}
                       height={64}
                     />
@@ -221,8 +220,7 @@ const ManageFeaturedAvailability = () => {
                                 alt={`${item.title} ${imageIndex + 1}`}
                                 className="w-11 h-11 rounded-lg object-cover border border-slate-200/60 flex-none shadow-sm"
                                 loading="lazy"
-                                decoding="async"
-                                fetchPriority="low"
+                                decoding="sync"
                                 width={44}
                                 height={44}
                               />

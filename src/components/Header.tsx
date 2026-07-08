@@ -42,7 +42,7 @@ export const Header = () => {
               loading="eager"
               width={80}
               height={80}
-              decoding="async"
+              decoding="sync"
               fetchPriority="high"
             />
 

@@ -261,9 +261,9 @@ const ManagePopupAds = () => {
                       src={form.imageUrl}
                       alt="Ad preview"
                       className="absolute inset-0 w-full h-full object-cover"
-                      loading="lazy"
-                      decoding="async"
-                      fetchPriority="low"
+                      loading="eager"
+                      decoding="sync"
+                      fetchPriority="high"
                       width={800}
                       height={500}
                     />
@@ -325,8 +325,7 @@ const ManagePopupAds = () => {
                             alt="Popup ad preview" 
                             className="h-24 w-32 rounded-md border border-slate-200/60 object-cover shadow-sm" 
                             loading="lazy"
-                            decoding="async"
-                            fetchPriority="low"
+                            decoding="sync"
                             width={128}
                             height={96}
                           />

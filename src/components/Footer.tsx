@@ -1,6 +1,5 @@
 import { Instagram, Mail, Phone, MapPin } from "lucide-react";
 
-// Custom TikTok icon component
 const TikTokIcon = ({ className }: { className?: string }) => (
   <svg
     viewBox="0 0 24 24"
@@ -14,7 +13,8 @@ const TikTokIcon = ({ className }: { className?: string }) => (
 
 export const Footer = () => {
   return (
-    <footer className="bg-black text-primary-foreground py-12 lg:py-16">
+    <footer className="bg-black text-primary-foreground py-12 lg:py-16 relative">
+      <div className="footer-gradient-border absolute top-0 left-0 right-0" />
       <div className="container mx-auto px-4 lg:px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-8">
           <div>
@@ -28,24 +28,28 @@ export const Footer = () => {
 
           <div>
             <h4 className="font-semibold mb-4">Quick Links</h4>
-            <ul className="space-y-2 text-sm">
+            <ul className="space-y-2.5 text-sm">
               <li>
-                <a href="#services" className="text-primary-foreground/80 hover:text-accent transition-colors">
+                <a href="#services" className="text-primary-foreground/80 hover:text-accent transition-colors duration-200 inline-flex items-center gap-1.5 group">
+                  <span className="w-1 h-1 rounded-full bg-accent/40 group-hover:bg-accent transition-colors duration-200" />
                   Services
                 </a>
               </li>
               <li>
-                <a href="#featured" className="text-primary-foreground/80 hover:text-accent transition-colors">
+                <a href="#featured" className="text-primary-foreground/80 hover:text-accent transition-colors duration-200 inline-flex items-center gap-1.5 group">
+                  <span className="w-1 h-1 rounded-full bg-accent/40 group-hover:bg-accent transition-colors duration-200" />
                   logistics
                 </a>
               </li>
               <li>
-                <a href="#about" className="text-primary-foreground/80 hover:text-accent transition-colors">
+                <a href="#about" className="text-primary-foreground/80 hover:text-accent transition-colors duration-200 inline-flex items-center gap-1.5 group">
+                  <span className="w-1 h-1 rounded-full bg-accent/40 group-hover:bg-accent transition-colors duration-200" />
                   About Us
                 </a>
               </li>
               <li>
-                <a href="#contact" className="text-primary-foreground/80 hover:text-accent transition-colors">
+                <a href="#contact" className="text-primary-foreground/80 hover:text-accent transition-colors duration-200 inline-flex items-center gap-1.5 group">
+                  <span className="w-1 h-1 rounded-full bg-accent/40 group-hover:bg-accent transition-colors duration-200" />
                   Bookings
                 </a>
               </li>
@@ -54,25 +58,42 @@ export const Footer = () => {
 
           <div>
             <h4 className="font-semibold mb-4">Services</h4>
-            <ul className="space-y-2 text-sm text-primary-foreground/80">
-              <li>Furniture Rentals</li>
-              <li>Tents & Canopies</li>
-              <li>Decor & Accessories</li>
-              <li> Backdrops</li>
-              <li>Event Lighting</li>
-              <li>Event Consultation</li>
-             
+            <ul className="space-y-2.5 text-sm text-primary-foreground/80">
+              <li className="flex items-center gap-1.5">
+                <span className="w-1 h-1 rounded-full bg-primary-foreground/20" />
+                Furniture Rentals
+              </li>
+              <li className="flex items-center gap-1.5">
+                <span className="w-1 h-1 rounded-full bg-primary-foreground/20" />
+                Tents & Canopies
+              </li>
+              <li className="flex items-center gap-1.5">
+                <span className="w-1 h-1 rounded-full bg-primary-foreground/20" />
+                Decor & Accessories
+              </li>
+              <li className="flex items-center gap-1.5">
+                <span className="w-1 h-1 rounded-full bg-primary-foreground/20" />
+                Backdrops
+              </li>
+              <li className="flex items-center gap-1.5">
+                <span className="w-1 h-1 rounded-full bg-primary-foreground/20" />
+                Event Lighting
+              </li>
+              <li className="flex items-center gap-1.5">
+                <span className="w-1 h-1 rounded-full bg-primary-foreground/20" />
+                Event Consultation
+              </li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-semibold mb-4">Follow Us</h4>
-            <div className="flex gap-3 mb-4">
+            <div className="flex gap-3 mb-5">
               <a
                 href="https://instagram.com/sistaevents.rentals"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-lg bg-primary-foreground/10 hover:bg-accent/20 flex items-center justify-center transition-colors group"
+                className="w-10 h-10 rounded-xl bg-primary-foreground/10 hover:bg-accent/20 flex items-center justify-center transition-all duration-200 group hover:scale-110"
                 aria-label="Instagram"
               >
                 <Instagram className="w-5 h-5 group-hover:scale-110 transition-transform" />
@@ -81,19 +102,18 @@ export const Footer = () => {
                 href="https://tiktok.com/@sistaevents.rentals"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-lg bg-primary-foreground/10 hover:bg-accent/20 flex items-center justify-center transition-colors group"
+                className="w-10 h-10 rounded-xl bg-primary-foreground/10 hover:bg-accent/20 flex items-center justify-center transition-all duration-200 group hover:scale-110"
                 aria-label="TikTok"
               >
                 <TikTokIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
               </a>
-             
             </div>
-            <div className="space-y-2 text-sm text-primary-foreground/80">
-              <a href="mailto:info@sistaevents.com" className="flex items-center gap-2 hover:text-accent transition-colors">
+            <div className="space-y-2.5 text-sm text-primary-foreground/80">
+              <a href="mailto:info@sistaevents.com" className="flex items-center gap-2 hover:text-accent transition-colors duration-200">
                 <Mail className="w-4 h-4" />
                 <span>info@sistaevents.com</span>
               </a>
-              <a href="tel:0555182969" className="flex items-center gap-2 hover:text-accent transition-colors">
+              <a href="tel:0555182969" className="flex items-center gap-2 hover:text-accent transition-colors duration-200">
                 <Phone className="w-4 h-4" />
                 <span>(+233) 555182969</span>
               </a>
@@ -101,7 +121,7 @@ export const Footer = () => {
                 href="https://www.google.com/maps/search/?api=1&query=Sista+Events+and+Rentals+Kingstown"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 hover:text-accent transition-colors"
+                className="flex items-center gap-2 hover:text-accent transition-colors duration-200"
               >
                 <MapPin className="w-4 h-4" />
                 <span>Amanfro-Kingstown,Kasoa</span>

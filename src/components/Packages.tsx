@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -88,23 +88,27 @@ export const Packages = () => {
           {packages.map((pkg, index) => (
             <Card 
               key={index} 
-              className={`relative ${
+              className={`relative overflow-hidden ${
                 pkg.popular 
-                  ? "border-accent shadow-xl md:scale-105 z-10" 
-                  : "border-border"
-              }`}
+                  ? "border-accent shadow-[0_8px_40px_-12px_hsl(var(--accent)/0.25)] md:scale-105 z-10" 
+                  : "border-border hover:shadow-lg"
+              } transition-shadow duration-300`}
               data-reveal
               data-reveal-item
             >
               {pkg.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <span className="bg-accent text-accent-foreground px-4 py-1 rounded-full text-sm font-semibold">
-                    Most Popular
-                  </span>
-                </div>
+                <>
+                  <div className="absolute inset-0 bg-gradient-to-b from-accent/[0.04] via-transparent to-accent/[0.06]" />
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                    <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-accent to-amber-500 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg shadow-accent/30">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Most Popular
+                    </span>
+                  </div>
+                </>
               )}
               
-              <CardHeader className="text-center pb-6 sm:pb-8">
+              <CardHeader className="text-center pb-6 sm:pb-8 pt-8 sm:pt-10">
                 <CardTitle className="text-2xl mb-2">{pkg.name}</CardTitle>
                 <div className="text-3xl font-bold text-accent mb-2">
                   {pkg.price}
@@ -115,11 +119,11 @@ export const Packages = () => {
               </CardHeader>
 
               <CardContent className="space-y-6">
-                <ul className="space-y-2 sm:space-y-3">
+                <ul className="space-y-2.5 sm:space-y-3">
                   {pkg.features.map((feature, idx) => (
-                    <li key={idx} className={`flex items-start gap-3 ${idx > 4 ? "hidden sm:flex" : ""}`}>
+                    <li key={idx} className="flex items-start gap-3">
                       <div className="flex-shrink-0 w-5 h-5 rounded-full bg-accent/10 flex items-center justify-center mt-0.5">
-                        <Check className="w-3 h-3 text-accent" />
+                        <Check className="w-3 h-3 text-accent" strokeWidth={3} />
                       </div>
                       <span className="text-sm text-foreground">{feature}</span>
                     </li>
@@ -127,7 +131,7 @@ export const Packages = () => {
                 </ul>
 
                 <Button 
-                  className="w-full" 
+                  className="w-full active:scale-[0.98] transition-transform" 
                   variant={pkg.popular ? "default" : "outline"}
                   onClick={() => scrollToContactWithPackage(pkg.name)}
                 >

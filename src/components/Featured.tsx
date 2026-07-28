@@ -204,7 +204,7 @@ export const Featured = () => {
             return (
               <Card
                 key={item.key}
-                className="group overflow-hidden hover:shadow-elegant hover:border-accent/30 transition-all duration-300 hover:-translate-y-1 border-border cursor-pointer"
+                className="group overflow-hidden card-glow hover:shadow-elegant hover:border-accent/30 transition-all duration-300 hover:-translate-y-1 border-border cursor-pointer active:scale-[0.98]"
                 data-reveal
                 data-reveal-item
                 tabIndex={item.images.length > 0 ? 0 : -1}
@@ -244,12 +244,14 @@ export const Featured = () => {
                     <div className="text-sm text-muted-foreground">No image enabled</div>
                   )}
                 </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-2">
                     <Badge variant="secondary" className="text-xs">
                       {item.category}
                     </Badge>
-                    <span className={`text-xs font-semibold ${item.available ? "text-emerald-700" : "text-red-700"}`}>
+                    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${item.available ? "text-emerald-600" : "text-red-600"}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${item.available ? "bg-emerald-500" : "bg-red-500"}`} />
                       {item.available ? "Available" : "Rented Out"}
                     </span>
                   </div>

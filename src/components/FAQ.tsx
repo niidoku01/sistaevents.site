@@ -1,5 +1,3 @@
-import { useState } from "react";
-import { ChevronDown } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -67,21 +65,21 @@ export const FAQ = () => {
         </div>
 
         <div className="max-w-4xl mx-auto">
-          <Accordion type="single" collapsible className="space-y-4" data-reveal-stagger>
+          <Accordion type="single" collapsible className="space-y-3 sm:space-y-4" data-reveal-stagger>
             {faqs.map((faq, index) => (
               <AccordionItem
                 key={index}
                 value={`item-${index}`}
-                className={`bg-background border border-border rounded-lg px-4 sm:px-6 ${index > 5 ? "hidden sm:block" : ""}`}
+                className="bg-background border border-border/60 rounded-xl px-4 sm:px-6 hover:border-accent/30 transition-colors duration-200"
                 data-reveal
                 data-reveal-item
               >
-                <AccordionTrigger className="text-left hover:no-underline">
+                <AccordionTrigger className="text-left hover:no-underline py-4 sm:py-5 active:scale-[0.99] transition-transform">
                   <span className="font-semibold text-sm sm:text-base text-foreground pr-4">
                     {faq.question}
                   </span>
                 </AccordionTrigger>
-                <AccordionContent className="text-sm sm:text-base text-muted-foreground pt-2 pb-4">
+                <AccordionContent className="text-sm sm:text-base text-muted-foreground pt-1 pb-4 sm:pb-5">
                   {faq.answer}
                 </AccordionContent>
               </AccordionItem>
@@ -96,7 +94,7 @@ export const FAQ = () => {
               href="https://wa.me/0279689522?text=Hi%2C%20I%20have%20a%20question%20about%20your%20event%20rental%20services"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-accent hover:text-accent/80 active:text-accent font-semibold transition-colors"
+              className="inline-flex items-center gap-2 text-accent hover:text-accent/80 active:text-accent font-semibold transition-colors"
             >
               Chat with us on WhatsApp
             </a>

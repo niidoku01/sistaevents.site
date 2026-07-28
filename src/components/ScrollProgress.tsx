@@ -42,7 +42,7 @@ export const ScrollProgress = () => {
   }, []);
 
   return (
-    <div className="fixed top-0 left-0 w-full h-1 bg-muted/30 z-50">
+    <div className="fixed top-0 left-0 w-full h-1 bg-muted/30 z-[60]">
       <div
         ref={progressRef}
         className="h-full bg-accent origin-left will-change-transform"

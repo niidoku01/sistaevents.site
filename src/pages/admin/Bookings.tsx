@@ -147,8 +147,8 @@ const Bookings: React.FC = () => {
       });
 
       toast({
-        title: "Date blocked",
-        description: `${formatIsoDate(eventDate)} has been marked as unavailable.`,
+        title: "Blocked dates",
+        description: `${formatIsoDate(eventDate)}  marked as unavailable.`,
       });
       setEventDate("");
       setReason("");
@@ -166,7 +166,7 @@ const Bookings: React.FC = () => {
       await unblockDate({ id });
       toast({
         title: "Date unblocked",
-        description: "The date is now available again.",
+        description: "Date now available ",
       });
     } catch (error) {
       toast({

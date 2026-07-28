@@ -47,11 +47,27 @@ const authHeaders = (): Record<string, string> => {
 
 const getConvexAdminSecret = async (): Promise<string> => {
   if (_convexAdminSecret) return _convexAdminSecret;
-  const response = await fetch(`${getNextApiBase()}/admin/convex-token`, { headers: authHeaders() });
-  if (!response.ok) throw new Error("Failed to obtain admin token for Convex");
-  const data = await response.json();
-  _convexAdminSecret = data.token;
-  return _convexAdminSecret;
+
+  const envSecret = (import.meta.env.VITE_CONVEX_ADMIN_SECRET as string | undefined)?.trim();
+  if (envSecret) {
+    _convexAdminSecret = envSecret;
+    return _convexAdminSecret;
+  }
+
+  try {
+    const response = await fetch(`${getNextApiBase()}/admin/convex-token`, { headers: authHeaders() });
+    if (!response.ok) {
+      const body = await response.text().catch(() => "");
+      console.error(`Convex admin token fetch failed (${response.status}):`, body);
+      throw new Error(`Failed to obtain admin token for Convex (${response.status})`);
+    }
+    const data = await response.json();
+    _convexAdminSecret = data.token;
+    return _convexAdminSecret;
+  } catch (err) {
+    if (err instanceof Error && err.message.startsWith("Failed to obtain")) throw err;
+    throw new Error("Failed to obtain admin token — server unreachable and no VITE_CONVEX_ADMIN_SECRET set");
+  }
 };
 
 export const bookingAPI = {
@@ -128,7 +144,7 @@ async function uploadFileToConvex(file: File): Promise<UploadFileResult> {
 
 export const collectionAPI = {
   async uploadImages(files: File[], category: string = "weddings") {
-    if (!convexClient) throw new Error("Convex client not available");
+    if (!convexClient) throw new Error("Convex client not available — check VITE_CONVEX_URL");
     const secret = await getConvexAdminSecret();
     const results: CollectionImageResult[] = [];
     for (const file of files) {
@@ -156,19 +172,27 @@ export const collectionAPI = {
   },
 
   async getAllImages() {
-    if (!convexClient) return [];
-    const images = await convexClient.query(api.collectionImages.listImages);
-    return images;
+    if (!convexClient) {
+      console.error("getAllImages: Convex client not available — check VITE_CONVEX_URL");
+      return [];
+    }
+    try {
+      const images = await convexClient.query(api.collectionImages.listImages);
+      return images;
+    } catch (err) {
+      console.error("getAllImages: Convex query failed:", err);
+      throw err;
+    }
   },
 
   async deleteImage(id: string) {
-    if (!convexClient) throw new Error("Convex client not available");
+    if (!convexClient) throw new Error("Convex client not available — check VITE_CONVEX_URL");
     const secret = await getConvexAdminSecret();
     await convexClient.mutation(api.collectionImages.deleteImage, { id: id as Id<"collectionImages">, secret });
   },
 
   async updateImageCategory(id: string, category: string) {
-    if (!convexClient) throw new Error("Convex client not available");
+    if (!convexClient) throw new Error("Convex client not available — check VITE_CONVEX_URL");
     const secret = await getConvexAdminSecret();
     await convexClient.mutation(api.collectionImages.updateCategory, { id: id as Id<"collectionImages">, category, secret });
   },

@@ -73,8 +73,9 @@ const TestimonialsWithApi = () => {
         {sortedTestimonials.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-10 sm:mb-16">
             {sortedTestimonials.map((testimonial) => (
-              <Card key={testimonial._id} className="border-border">
-                <CardContent className="p-4 sm:p-6 lg:p-8">
+              <Card key={testimonial._id} className="group relative overflow-hidden border-border hover:shadow-lg transition-shadow duration-300">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-accent/[0.03] rounded-bl-[80px]" />
+                <CardContent className="relative p-4 sm:p-6 lg:p-8">
                   <div className="flex gap-1 mb-4">
                     {[...Array(5)].map((_, i) => (
                       <Star
@@ -83,15 +84,22 @@ const TestimonialsWithApi = () => {
                       />
                     ))}
                   </div>
-                  <p className="text-sm sm:text-base text-foreground mb-4 sm:mb-6 italic whitespace-pre-line break-words">
-                    "{testimonial.content}"
-                  </p>
-                  <div>
-                    <p className="font-semibold text-foreground">{testimonial.name} said:</p>
-                    <p className="text-sm text-muted-foreground">{testimonial.event}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {new Date(testimonial.createdAt).toLocaleDateString()}
+                  <div className="relative mb-4 sm:mb-6">
+                    <span className="absolute -top-2 -left-1 text-5xl text-accent/10 font-serif select-none leading-none">&ldquo;</span>
+                    <p className="text-sm sm:text-base text-foreground pl-5 italic whitespace-pre-line break-words">
+                      {testimonial.content}
                     </p>
+                  </div>
+                  <div className="flex items-center gap-3 pt-2 border-t border-border/50">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-semibold text-accent">
+                        {testimonial.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground text-sm">{testimonial.name}</p>
+                      <p className="text-xs text-muted-foreground">{testimonial.event} &middot; {new Date(testimonial.createdAt).toLocaleDateString()}</p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -102,7 +110,7 @@ const TestimonialsWithApi = () => {
         <div className="text-center">
           <button
             onClick={() => setShowForm(!showForm)}
-            className="inline-flex items-center gap-2 rounded-xl bg-accent px-6 py-3 text-white font-semibold hover:bg-accent/90 active:bg-accent transition-colors"
+            className="inline-flex items-center gap-2 rounded-xl bg-accent px-6 py-3 text-white font-semibold hover:bg-accent/90 active:bg-accent active:scale-95 transition-all"
           >
             {showForm ? "Hide Review Form" : "Share Your Experience"}
           </button>

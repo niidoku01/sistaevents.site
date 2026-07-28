@@ -23,13 +23,15 @@ const queryClient = new QueryClient({
   },
 });
 
-const PRELOAD_DURATION = 3200;
+const MINIMUM_SPLASH_MS = 1200;
+const MAXIMUM_SPLASH_MS = 4000;
 
 const App = () => {
   const [showContent, setShowContent] = useState(false);
 
   useEffect(() => {
-    // Preload page chunks during loading screen so they're ready
+    const start = performance.now();
+
     const preload = async () => {
       await Promise.allSettled([
         import("./pages/Index"),
@@ -37,9 +39,15 @@ const App = () => {
         import("./pages/admin/AdminShell"),
       ]);
     };
-    preload();
-    const timer = setTimeout(() => setShowContent(true), PRELOAD_DURATION);
-    return () => clearTimeout(timer);
+
+    preload().then(() => {
+      const elapsed = performance.now() - start;
+      const remaining = Math.max(MINIMUM_SPLASH_MS - elapsed, 0);
+      setTimeout(() => setShowContent(true), remaining);
+    });
+
+    const safetyTimer = setTimeout(() => setShowContent(true), MAXIMUM_SPLASH_MS);
+    return () => clearTimeout(safetyTimer);
   }, []);
 
   if (!showContent) {

@@ -69,13 +69,13 @@ const UploadCollection = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Upload Collection Images</CardTitle>
-          <CardDescription>Upload new images to the gallery. Images are automatically resized to 1920px and compressed for optimal quality and performance.</CardDescription>
+          <CardTitle>Collection Uploads </CardTitle>
+          <CardDescription>Upload new images to the collection.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Static count */}
           <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-800">
-            <strong>{totalStatic}</strong> static collection images are already available. Uploaded images will appear in the <strong>Manage</strong> panel.
+            <strong>{totalStatic}</strong>
           </div>
 
           {/* Category selector */}
@@ -113,7 +113,7 @@ const UploadCollection = () => {
             />
             <Upload className="mb-2 h-8 w-8 text-muted-foreground" />
             <p className="text-sm font-medium text-foreground/80">Drop images here or click to browse</p>
-            <p className="mt-1 text-xs text-muted-foreground">JPEG, PNG, GIF, WebP &mdash; max 10MB each, up to 10 at once</p>
+            <p className="mt-1 text-xs text-muted-foreground">JPEG, PNG, WebP &mdash; max 10MB each, up to 10 at once</p>
           </div>
 
           {/* File previews */}

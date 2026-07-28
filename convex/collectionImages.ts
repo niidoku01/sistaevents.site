@@ -24,7 +24,7 @@ export const saveImage = mutation({
   handler: async (ctx, args) => {
     validateAdminSecret(args.secret);
 
-    const VALID_CATEGORIES = ["weddings", "birthdays", "corporate", "social", "decor", "other"];
+    const VALID_CATEGORIES = ["weddings", "funerals", "birthdays", "corporate", "social", "decor", "other"];
     const VALID_MIME_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 
     if (!VALID_CATEGORIES.includes(args.category)) {

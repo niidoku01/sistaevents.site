@@ -56,6 +56,11 @@ const HeroContent = () => {
     }
 
     setDateStatus("available");
+    sessionStorage.setItem("prefilledEventDate", eventDate);
+    setTimeout(() => {
+      const contactEl = document.getElementById("contact");
+      contactEl?.scrollIntoView({ behavior: "smooth" });
+    }, 600);
   };
 
   return (
@@ -85,15 +90,15 @@ const HeroContent = () => {
         </h1>
         
         <div className="inline-flex flex-nowrap gap-3 sm:gap-4 items-center justify-center animate-fade-in w-full overflow-x-auto pb-1" style={{ animationDelay: "0.4s" }}>
-          <Button variant="hero" size="default" onClick={scrollToContact} className="w-auto whitespace-nowrap flex-none">
+          <Button variant="hero" size="default" onClick={scrollToContact} className="w-auto whitespace-nowrap flex-none active:scale-95 transition-transform">
             Book Us Now
           </Button>
-          <Button variant="outline" size="default" className="w-auto whitespace-nowrap flex-none border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary" onClick={goToGallery}>
+          <Button variant="outline" size="default" className="w-auto whitespace-nowrap flex-none border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary active:scale-95 transition-transform" onClick={goToGallery}>
             View Our Collection
           </Button>
         </div>
-        <div className="mt-16 lg:mt-20 max-w-md mx-auto bg-green-100/10 backdrop-blur-sm border border-green-100/20 rounded-lg p-3 sm:p-4 md:p-3 animate-fade-in" style={{ animationDelay: "0.9s" }}>
-          <p className="text-primary-foreground/85 text-xs sm:text-sm md:text-base mb-2 md:mb-3">Date Availability Checker</p>
+        <div className="mt-16 lg:mt-20 max-w-md mx-auto bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 sm:p-5 md:p-4 animate-fade-in shadow-lg" style={{ animationDelay: "0.9s" }}>
+          <p className="text-primary-foreground/90 text-xs sm:text-sm md:text-base mb-3 md:mb-4 font-medium">Date Availability Checker</p>
           <div className="inline-flex flex-nowrap gap-2 items-center justify-center w-full overflow-x-auto pb-1">
             <Popover>
               <PopoverTrigger asChild>
@@ -130,13 +135,13 @@ const HeroContent = () => {
                 />
               </PopoverContent>
             </Popover>
-            <Button variant="secondary" className="h-9 px-3 text-sm whitespace-nowrap bg-sky-100/80 hover:bg-sky-100 text-slate-900 w-auto flex-none" onClick={goToBookingWithDate}>
+            <Button variant="secondary" className="h-9 px-3 text-sm whitespace-nowrap bg-sky-100/80 hover:bg-sky-100 text-slate-900 w-auto flex-none active:scale-95 transition-transform" onClick={goToBookingWithDate}>
               Check Date
             </Button>
           </div>
           {dateError ? <p className="text-[11px] mt-2 text-red-500 font-medium animate-fade-in">{dateError}</p> : null}
           {!dateError && dateStatus === "available" ? (
-            <p className="text-[11px] mt-2 text-green-500 font-medium animate-fade-in">This date is available. Book now to secure it!</p>
+            <p className="text-[11px] mt-2 text-green-500 font-medium animate-fade-in">This date is available. Scrolling to booking form...</p>
           ) : null}
           {!dateError && dateStatus === "unavailable" ? (
             <p className="text-[11px] mt-2 text-red-500 font-medium animate-fade-in">This date is unavailable. Please choose another date.</p>

@@ -277,6 +277,61 @@
   }
 }
 
+@keyframes balloonInflate {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+    filter: blur(12px);
+  }
+  5% {
+    transform: scale(0.05, 0.02);
+    opacity: 0.3;
+    filter: blur(8px);
+  }
+  15% {
+    transform: scale(0.28, 0.14);
+    opacity: 0.6;
+    filter: blur(3px);
+  }
+  28% {
+    transform: scale(0.55, 0.32);
+    opacity: 0.85;
+    filter: blur(0);
+  }
+  40% {
+    transform: scale(0.82, 0.58);
+  }
+  52% {
+    transform: scale(1.02, 0.78);
+  }
+  64% {
+    transform: scale(1.1, 0.92);
+  }
+  74% {
+    transform: scale(0.96, 1.06);
+  }
+  84% {
+    transform: scale(1.03, 0.97);
+  }
+  92% {
+    transform: scale(0.99, 1.01);
+  }
+  100% {
+    transform: scale(1, 1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes logoGlow {
+  0%, 100% {
+    filter: drop-shadow(0 2px 8px rgba(255, 215, 0, 0.15));
+  }
+  50% {
+    filter: drop-shadow(0 2px 16px rgba(255, 215, 0, 0.35));
+  }
+}
+
 .scrollbar-none {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -285,10 +340,258 @@
   display: none;
 }
 
+/* ── Slick UX: Mobile menu slide-in ─────────────────────── */
+@keyframes menuSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes menuStaggerIn {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.mobile-menu-enter {
+  animation: menuSlideDown 0.25s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.mobile-menu-item {
+  opacity: 0;
+  animation: menuStaggerIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ── Slick UX: Nav underline hover ─────────────────────── */
+.nav-link {
+  position: relative;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: hsl(var(--accent));
+  border-radius: 9999px;
+  transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* ── Slick UX: Focus-visible ring ─────────────────────── */
+*:focus-visible {
+  outline: 2px solid hsl(var(--accent));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid hsl(var(--accent));
+  outline-offset: 2px;
+}
+
+/* ── Slick UX: Image crossfade in lightbox ─────────────── */
+.lightbox-img {
+  transition: opacity 0.35s ease-in-out;
+}
+
+/* ── Slick UX: WhatsApp pulse ring ─────────────────────── */
+@keyframes whatsappPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(34, 197, 94, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+.whatsapp-pulse {
+  animation: whatsappPulse 2.5s ease-in-out infinite;
+}
+
+/* ── Slick UX: Card glow on hover ──────────────────────── */
+.card-glow {
+  position: relative;
+}
+
+.card-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, hsl(40 95% 55% / 0), hsl(40 95% 55% / 0.15), hsl(40 95% 55% / 0));
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: -1;
+}
+
+.card-glow:hover::before {
+  opacity: 1;
+}
+
+/* ── Slick UX: Smooth gradient top for footer ──────────── */
+.footer-gradient-border {
+  background: linear-gradient(to right, hsl(var(--accent) / 0.3), hsl(var(--accent)), hsl(var(--accent) / 0.3));
+  height: 1px;
+}
+
+/* ── Slick UX: Stagger reveal for data-reveal-stagger ──── */
+[data-reveal-stagger] > *:nth-child(1) { --reveal-delay: 0ms; }
+[data-reveal-stagger] > *:nth-child(2) { --reveal-delay: 80ms; }
+[data-reveal-stagger] > *:nth-child(3) { --reveal-delay: 160ms; }
+[data-reveal-stagger] > *:nth-child(4) { --reveal-delay: 240ms; }
+[data-reveal-stagger] > *:nth-child(5) { --reveal-delay: 320ms; }
+[data-reveal-stagger] > *:nth-child(6) { --reveal-delay: 400ms; }
+
 @media (prefers-reduced-motion: reduce) {
   [data-reveal] {
     opacity: 1 !important;
     transform: none !important;
     transition: none !important;
   }
+
+  .mobile-menu-enter,
+  .mobile-menu-item,
+  .whatsapp-pulse {
+    animation: none !important;
+  }
+
+  .nav-link::after {
+    transition: none !important;
+  }
+
+  .lightbox-img {
+    transition: none !important;
+  }
+}
+
+/* ── Logo: responsive, retina-sharp SVG rendering ─────── */
+.logo-icon {
+  height: clamp(48px, 9vw, 68px);
+  width: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  flex-shrink: 0;
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.1));
+}
+
+/* ── Glass Navbar ──────────────────────────────────────── */
+.glass-nav {
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-nav-inner {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.72) 0%,
+    rgba(255, 255, 255, 0.55) 40%,
+    rgba(255, 255, 255, 0.45) 100%
+  );
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 4px 30px rgba(0, 0, 0, 0.06),
+    0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.04) inset;
+}
+
+.glass-nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.85rem;
+  border-radius: 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: hsl(var(--foreground));
+  background: transparent;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.glass-nav-link:hover {
+  background: rgba(255, 255, 255, 0.55);
+  color: hsl(var(--accent));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.glass-nav-link:active {
+  transform: scale(0.97);
+}
+
+.glass-nav-cta {
+  border-radius: 0.625rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em;
+  box-shadow:
+    0 2px 10px rgba(255, 215, 0, 0.25),
+    0 1px 3px rgba(0, 0, 0, 0.08) !important;
+}
+
+.glass-nav-cta:hover {
+  box-shadow:
+    0 4px 16px rgba(255, 215, 0, 0.35),
+    0 2px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.glass-mobile-nav {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.68) 0%,
+    rgba(255, 255, 255, 0.5) 100%
+  );
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-top: 1px solid rgba(255, 255, 255, 0.5);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.6) inset;
+}
+
+.glass-nav-link-mobile {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 0.875rem;
+  border-radius: 0.625rem;
+  color: hsl(var(--foreground));
+  background: transparent;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-nav-link-mobile:hover {
+  background: rgba(255, 255, 255, 0.5);
+  color: hsl(var(--accent));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.glass-nav-link-mobile:active {
+  background: rgba(255, 255, 255, 0.6);
+  transform: scale(0.98);
 }

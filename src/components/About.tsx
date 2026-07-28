@@ -29,9 +29,9 @@ export const About = () => {
               {features.map((feature, index) => (
                 <div
                   key={index}
-                  className={`flex items-center gap-3 ${index > 3 ? "hidden sm:flex" : ""}`}
+                  className="group flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-accent/[0.04] transition-colors duration-200"
                 >
-                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center">
+                  <div className="flex-shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center group-hover:from-accent/30 group-hover:to-accent/10 transition-colors duration-300">
                     <CheckCircle2 className="w-4 h-4 text-accent" />
                   </div>
                   <span className="text-sm sm:text-base text-foreground">{feature}</span>
@@ -41,7 +41,8 @@ export const About = () => {
           </div>
 
           <div className="relative">
-            <div className="aspect-square rounded-2xl overflow-hidden shadow-elegant border-4 border-black/20">
+            <div className="absolute -inset-3 bg-gradient-to-br from-accent/10 via-transparent to-accent/5 rounded-3xl blur-xl" />
+            <div className="relative aspect-square rounded-2xl overflow-hidden shadow-elegant border border-border/50">
               <img 
                 src={images.misc.sabout} 
                 alt="Event Setup" 
@@ -56,11 +57,11 @@ export const About = () => {
                 height={1200}
                 sizes="(max-width: 1024px) 100vw, 50vw"
               />
-            </div>
-            
+              <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent" />
             </div>
           </div>
         </div>
+      </div>
     </section>
   );
 }

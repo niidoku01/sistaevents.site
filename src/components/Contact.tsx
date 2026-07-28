@@ -153,7 +153,7 @@ export const Contact = () => {
     }
   };
 
-  // Pre-fill form from sessionStorage (for package quotes)
+  // Pre-fill form from sessionStorage (for package quotes and hero date checker)
   useEffect(() => {
     const loadPackageData = () => {
       const data = sessionStorage.getItem('selectedPackage');
@@ -162,8 +162,17 @@ export const Contact = () => {
         sessionStorage.removeItem('selectedPackage');
       }
     };
-    
+
+    const loadPrefilledDate = () => {
+      const date = sessionStorage.getItem('prefilledEventDate');
+      if (date) {
+        setFormData(prev => ({ ...prev, eventDate: date }));
+        sessionStorage.removeItem('prefilledEventDate');
+      }
+    };
+
     loadPackageData();
+    loadPrefilledDate();
     window.addEventListener('packageSelected', loadPackageData);
     return () => window.removeEventListener('packageSelected', loadPackageData);
   }, []);
@@ -308,9 +317,14 @@ export const Contact = () => {
                   </div>
 
                   <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-foreground mb-2">
-                      Tell us about your event 
-                    </label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label htmlFor="message" className="block text-sm font-medium text-foreground">
+                        Tell us about your event 
+                      </label>
+                      <span className={`text-xs ${formData.message.length > 900 ? "text-red-500" : "text-muted-foreground"}`}>
+                        {formData.message.length}/1000
+                      </span>
+                    </div>
                     <Textarea
                       id="message"
                       aria-required="true"
@@ -326,22 +340,32 @@ export const Contact = () => {
                     type="submit"
                     variant="secondary"
                     size="lg"
-                    className="w-full"
+                    className="w-full active:scale-[0.98] transition-transform"
                     disabled={isLoading || !hasRequiredFields}
                     aria-disabled={isLoading || !hasRequiredFields}
                   >
-                    {isLoading ? "Sending..." : "Send Booking"}
+                    {isLoading ? (
+                      <span className="inline-flex items-center gap-2">
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        Sending...
+                      </span>
+                    ) : "Send Booking"}
                   </Button>
+                  {!hasRequiredFields && !isLoading && (
+                    <p className="text-xs text-muted-foreground text-center">
+                      {getMissingFieldMessage() || "Please fill in your name, email, and message to continue."}
+                    </p>
+                  )}
                 </form>
               </CardContent>
             </Card>
           </div>
 
           <div className="space-y-4 sm:space-y-6">
-            <Card className="border-border">
+            <Card className="border-border group hover:shadow-lg transition-shadow duration-300">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center flex-shrink-0 group-hover:from-accent/30 group-hover:to-accent/10 transition-colors duration-300">
                     <Phone className="w-5 h-5 text-accent" />
                   </div>
                   <div>
@@ -351,13 +375,11 @@ export const Contact = () => {
                 </div>
               </CardContent>
             </Card>
-            
-          
 
-            <Card className="border-border">
+            <Card className="border-border group hover:shadow-lg transition-shadow duration-300">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center flex-shrink-0 group-hover:from-accent/30 group-hover:to-accent/10 transition-colors duration-300">
                     <Mail className="w-5 h-5 text-accent" />
                   </div>
                   <div>
@@ -368,11 +390,11 @@ export const Contact = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-border hidden sm:block">
+            <Card className="border-border hidden sm:block group hover:shadow-lg transition-shadow duration-300">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
-                    <WhatsAppIcon className="w-5 h-5 text-accent" />
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-green-500/20 to-green-500/5 flex items-center justify-center flex-shrink-0">
+                    <WhatsAppIcon className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">WhatsApp</h3>
@@ -382,10 +404,10 @@ export const Contact = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-border hidden sm:block">
+            <Card className="border-border hidden sm:block group hover:shadow-lg transition-shadow duration-300">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center flex-shrink-0 group-hover:from-accent/30 group-hover:to-accent/10 transition-colors duration-300">
                     <MapPin className="w-5 h-5 text-accent" />
                   </div>
                   <div>

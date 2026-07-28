@@ -129,7 +129,7 @@ const ManageFeaturedAvailability = () => {
       <CardHeader className="pb-4 border-b border-slate-200/60">
         <div className="space-y-1">
           <CardTitle className="text-lg sm:text-xl font-bold text-slate-900">Logistics Availability</CardTitle>
-          <p className="text-sm text-slate-600">Control which items and images are displayed in the gallery</p>
+          <p className="text-sm text-slate-600">Control which items are available for booking</p>
         </div>
         <div className="pt-4">
           <Button 

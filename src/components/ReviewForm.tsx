@@ -134,9 +134,14 @@ export const ReviewForm = () => {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="content" className="text-sm font-medium">
-              Your Review 
-            </label>
+            <div className="flex items-center justify-between">
+              <label htmlFor="content" className="text-sm font-medium">
+                Your Review 
+              </label>
+              <span className="text-xs text-muted-foreground">
+                {formData.content.length}/1000
+              </span>
+            </div>
             <Textarea
               id="content"
               name="content"
@@ -144,6 +149,7 @@ export const ReviewForm = () => {
               onChange={handleChange}
               required
               rows={5}
+              maxLength={1000}
               placeholder="Tell us about your experience..."
               className="resize-none"
             />
@@ -151,7 +157,7 @@ export const ReviewForm = () => {
 
           <Button
             type="submit"
-            className="w-full"
+            className="w-full active:scale-[0.98] transition-transform"
             disabled={isSubmitting}
           >
             {isSubmitting ? "Submitting..." : "Submit Review"}

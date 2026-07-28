@@ -3,7 +3,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
 import { getOrderedImages, ensureImagesInOrder } from "../lib/collectionOrder";
 import { staticCollectionImagesByCategory } from "@/lib/staticCollections";
 import { collectionAPI } from "@/lib/api";
@@ -15,7 +15,7 @@ const categoryOrder: Category[] = ["weddings", "funerals", "corporate"];
 const categoryTitleMap: Record<Category, string> = {
   weddings: "Weddings & Celebrations",
   funerals: "Funerals",
-  corporate: "Corporate Events",
+  corporate: "Corporate",
 };
 
 const categoryMobileLabelMap: Record<Category, string> = {
@@ -67,7 +67,7 @@ export default function OurCollection() {
           if (ids.length > 0) ensureImagesInOrder(cat, ids);
         }
       })
-      .catch(() => {});
+      .catch((err) => console.error("Failed to load images:", err));
   }, []);
 
   const combinedByCategory: Record<Category, CollectionImage[]> = React.useMemo(() => {
@@ -269,18 +269,28 @@ export default function OurCollection() {
             onClick={() => setCurrentImageIndex(i)}
             style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}
           >
-            <div className="bg-slate-100">
+            <div className="bg-slate-100 animate-pulse relative">
               <img
                 src={img.url || ""}
                 alt={img.originalName || `Image ${i + 1}`}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 relative z-10"
                 loading={i < PRIORITY_GRID_IMAGES ? "eager" : "lazy"}
                 fetchPriority={i < PRIORITY_GRID_IMAGES ? "high" : "auto"}
                 decoding="sync"
                 sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
                 width={800}
                 height={600}
+                onLoad={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.classList.remove("opacity-0");
+                  target.parentElement?.classList.remove("animate-pulse");
+                }}
               />
+              <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-colors duration-300 pointer-events-none">
+                <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 rounded-full p-2.5 shadow-lg">
+                  <ZoomIn className="w-[18px] h-[18px] text-slate-700" />
+                </span>
+              </div>
             </div>
           </div>
         ))}
@@ -365,7 +375,7 @@ export default function OurCollection() {
                             key={category}
                             type="button"
                             onClick={() => setSelectedCategory(category)}
-                            className={`shrink-0 rounded-lg sm:rounded-xl px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-sm border font-medium transition-all duration-200 active:scale-[0.98] ${
+                            className={`shrink-0 rounded-lg sm:rounded-xl px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-sm border font-medium transition-all duration-200 active:scale-95 ${
                               isActive
                                 ? "bg-gradient-to-r from-[#FFD700] to-amber-500 text-slate-900 border-amber-400 shadow-md shadow-amber-300/50"
                                 : "bg-white text-slate-700 border-slate-200 hover:bg-amber-50 hover:border-amber-200 hover:shadow-sm"
@@ -455,7 +465,7 @@ export default function OurCollection() {
               <img
                 src={currentImage}
                 alt={currentImageIndex !== null && categoryImages ? categoryImages[currentImageIndex]?.originalName || "Full size view" : "Full size view"}
-                className="max-w-full max-h-full object-contain select-none"
+                className="lightbox-img max-w-full max-h-full object-contain select-none"
                 decoding="sync"
                 fetchPriority="high"
                 sizes="100vw"

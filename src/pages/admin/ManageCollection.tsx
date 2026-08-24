@@ -24,6 +24,7 @@ type DisplayImage = (StaticCollectionImage | UploadedImage) & {
   _id: string;
   originalName: string;
   url: string | null;
+  srcset?: string;
   category: string;
   isUploaded?: boolean;
 };
@@ -312,6 +313,7 @@ const ManageCollection = () => {
                       >
                         <img
                           src={img.url || ""}
+                          srcSet={img.srcset}
                           alt={img.originalName}
                           className="h-full w-full object-cover transition-all duration-500 group-hover:scale-110 group-hover:opacity-90"
                           loading="lazy"
@@ -391,7 +393,7 @@ const ManageCollection = () => {
                         className="h-12 w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-muted sm:h-16 sm:w-24 shadow-sm ring-1 ring-black/5 transition-shadow duration-200 hover:shadow-md"
                         onClick={() => img.url && setPreview({ url: img.url, name: img.originalName })}
                       >
-                        <img src={img.url || ""} alt={img.originalName} className="h-full w-full object-cover transition-transform duration-300 hover:scale-110" loading="lazy" decoding="async" fetchPriority="low" sizes="80px" width={160} height={120} />
+                        <img src={img.url || ""} srcSet={img.srcset} alt={img.originalName} className="h-full w-full object-cover transition-transform duration-300 hover:scale-110" loading="lazy" decoding="async" fetchPriority="low" sizes="80px" width={160} height={120} />
                       </div>
                       <div className="min-w-0 flex-1 overflow-hidden">
                         <div className="flex items-center gap-2">

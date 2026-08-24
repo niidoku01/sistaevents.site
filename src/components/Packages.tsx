@@ -1,4 +1,4 @@
-import { Check, Sparkles } from "lucide-react";
+import { Check } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -99,16 +99,15 @@ export const Packages = () => {
               {pkg.popular && (
                 <>
                   <div className="absolute inset-0 bg-gradient-to-b from-accent/[0.04] via-transparent to-accent/[0.06]" />
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-accent to-amber-500 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg shadow-accent/30">
-                      <Sparkles className="w-3.5 h-3.5" />
+                  <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10">
+                    <span className="inline-flex items-center bg-gradient-to-r from-accent to-amber-500 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg shadow-accent/30">
                       Most Popular
                     </span>
                   </div>
                 </>
               )}
               
-              <CardHeader className="text-center pb-6 sm:pb-8 pt-8 sm:pt-10">
+              <CardHeader className={`text-center pb-6 sm:pb-8 ${pkg.popular ? "pt-14 sm:pt-16" : "pt-8 sm:pt-10"}`}>
                 <CardTitle className="text-2xl mb-2">{pkg.name}</CardTitle>
                 <div className="text-3xl font-bold text-accent mb-2">
                   {pkg.price}

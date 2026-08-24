@@ -5,13 +5,14 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { images } from "@/lib/imageImports";
 import { getLogisticsAvailability, LOGISTICS_AVAILABILITY_EVENT } from "@/lib/logisticsAvailability";
+type ResponsiveImage = { src: string; srcset?: string };
 type FeaturedItem = {
   key: string;
   title: string;
   category: string;
   description: string;
   available: boolean;
-  images: string[];
+  images: ResponsiveImage[];
   imageDescriptions?: string[];
 };
 
@@ -228,7 +229,8 @@ export const Featured = () => {
                 }`}>
                   {item.images.length > 0 ? (
                     <img
-                      src={item.images[previewIdx]}
+                      src={item.images[previewIdx].src}
+                      srcSet={item.images[previewIdx].srcset}
                       alt={item.title}
                       className={`w-full h-full transition-transform duration-300 group-hover:scale-105 ${
                         item.category === "Aesthetics" || item.category === "Decor" ? "object-cover" : "object-contain"
@@ -270,7 +272,7 @@ export const Featured = () => {
 
       {/* Image Gallery Dialog */}
       <Dialog open={!!selectedItem} onOpenChange={closeGallery}>
-        <DialogContent className="p-0 bg-black/95 overflow-y-auto w-[96vw] sm:w-[94vw] md:w-[90vw] max-w-4xl max-h-[92vh] rounded-lg sm:rounded-2xl">
+        <DialogContent className="p-0 bg-black/95 overflow-y-auto w-[96vw] sm:w-[94vw] md:w-[90vw] max-w-4xl max-h-[92dvh] rounded-lg sm:rounded-2xl">
           {selectedItem && (
             <div className="relative w-full h-full min-h-0 flex flex-col">
               <button
@@ -281,9 +283,10 @@ export const Featured = () => {
                 <X className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
 
-              <div className="relative w-full flex items-center justify-center h-[44vh] sm:h-[58vh] md:h-[62vh] p-2 sm:p-4 md:p-5">
+              <div className="relative w-full flex items-center justify-center h-[44dvh] sm:h-[58dvh] md:h-[62dvh] p-2 sm:p-4 md:p-5">
                 <img
-                  src={selectedItem.images[currentImageIndex]}
+                  src={selectedItem.images[currentImageIndex].src}
+                  srcSet={selectedItem.images[currentImageIndex].srcset}
                   alt={`${selectedItem.title} - Image ${currentImageIndex + 1}`}
                   className="w-full h-full object-contain"
                   loading={currentImageIndex === 0 ? "eager" : "lazy"}
@@ -339,7 +342,8 @@ export const Featured = () => {
                       }`}
                     >
                       <img
-                        src={img}
+                        src={img.src}
+                        srcSet={img.srcset}
                         alt={`Thumbnail ${idx + 1}`}
                         className="w-full h-full object-cover"
                         loading="lazy"

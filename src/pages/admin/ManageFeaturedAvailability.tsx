@@ -160,7 +160,8 @@ const ManageFeaturedAvailability = () => {
                 <div className="p-4 space-y-3">
                   <div className="flex items-start gap-3">
                     <img
-                      src={primaryImage}
+                      src={primaryImage.src}
+                      srcSet={primaryImage.srcset}
                       alt={item.title}
                       className="w-16 h-16 rounded-lg object-cover border border-slate-200/60 flex-none shadow-sm"
                       loading="lazy"
@@ -216,7 +217,8 @@ const ManageFeaturedAvailability = () => {
                           <div key={imageKey} className="rounded-lg border border-slate-200/60 bg-white px-3 py-2.5 flex items-center justify-between gap-3 hover:shadow-sm transition-all">
                             <div className="flex items-center gap-2 min-w-0">
                               <img
-                                src={imageUrl}
+                                src={imageUrl.src}
+                                srcSet={imageUrl.srcset}
                                 alt={`${item.title} ${imageIndex + 1}`}
                                 className="w-11 h-11 rounded-lg object-cover border border-slate-200/60 flex-none shadow-sm"
                                 loading="lazy"

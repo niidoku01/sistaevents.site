@@ -91,7 +91,7 @@ export const FAQ = () => {
               Still have questions?
             </p>
             <a
-              href="https://wa.me/0279689522?text=Hi%2C%20I%20have%20a%20question%20about%20your%20event%20rental%20services"
+              href="https://wa.me/233279689522?text=Hi%2C%20I%20have%20a%20question%20about%20your%20event%20rental%20services"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-accent hover:text-accent/80 active:text-accent font-semibold transition-colors"

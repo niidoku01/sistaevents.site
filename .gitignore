@@ -46,6 +46,9 @@ coverage/
 # Test environment secrets should not be committed
 .env.test.local
 
+# Generated responsive image variants (created at build/dev time)
+public/res/
+
 # Do not commit service account or upload backups
 server/serviceAccountKey.json
 server/uploads/

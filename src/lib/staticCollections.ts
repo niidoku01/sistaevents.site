@@ -1,8 +1,11 @@
+import collectionSrcsets from "virtual:responsive-collection-manifest";
+
 export type CollectionCategory = "weddings" | "funerals" | "corporate";
 
 export type StaticCollectionImage = {
   _id: string;
   url: string;
+  srcset?: string;
   originalName: string;
   category: CollectionCategory;
 };
@@ -19,6 +22,11 @@ const imageModules = import.meta.glob("../assets/collections/**/*.{jpg,jpeg,png,
   eager: true,
   import: "default",
 }) as Record<string, string>;
+
+const getSrcset = (globPath: string): string | undefined => {
+  const normalized = `src/${globPath.replace(/^\.\.\//, "")}`;
+  return collectionSrcsets[decodeURIComponent(normalized)]?.srcset;
+};
 
 const toFileName = (path: string): string => {
   const fileName = path.split("/").pop() || path;
@@ -132,18 +140,21 @@ export const staticCollectionImagesByCategory: Record<CollectionCategory, Static
   weddings: groupedByCategory.weddings.map((image, index) => ({
     _id: `weddings-${index + 1}`,
     url: image.url,
+    srcset: getSrcset(image.path),
     originalName: toFileName(image.path),
     category: "weddings",
   })),
   funerals: groupedByCategory.funerals.map((image, index) => ({
     _id: `funerals-${index + 1}`,
     url: image.url,
+    srcset: getSrcset(image.path),
     originalName: toFileName(image.path),
     category: "funerals",
   })),
   corporate: groupedByCategory.corporate.map((image, index) => ({
     _id: `corporate-${index + 1}`,
     url: image.url,
+    srcset: getSrcset(image.path),
     originalName: toFileName(image.path),
     category: "corporate",
   })),

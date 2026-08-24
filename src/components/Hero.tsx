@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import heroImage from "@/assets/scover.jpeg";
+import heroImage from "@/assets/scover.jpeg?responsive";
 
 const HeroContent = () => {
   const navigate = useNavigate();
@@ -64,10 +64,11 @@ const HeroContent = () => {
   };
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-svh flex items-center justify-center overflow-hidden">
       <div className="absolute inset-0">
         <img
-          src={heroImage}
+          src={heroImage.src}
+          srcSet={heroImage.srcset}
           alt=""
           aria-hidden="true"
           className="w-full h-full object-cover"

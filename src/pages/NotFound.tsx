@@ -5,9 +5,9 @@ import { Footer } from "@/components/Footer";
 
 const DIGITS = ["4", "0", "4"];
 const BALLOONS = [
-  { color: "from-[#FFD700] to-amber-400", delay: "0s" },
-  { color: "from-amber-400 to-amber-500", delay: "0.15s" },
-  { color: "from-amber-500 to-[#FFD700]", delay: "0.3s" },
+  { light: "#fde68a", base: "#fbbf24", dark: "#d97706", delay: "0s" },
+  { light: "#fcd34d", base: "#f59e0b", dark: "#b45309", delay: "0.15s" },
+  { light: "#fef3c7", base: "#fbbf24", dark: "#b45309", delay: "0.3s" },
 ];
 
 export default function NotFound() {
@@ -37,24 +37,20 @@ export default function NotFound() {
                 }}
               >
                 <div className="relative flex items-center justify-center">
-                  <svg width="90" height="110" viewBox="0 0 90 110" className="drop-shadow-lg">
+                  <svg width="90" height="112" viewBox="0 0 90 112" className="drop-shadow-lg">
                     <defs>
-                      <radialGradient id={`balloon-grad-${i}`} cx="35%" cy="30%">
-                        <stop offset="0%" stopColor="rgba(255,255,255,0.45)" />
-                        <stop offset="100%" stopColor="transparent" />
+                      <radialGradient id={`balloon-body-${i}`} cx="35%" cy="28%" r="85%">
+                        <stop offset="0%" stopColor={b.light} />
+                        <stop offset="45%" stopColor={b.base} />
+                        <stop offset="100%" stopColor={b.dark} />
                       </radialGradient>
                     </defs>
-                    <ellipse cx="45" cy="50" rx="38" ry="44" fill={`url(#balloon-grad-${i})`} />
-                    <ellipse
-                      cx="45" cy="50" rx="38" ry="44"
-                      fill={`url(#balloon-grad-${i})`}
-                      stroke={i === 1 ? "#f59e0b" : "#FFD700"}
-                      strokeWidth="1.5"
-                    />
-                    <polygon points="45,90 39,100 51,100" fill="#d4d4d8" />
-                    <path d="M45 100 Q45 108 43 114" stroke="#a1a1aa" strokeWidth="1.5" fill="none" />
+                    <ellipse cx="45" cy="48" rx="38" ry="44" fill={`url(#balloon-body-${i})`} />
+                    <ellipse cx="31" cy="27" rx="9" ry="15" fill="rgba(255,255,255,0.4)" transform="rotate(-22 31 27)" />
+                    <polygon points="45,90 39,99 51,99" fill={b.dark} />
+                    <path d="M45 99 Q45 107 43 113" stroke="#a1a1aa" strokeWidth="1.5" fill="none" />
                   </svg>
-                  <span className="absolute text-3xl sm:text-4xl font-extrabold text-white drop-shadow-md" style={{ top: "38%" }}>
+                  <span className="absolute text-3xl sm:text-4xl font-extrabold text-white drop-shadow-md" style={{ top: "35%" }}>
                     {DIGITS[i]}
                   </span>
                 </div>

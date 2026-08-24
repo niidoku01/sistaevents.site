@@ -365,8 +365,8 @@ export const Contact = () => {
             <Card className="border-border group hover:shadow-lg transition-shadow duration-300">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center flex-shrink-0 group-hover:from-accent/30 group-hover:to-accent/10 transition-colors duration-300">
-                    <Phone className="w-5 h-5 text-accent" />
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-green-500/20 to-green-500/5 flex items-center justify-center flex-shrink-0 group-hover:from-green-500/30 group-hover:to-green-500/10 transition-colors duration-300">
+                    <Phone className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Call Us</h3>
@@ -379,8 +379,8 @@ export const Contact = () => {
             <Card className="border-border group hover:shadow-lg transition-shadow duration-300">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center flex-shrink-0 group-hover:from-accent/30 group-hover:to-accent/10 transition-colors duration-300">
-                    <Mail className="w-5 h-5 text-accent" />
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-red-600/15 to-red-600/5 flex items-center justify-center flex-shrink-0 group-hover:from-red-600/25 group-hover:to-red-600/10 transition-colors duration-300">
+                    <Mail className="w-5 h-5" fill="white" stroke="#dc2626" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Email Us</h3>
@@ -407,8 +407,8 @@ export const Contact = () => {
             <Card className="border-border hidden sm:block group hover:shadow-lg transition-shadow duration-300">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center flex-shrink-0 group-hover:from-accent/30 group-hover:to-accent/10 transition-colors duration-300">
-                    <MapPin className="w-5 h-5 text-accent" />
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-red-600/15 to-red-600/5 flex items-center justify-center flex-shrink-0 group-hover:from-red-600/25 group-hover:to-red-600/10 transition-colors duration-300">
+                    <MapPin className="w-5 h-5 text-red-600" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Locate Us</h3>

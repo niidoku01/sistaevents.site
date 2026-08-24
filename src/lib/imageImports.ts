@@ -1,52 +1,52 @@
 // Import all static images
 // Lights
-import light1 from "@/assets/lights/light 1.jpg";
-import light2 from "@/assets/lights/light 2.jpg";
-import light3 from "@/assets/lights/light 3.jpg";
-import light4 from "@/assets/lights/light 4.jpg";
-import light5 from "@/assets/lights/light 5.jpg";
+import light1 from "@/assets/lights/light 1.jpg?responsive";
+import light2 from "@/assets/lights/light 2.jpg?responsive";
+import light3 from "@/assets/lights/light 3.jpg?responsive";
+import light4 from "@/assets/lights/light 4.jpg?responsive";
+import light5 from "@/assets/lights/light 5.jpg?responsive";
 
 // Chairs
-import chair1 from "@/assets/chairs/chair 1.jpg";
-import chair2 from "@/assets/chairs/chair 2.jpg";
-import chair3 from "@/assets/chairs/chair 3.jpg";
-import chair4 from "@/assets/chairs/chair 4.jpg";
-import chair5 from "@/assets/chairs/chair 5.jpg";
-import chair6 from "@/assets/chairs/chair 6.jpg";
+import chair1 from "@/assets/chairs/chair 1.jpg?responsive";
+import chair2 from "@/assets/chairs/chair 2.jpg?responsive";
+import chair3 from "@/assets/chairs/chair 3.jpg?responsive";
+import chair4 from "@/assets/chairs/chair 4.jpg?responsive";
+import chair5 from "@/assets/chairs/chair 5.jpg?responsive";
+import chair6 from "@/assets/chairs/chair 6.jpg?responsive";
 
 // Tables
-import table2 from "@/assets/Table/table 2.jpg";
-import table3 from "@/assets/Table/table 3.jpg";
+import table2 from "@/assets/Table/table 2.jpg?responsive";
+import table3 from "@/assets/Table/table 3.jpg?responsive";
 
 // Tents
-import tent1 from "@/assets/tents/tent 1.jpg";
-import tent2 from "@/assets/tents/tent 2.jpg";
-import tent3 from "@/assets/tents/tent 3.jpg";
-import tent4 from "@/assets/tents/tent 4.jpg";
+import tent1 from "@/assets/tents/tent 1.jpg?responsive";
+import tent2 from "@/assets/tents/tent 2.jpg?responsive";
+import tent3 from "@/assets/tents/tent 3.jpg?responsive";
+import tent4 from "@/assets/tents/tent 4.jpg?responsive";
 
 // Flatware (only 2, 4, 5 exist; 1 and 3 are missing)
-import flatware2 from "@/assets/flatware/flatware 2.jpg";
-import flatware4 from "@/assets/flatware/flatware 4.jpg";
-import flatware5 from "@/assets/flatware/flatware 5.jpg";
+import flatware2 from "@/assets/flatware/flatware 2.jpg?responsive";
+import flatware4 from "@/assets/flatware/flatware 4.jpg?responsive";
+import flatware5 from "@/assets/flatware/flatware 5.jpg?responsive";
 
 // Others (missing: 2)
-import other1 from "@/assets/others/other 1.jpg";
-import other3 from "@/assets/others/other 3.jpg";
-import other4 from "@/assets/others/other 4.jpg";
-import other5 from "@/assets/others/other 5.jpg";
-import other6 from "@/assets/others/other 6.jpg";
-import other7 from "@/assets/others/other 7.jpg";
+import other1 from "@/assets/others/other 1.jpg?responsive";
+import other3 from "@/assets/others/other 3.jpg?responsive";
+import other4 from "@/assets/others/other 4.jpg?responsive";
+import other5 from "@/assets/others/other 5.jpg?responsive";
+import other6 from "@/assets/others/other 6.jpg?responsive";
+import other7 from "@/assets/others/other 7.jpg?responsive";
 
 // Flowers
-import flower1 from "@/assets/flowers/flower 1.jpg";
-import flower2 from "@/assets/flowers/flower 2.jpg";
-import flower3 from "@/assets/flowers/flower 3.jpg";
-import flower4 from "@/assets/flowers/flower 4.jpg";
-import flower5 from "@/assets/flowers/flower 5.jpg";
+import flower1 from "@/assets/flowers/flower 1.jpg?responsive";
+import flower2 from "@/assets/flowers/flower 2.jpg?responsive";
+import flower3 from "@/assets/flowers/flower 3.jpg?responsive";
+import flower4 from "@/assets/flowers/flower 4.jpg?responsive";
+import flower5 from "@/assets/flowers/flower 5.jpg?responsive";
 
 // Hero/About images
-import sistaEvents from "@/assets/sista-events.jpeg";
-import sabout from "@/assets/sabout.jpeg";
+import sistaEvents from "@/assets/sista-events.jpeg?responsive";
+import sabout from "@/assets/sabout.jpeg?responsive";
 import sistalogo from "@/assets/sistalogo.svg";
 
 export const images = {

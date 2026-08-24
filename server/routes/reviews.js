@@ -1,7 +1,7 @@
 const { Router } = require("express");
 const { body, validationResult } = require("express-validator");
 const rateLimit = require("express-rate-limit");
-const admin = require("firebase-admin");
+const { getAuth } = require("firebase-admin/auth");
 const { db } = require("../db");
 
 const router = Router();
@@ -12,7 +12,7 @@ const verifyAdmin = async (req, res, next) => {
     return res.status(401).json({ error: "Unauthorized" });
   }
   try {
-    await admin.auth().verifyIdToken(authHeader.split("Bearer ")[1]);
+    await getAuth().verifyIdToken(authHeader.split("Bearer ")[1]);
     next();
   } catch {
     return res.status(401).json({ error: "Unauthorized" });

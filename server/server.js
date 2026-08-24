@@ -9,7 +9,9 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
-const admin = require("firebase-admin");
+const { initializeApp, cert, applicationDefault } = require("firebase-admin/app");
+const { getFirestore } = require("firebase-admin/firestore");
+const { getAuth } = require("firebase-admin/auth");
 const { initDb } = require("./db");
 const reviewRoutes = require("./routes/reviews");
 
@@ -31,8 +33,8 @@ try {
     try {
       const decoded = Buffer.from(serviceAccountJsonB64, "base64").toString("utf8");
       const obj = JSON.parse(decoded);
-      admin.initializeApp({
-        credential: admin.credential.cert(obj),
+      initializeApp({
+        credential: cert(obj),
         projectId: process.env.FIREBASE_PROJECT_ID || obj.project_id || "sistaer",
       });
       console.log("Firebase Admin initialized using SERVICE_ACCOUNT_JSON_BASE64");
@@ -42,8 +44,8 @@ try {
   } else if (serviceAccountJson) {
     try {
       const obj = JSON.parse(serviceAccountJson);
-      admin.initializeApp({
-        credential: admin.credential.cert(obj),
+      initializeApp({
+        credential: cert(obj),
         projectId: process.env.FIREBASE_PROJECT_ID || obj.project_id || "sistaer",
       });
       console.log("Firebase Admin initialized using SERVICE_ACCOUNT_JSON");
@@ -52,23 +54,23 @@ try {
     }
   } else if (fs.existsSync(serviceAccountPath)) {
     process.env.GOOGLE_APPLICATION_CREDENTIALS = serviceAccountPath;
-    admin.initializeApp({
-      credential: admin.credential.cert(require(serviceAccountPath)),
+    initializeApp({
+      credential: cert(require(serviceAccountPath)),
       projectId: process.env.FIREBASE_PROJECT_ID || "sistaer",
     });
     console.log("Firebase Admin initialized using serviceAccountKey.json");
   } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-    admin.initializeApp({
-      credential: admin.credential.applicationDefault(),
+    initializeApp({
+      credential: applicationDefault(),
       projectId: process.env.FIREBASE_PROJECT_ID || "sistaer",
     });
     console.log("Firebase Admin initialized using application default credentials");
   } else {
-    admin.initializeApp({ projectId: process.env.FIREBASE_PROJECT_ID || "sistaer" });
+    initializeApp({ projectId: process.env.FIREBASE_PROJECT_ID || "sistaer" });
     console.log("Firebase Admin initialized without explicit credentials (may be limited)");
   }
   firebaseAdminReady = true;
-  const db = admin.firestore();
+  const db = getFirestore();
 } catch (err) {
   console.error("Firebase Admin initialization failed:", err.message);
   firebaseAdminReady = false;
@@ -245,7 +247,7 @@ const verifyAdmin = async (req, res, next) => {
   }
 
   try {
-    const decoded = await admin.auth().verifyIdToken(token);
+    const decoded = await getAuth().verifyIdToken(token);
 
     const adminEmails = (process.env.FIREBASE_ADMIN_EMAILS || "")
       .split(",")
@@ -416,7 +418,7 @@ app.post(
 
     // Save booking to Firestore (primary) and JSON file (backup)
     try {
-      const db = admin.firestore();
+      const db = getFirestore();
       await db.collection("bookings").doc(booking.id.toString()).set(booking);
       console.log("Booking saved to Firestore");
     } catch (firestoreErr) {
@@ -645,7 +647,7 @@ app.get("/api/bookings", adminLimiter, verifyAdmin, async (req, res) => {
   try {
     // Try Firestore first
     try {
-      const db = admin.firestore();
+      const db = getFirestore();
       const snapshot = await db.collection("bookings").orderBy("createdAt", "desc").get();
       const bookings = [];
       snapshot.forEach((doc) => {
@@ -688,7 +690,6 @@ app.post("/api/bookings/:id/resend", adminLimiter, verifyAdmin, (req, res) => {
 
     const data = fs.readFileSync(bookingsFile, "utf-8");
     const bookings = JSON.parse(data);
-    const id = Number(req.params.id);
     const booking = bookings.find((b) => Number(b.id) === id);
     if (!booking) return res.status(404).json({ error: "Booking not found" });
 
@@ -745,7 +746,7 @@ app.delete("/api/bookings/:id", verifyAdmin, async (req, res) => {
 
     // Try to delete from Firestore first
     try {
-      const db = admin.firestore();
+      const db = getFirestore();
       await db.collection("bookings").doc(id).delete();
       console.log("Booking deleted from Firestore");
     } catch (firestoreErr) {

@@ -10,9 +10,12 @@ export const Header = () => {
   const location = useLocation();
 
   const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    element?.scrollIntoView({ behavior: "smooth" });
     setIsMenuOpen(false);
+    if (location.pathname !== "/") {
+      navigate("/", { state: { scrollTo: id } });
+      return;
+    }
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const handleNavigation = (path: string) => {
@@ -47,37 +50,7 @@ export const Header = () => {
           </button>
 
           <nav className="hidden md:flex items-center gap-1">
-            {location.pathname === "/" ? (
-              <>
-                <button
-                  onClick={() => scrollToSection("services")}
-                  className="glass-nav-link"
-                >
-                  Services
-                </button>
-                <button
-                  onClick={() => scrollToSection("featured")}
-                  className="glass-nav-link"
-                >
-                  Logistics
-                </button>
-                <button
-                  onClick={() => scrollToSection("about")}
-                  className="glass-nav-link"
-                >
-                  About
-                </button>
-                <button
-                  onClick={() => scrollToSection("testimonials")}
-                  className="glass-nav-link"
-                >
-                  Testimonials
-                </button>
-                <Button variant="secondary" onClick={() => scrollToSection("contact")} className="glass-nav-cta ml-2 active:scale-95 transition-transform">
-                  Bookings
-                </Button>
-              </>
-            ) : (
+            {location.pathname !== "/" && (
               <button
                 onClick={() => handleNavigation("/")}
                 aria-label="Go to home"
@@ -87,33 +60,60 @@ export const Header = () => {
                 Home
               </button>
             )}
+            <button
+              onClick={() => scrollToSection("services")}
+              className="glass-nav-link"
+            >
+              Services
+            </button>
+            <button
+              onClick={() => scrollToSection("featured")}
+              className="glass-nav-link"
+            >
+              Logistics
+            </button>
+            <button
+              onClick={() => scrollToSection("about")}
+              className="glass-nav-link"
+            >
+              About
+            </button>
+            <button
+              onClick={() => scrollToSection("testimonials")}
+              className="glass-nav-link"
+            >
+              Testimonials
+            </button>
+            <Button variant="secondary" onClick={() => scrollToSection("contact")} className="glass-nav-cta ml-2 active:scale-95 transition-transform">
+              Bookings
+            </Button>
           </nav>
 
-          {location.pathname === "/" ? (
-            <button
-              className="md:hidden glass-nav-link !px-2.5 !py-2"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label="Toggle mobile menu"
-              aria-expanded={isMenuOpen}
-              aria-controls="mobile-nav"
-            >
-              <div className="transition-transform duration-300 ease-in-out rotate-0 data-[open='true']:rotate-90" data-open={isMenuOpen}>
-                {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </div>
-            </button>
-          ) : (
-            <button
-              className="md:hidden glass-nav-link !px-2.5 !py-2"
-              onClick={() => handleNavigation("/")}
-              aria-label="Go to home"
-            >
-              <Home className="h-5 w-5" />
-            </button>
-          )}
+          <button
+            className="md:hidden glass-nav-link !px-2.5 !py-2"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle mobile menu"
+            aria-expanded={isMenuOpen}
+            aria-controls="mobile-nav"
+          >
+            <div className="transition-transform duration-300 ease-in-out rotate-0 data-[open='true']:rotate-90" data-open={isMenuOpen}>
+              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </div>
+          </button>
         </div>
 
-        {location.pathname === "/" && isMenuOpen && (
+        {isMenuOpen && (
           <nav id="mobile-nav" className="md:hidden mobile-menu-enter glass-mobile-nav -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pb-5 pt-4 flex flex-col gap-1">
+            {location.pathname !== "/" && (
+              <button
+                onClick={() => handleNavigation("/")}
+                className="mobile-menu-item text-left text-sm font-medium glass-nav-link-mobile"
+                style={{ animationDelay: "0ms" }}
+              >
+                <Home className="w-4 h-4 inline mr-2 -mt-0.5" />
+                Home
+              </button>
+            )}
             <button
               onClick={() => scrollToSection("services")}
               className="mobile-menu-item text-left text-sm font-medium glass-nav-link-mobile"

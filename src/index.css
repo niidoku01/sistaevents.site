@@ -115,8 +115,6 @@
     display: block;
     max-width: 100%;
     height: auto;
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
   }
@@ -130,6 +128,10 @@
   .deferred-sections > section {
     content-visibility: auto;
     contain-intrinsic-size: 780px;
+  }
+
+  section[id] {
+    scroll-margin-top: 5.5rem;
   }
 }
 

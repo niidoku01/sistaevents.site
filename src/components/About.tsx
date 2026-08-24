@@ -44,7 +44,8 @@ export const About = () => {
             <div className="absolute -inset-3 bg-gradient-to-br from-accent/10 via-transparent to-accent/5 rounded-3xl blur-xl" />
             <div className="relative aspect-square rounded-2xl overflow-hidden shadow-elegant border border-border/50">
               <img 
-                src={images.misc.sabout} 
+                src={images.misc.sabout.src}
+                srcSet={images.misc.sabout.srcset}
                 alt="Event Setup" 
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
                 style={{

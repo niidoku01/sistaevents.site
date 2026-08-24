@@ -1,5 +1,6 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { BackToTop } from "@/components/BackToTop";
 import { Button } from "@/components/ui/button";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -13,7 +14,7 @@ type Category = "weddings" | "funerals" | "corporate";
 const categoryOrder: Category[] = ["weddings", "funerals", "corporate"];
 
 const categoryTitleMap: Record<Category, string> = {
-  weddings: "Weddings & Celebrations",
+  weddings: "Weddings / Celebrations",
   funerals: "Funerals",
   corporate: "Corporate",
 };
@@ -38,6 +39,7 @@ type UploadedImage = {
 type CollectionImage = {
   _id: string;
   url: string | null;
+  srcset?: string;
   originalName: string;
   category: string;
 };
@@ -80,6 +82,7 @@ export default function OurCollection() {
       const staticImages: CollectionImage[] = staticCollectionImagesByCategory[category].map((img) => ({
         _id: img._id,
         url: img.url,
+        srcset: img.srcset,
         originalName: img.originalName,
         category: img.category,
       }));
@@ -123,6 +126,10 @@ export default function OurCollection() {
   const currentImage = currentImageIndex !== null && categoryImages && categoryImages[currentImageIndex]
     ? categoryImages[currentImageIndex].url
     : null;
+
+  const currentImageSrcset = currentImageIndex !== null && categoryImages && categoryImages[currentImageIndex]
+    ? categoryImages[currentImageIndex].srcset
+    : undefined;
 
   // Minimum swipe distance (in px)
   const minSwipeDistance = 50;
@@ -230,15 +237,17 @@ export default function OurCollection() {
   };
 
   // Helper function to get cover image for a category
-  const getCoverImage = (images: CollectionImage[] | undefined, category?: Category) => {
-    if (!images || images.length === 0) return "https://via.placeholder.com/800x600?text=No+Images";
-    
+  const getCoverImage = (images: CollectionImage[] | undefined, category?: Category): { url: string; srcset?: string } => {
+    if (!images || images.length === 0) return { url: "https://via.placeholder.com/800x600?text=No+Images" };
+
     // Use last image for corporate, first for others
     if (category === "corporate" && images.length > 0) {
-      return images[images.length - 1]?.url || "https://via.placeholder.com/800x600?text=No+Images";
+      const img = images[images.length - 1];
+      return { url: img?.url || "https://via.placeholder.com/800x600?text=No+Images", srcset: img?.srcset };
     }
-    
-    return images[0]?.url || "https://via.placeholder.com/800x600?text=No+Images";
+
+    const img = images[0];
+    return { url: img?.url || "https://via.placeholder.com/800x600?text=No+Images", srcset: img?.srcset };
   };
 
   // Helper function to render image grid for selected category
@@ -272,6 +281,7 @@ export default function OurCollection() {
             <div className="bg-slate-100 animate-pulse relative">
               <img
                 src={img.url || ""}
+                srcSet={img.srcset}
                 alt={img.originalName || `Image ${i + 1}`}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 relative z-10"
                 loading={i < PRIORITY_GRID_IMAGES ? "eager" : "lazy"}
@@ -328,9 +338,10 @@ export default function OurCollection() {
                         onClick={() => setSelectedCategory(category)}
                       >
                         <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm hover:shadow-2xl transition-all duration-300" style={{ contentVisibility: "auto", containIntrinsicSize: "400px 500px" }}>
-                          <div className="bg-slate-100 min-h-[280px] sm:min-h-[350px]">
+                          <div className="bg-slate-100 min-h-[220px] sm:min-h-[350px]">
                             <img
-                              src={cover}
+                              src={cover.url}
+                              srcSet={cover.srcset}
                               alt={categoryTitleMap[category]}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                               loading={category === "weddings" ? "eager" : "lazy"}
@@ -418,7 +429,7 @@ export default function OurCollection() {
       {/* Image Viewer Modal */}
       <Dialog open={currentImageIndex !== null} onOpenChange={(open) => !open && closeViewer()}>
         <DialogContent
-          className="max-w-7xl w-full h-[92vh] p-0 bg-black/95 border-none overflow-hidden"
+          className="max-w-7xl w-full h-[92dvh] p-0 bg-black/95 border-none overflow-hidden"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
@@ -464,6 +475,7 @@ export default function OurCollection() {
             >
               <img
                 src={currentImage}
+                srcSet={currentImageSrcset}
                 alt={currentImageIndex !== null && categoryImages ? categoryImages[currentImageIndex]?.originalName || "Full size view" : "Full size view"}
                 className="lightbox-img max-w-full max-h-full object-contain select-none"
                 decoding="sync"
@@ -478,6 +490,7 @@ export default function OurCollection() {
         </DialogContent>
       </Dialog>
 
+      <BackToTop />
       <Footer />
     </div>
   );

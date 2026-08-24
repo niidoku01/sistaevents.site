@@ -32,6 +32,6 @@
   "overrides": {
     "protobufjs": "8.6.6",
     "ip-address": "^10.2.0",
-    "qs": "^6.16.0"
+    "qs": "^6.15.3"
   }
 }

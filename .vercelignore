@@ -1,0 +1,6 @@
+dist/
+node_modules/
+public/res/
+server/
+.vercel/
+*.log

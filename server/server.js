@@ -299,7 +299,7 @@ const isAllowedExtension = (filename) => {
 
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  limits: { fileSize: 10 * 1024 * 1024, files: 20, fields: 50, fieldNestingDepth: 10, parts: 60 },
   fileFilter: (req, file, cb) => {
     const allowedMimes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
     if (!allowedMimes.includes(file.mimetype)) {
@@ -324,7 +324,7 @@ const popupAdStorage = multer.diskStorage({
 
 const popupAdUpload = multer({
   storage: popupAdStorage,
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 10 * 1024 * 1024, files: 20, fields: 50, fieldNestingDepth: 10, parts: 60 },
   fileFilter: (req, file, cb) => {
     const allowedMimes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
     if (!allowedMimes.includes(file.mimetype)) {

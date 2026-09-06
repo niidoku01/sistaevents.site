@@ -42,7 +42,6 @@ function ScreenshotCapture({ onReady }: { onReady: (fn: () => string) => void })
   const { gl } = useThree();
   useEffect(() => {
     const takeScreenshot = () => {
-      gl.render(gl.domElement as any);
       return gl.domElement.toDataURL("image/png");
     };
     onReady(takeScreenshot);

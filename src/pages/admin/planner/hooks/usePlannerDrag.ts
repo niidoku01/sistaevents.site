@@ -40,7 +40,7 @@ export function usePlannerDrag(params: {
     setSelectedId(newEl.id);
     setDragFromPalette(null);
     trackUsage(dragFromPalette);
-  }, [dragFromPalette, elements, pushHistory, scale, canvasRef, setSelectedId, uid]);
+  }, [dragFromPalette, elements, pushHistory, scale, canvasRef, setSelectedId, setElements, uid]);
 
   const handleCanvasDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();

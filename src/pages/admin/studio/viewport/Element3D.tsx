@@ -339,8 +339,6 @@ export default function Element3D({ type, x, y, width, height, rotation, color, 
       case "buffet":
       case "registration":
       case "photo-booth":
-      case "dessert-table":
-      case "candy-bar":
         return <GenericBox width={width} height={height} color={color} />;
       case "dj-booth":
         return (

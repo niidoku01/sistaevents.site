@@ -72,7 +72,11 @@ export default function PlannerToolbar({
         {/* Zoom */}
         <div className="flex items-center gap-0.5 bg-slate-50/80 rounded-xl px-1 py-0.5 flex-shrink-0">
           <TbBtn onClick={() => setScale((s) => Math.max(0.3, s - 0.15))} title="Zoom out"><ZoomOut className="w-4 h-4" /></TbBtn>
-          <span className="text-xs text-slate-500 font-mono w-10 text-center tabular-nums">{Math.round(scale * 100)}%</span>
+          <button
+            onClick={() => setScale(() => 1)}
+            title="Reset zoom to 100%"
+            className="text-xs text-slate-500 font-mono w-10 text-center tabular-nums hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors"
+          >{Math.round(scale * 100)}%</button>
           <TbBtn onClick={() => setScale((s) => Math.min(3, s + 0.15))} title="Zoom in"><ZoomIn className="w-4 h-4" /></TbBtn>
         </div>
 

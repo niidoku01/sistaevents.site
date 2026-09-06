@@ -42,10 +42,8 @@ export default function ElementEditPopup({
   const guests = element?.guests ?? (element?.type === "round-table" ? 10 : 8);
 
   useEffect(() => {
-    if (element) {
-      setLocalLabel(element.label || def?.label || "");
-    }
-  }, [element?.id, element?.label]);
+    setLocalLabel(element?.label || def?.label || "");
+  }, [element?.label, def?.label]);
 
   useEffect(() => {
     if (!open) return;

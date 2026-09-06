@@ -15,7 +15,7 @@ interface CameraControllerProps {
 export default function CameraController({ rotateX, rotateZ }: CameraControllerProps) {
   const { activePreset, cameraMode } = useStudioStore();
   const preset = CAMERA_PRESETS.find((p) => p.id === activePreset) || CAMERA_PRESETS[2];
-  const controlsRef = useRef<any>(null);
+  const controlsRef = useRef<{ target: THREE.Vector3; update: () => void } | null>(null);
   const { camera } = useThree();
   const animating = useRef(false);
   const targetPos = useRef(new THREE.Vector3(...preset.position));

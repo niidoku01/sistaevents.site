@@ -31,7 +31,7 @@ type DisplayImage = (StaticCollectionImage | UploadedImage) & {
 
 const CATEGORIES: { value: CollectionCategory | "all"; label: string }[] = [
   { value: "all", label: "All Categories" },
-  { value: "weddings", label: "Weddings & Celebrations" },
+  { value: "weddings", label: "Weddings / Celebrations" },
   { value: "funerals", label: "Funerals" },
   { value: "corporate", label: "Corporate Events" },
 ];
@@ -256,15 +256,6 @@ const ManageCollection = () => {
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Uploaded</p>
                 <strong className="text-base font-bold tabular-nums">{uploadedImages.length}</strong>
-              </div>
-            </div>
-            <div className="flex items-center gap-2.5 rounded-xl border border-white/50 bg-gradient-to-br from-white/70 to-white/40 backdrop-blur-md px-4 py-2.5 text-sm shadow-sm">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-500 text-white shadow-md shadow-emerald-500/20">
-                <Sparkles className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Categories</p>
-                <strong className="text-base font-bold tabular-nums">{CATEGORY_ORDER.length}</strong>
               </div>
             </div>
           </div>

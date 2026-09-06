@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, ChevronLeft, ChevronRight, ChevronUp, Circle, GripHorizontal } from "lucide-react";
@@ -32,7 +32,7 @@ export default function ElementSidebar({
   const bp = useBreakpoint();
   const sheetRef = useRef<HTMLDivElement>(null);
 
-  const frequentTypes = useMemo(() => getFrequentTypes(), [elements]);
+  const frequentTypes = getFrequentTypes();
   const isMobile = bp === "mobile";
   const isTablet = bp === "tablet";
 

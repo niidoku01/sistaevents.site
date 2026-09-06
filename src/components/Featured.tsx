@@ -85,6 +85,7 @@ const featuredItems: FeaturedItem[] = [
       images.others.other5,
       images.others.other6,
       images.others.other7,
+      images.others.other8,
     ],
   },
   {

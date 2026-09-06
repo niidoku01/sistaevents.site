@@ -67,8 +67,6 @@ export default function CanvasElement({
   labelInput, setLabelInput, commitLabel, isTable, updateGuests,
 }: CanvasElementProps) {
   const def = ELEMENT_DEFS.find((d) => d.type === el.type);
-  if (!def) return null;
-
   const isLocked = el.locked ?? false;
   const isGrouped = !!el.groupId;
   const lastTapRef = useRef({ time: 0, x: 0, y: 0 });
@@ -93,6 +91,7 @@ export default function CanvasElement({
     onDragStart(el.id, e as unknown as React.MouseEvent);
   }, [el.id, isLocked, onSelect, onDragStart, onDoubleClick]);
 
+  if (!def) return null;
   return (
     <div
       style={{

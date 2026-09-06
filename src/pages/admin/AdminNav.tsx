@@ -27,9 +27,9 @@ function useActiveTabRect(containerRef: React.RefObject<HTMLDivElement | null>) 
       const ar = active.getBoundingClientRect();
       setActiveRect({ left: ar.left - cr.left + containerRef.current.scrollLeft, width: ar.width });
     }
-  }, [containerRef, location.pathname]);
+  }, [containerRef]);
 
-  useEffect(() => { measure(); }, [measure]);
+  useEffect(() => { measure(); }, [measure, location.pathname]);
   useEffect(() => {
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);

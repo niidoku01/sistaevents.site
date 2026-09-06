@@ -101,6 +101,10 @@
   },
   "overrides": {
     "protobufjs": "8.6.6",
-    "esbuild": "0.28.1"
+    "esbuild": "0.28.1",
+    "@humanfs/node": "0.16.8",
+    "browserslist": "4.28.9",
+    "fflate": "0.8.3",
+    "postcss-selector-parser": "6.1.3"
   }
 }

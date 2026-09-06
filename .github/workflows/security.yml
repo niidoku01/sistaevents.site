@@ -35,4 +35,4 @@ jobs:
         run: npm audit --audit-level=low || true
 
       - name: Run secret scan
-        run: npm run security:scan || true
+        run: npm run security:scan

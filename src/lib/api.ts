@@ -127,47 +127,154 @@ type UploadFileResult = {
   height: number;
 };
 
-async function uploadFileToConvex(file: File): Promise<UploadFileResult> {
+export type UploadFileStatus = "queued" | "uploading" | "done" | "failed";
+
+export type UploadProgressState = {
+  totalFiles: number;
+  completedFiles: number;
+  failedFiles: number;
+  percent: number;
+  currentFile: string | null;
+  files: { name: string; status: UploadFileStatus }[];
+};
+
+const UPLOAD_CONCURRENCY = 4;
+
+function uploadBlobToConvexWithProgress(
+  uploadUrl: string,
+  file: File,
+  onProgress: (transferred: number) => void
+): Promise<{ storageId: Id<"_storage"> }> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", uploadUrl);
+    xhr.setRequestHeader("Content-Type", file.type);
+    xhr.responseType = "json";
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(e.loaded);
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        const body = xhr.response as { storageId?: unknown } | null;
+        if (body && typeof body.storageId === "string") {
+          resolve({ storageId: body.storageId as Id<"_storage"> });
+        } else {
+          reject(new Error("Upload to storage failed — no storage ID returned"));
+        }
+      } else {
+        reject(new Error(`Upload to storage failed (${xhr.status} ${xhr.statusText})`));
+      }
+    };
+    xhr.onerror = () => reject(new Error("Upload to storage failed — network error"));
+    xhr.onabort = () => reject(new Error("Upload to storage aborted"));
+    xhr.send(file);
+  });
+}
+
+async function uploadFileToConvex(
+  file: File,
+  onProgress?: (transferred: number) => void
+): Promise<UploadFileResult> {
   if (!convexClient) throw new Error("Convex client not available");
   const secret = await getConvexAdminSecret();
   const uploadUrl = await convexClient.mutation(api.collectionImages.generateUploadUrl, { secret });
-  const response = await fetch(uploadUrl, {
-    method: "POST",
-    headers: { "Content-Type": file.type },
-    body: file,
+  const { storageId } = await uploadBlobToConvexWithProgress(uploadUrl, file, onProgress ?? (() => {}));
+  const url = await convexClient.query(api.collectionImages.getStorageUrl, { storageId });
+  return { storageId, url, width: 0, height: 0 };
+}
+
+async function runWithConcurrency<T>(
+  items: T[],
+  concurrency: number,
+  worker: (item: T, index: number) => Promise<void>
+): Promise<void> {
+  let index = 0;
+  const runners = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    while (index < items.length) {
+      const current = index++;
+      await worker(items[current], current);
+    }
   });
-  if (!response.ok) throw new Error("Upload to storage failed");
-  const { storageId } = await response.json();
-  const url = await convexClient.query(api.collectionImages.getStorageUrl, { storageId: storageId as Id<"_storage"> });
-  return { storageId: storageId as Id<"_storage">, url, width: 0, height: 0 };
+  await Promise.all(runners);
 }
 
 export const collectionAPI = {
-  async uploadImages(files: File[], category: string = "weddings") {
+  async uploadImages(
+    files: File[],
+    category: string = "weddings",
+    onProgress?: (state: UploadProgressState) => void
+  ) {
     if (!convexClient) throw new Error("Convex client not available — check VITE_CONVEX_URL");
     const secret = await getConvexAdminSecret();
     const results: CollectionImageResult[] = [];
-    for (const file of files) {
-      const { storageId, url } = await uploadFileToConvex(file);
-      const id = await convexClient.mutation(api.collectionImages.saveImage, {
-        storageId,
-        originalName: file.name,
-        size: file.size,
-        contentType: file.type,
-        category,
-        secret,
+    const failures: { name: string; error: Error }[] = [];
+    const totalBytes = files.reduce((sum, f) => sum + f.size, 0);
+    const statuses = new Map<string, UploadFileStatus>();
+    files.forEach((f) => statuses.set(f.name, "queued"));
+
+    let transferredBytes = 0;
+    let completedFiles = 0;
+
+    const notify = (currentFile: string | null) => {
+      onProgress?.({
+        totalFiles: files.length,
+        completedFiles,
+        failedFiles: failures.length,
+        percent: totalBytes === 0 ? 100 : Math.min(100, Math.round((transferredBytes / totalBytes) * 100)),
+        currentFile,
+        files: files.map((f) => ({ name: f.name, status: statuses.get(f.name) ?? ("queued" as const) })),
       });
-      results.push({
-        _id: id,
-        storageId,
-        originalName: file.name,
-        size: file.size,
-        contentType: file.type,
-        category,
-        uploadedAt: Date.now(),
-        url,
-      });
+    };
+
+    await runWithConcurrency(files, UPLOAD_CONCURRENCY, async (file) => {
+      let contributed = 0;
+      statuses.set(file.name, "uploading");
+      try {
+        const { storageId, url } = await uploadFileToConvex(file, (transferred) => {
+          transferredBytes += transferred - contributed;
+          contributed = transferred;
+          notify(file.name);
+        });
+        const id = await convexClient.mutation(api.collectionImages.saveImage, {
+          storageId,
+          originalName: file.name,
+          size: file.size,
+          contentType: file.type,
+          category,
+          secret,
+        });
+        results.push({
+          _id: id,
+          storageId,
+          originalName: file.name,
+          size: file.size,
+          contentType: file.type,
+          category,
+          uploadedAt: Date.now(),
+          url,
+        });
+        transferredBytes += file.size - contributed;
+        contributed = file.size;
+        completedFiles += 1;
+        statuses.set(file.name, "done");
+        notify(null);
+      } catch (err) {
+        transferredBytes -= contributed;
+        contributed = 0;
+        statuses.set(file.name, "failed");
+        failures.push({ name: file.name, error: err instanceof Error ? err : new Error("Upload failed") });
+        notify(null);
+      }
+    });
+
+    if (failures.length > 0) {
+      const failedNames = failures.map((f) => f.name).slice(0, 5).join(", ");
+      throw new Error(
+        `${failures.length} file(s) failed to upload (${failedNames}). ` +
+          `${results.length} of ${files.length} uploaded successfully.`
+      );
     }
+
     return { images: results };
   },
 

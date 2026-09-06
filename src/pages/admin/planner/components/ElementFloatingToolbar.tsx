@@ -7,6 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { PlacedElement } from "../types";
+import { useBreakpoint } from "../hooks/useBreakpoint";
 
 interface ElementFloatingToolbarProps {
   el: PlacedElement;
@@ -33,15 +34,16 @@ export default function ElementFloatingToolbar({
   const isLocked = el.locked ?? false;
   const isEditingLabel = labelInput?.id === el.id;
   const seatCount = el.guests ?? (el.type === "round-table" ? 10 : 8);
+  const isMobile = useBreakpoint() === "mobile";
 
   return (
     <div
       className="absolute pointer-events-auto z-50 animate-in fade-in zoom-in-95 duration-150"
       style={{
-        bottom: "100%",
+        [isMobile ? "top" : "bottom"]: "100%",
         left: "50%",
         transform: `translateX(-50%) rotate(${-el.rotation}deg)`,
-        marginBottom: 4,
+        [isMobile ? "marginTop" : "marginBottom"]: 6,
       }}
       onPointerDown={(e) => e.stopPropagation()}
     >
@@ -64,7 +66,7 @@ export default function ElementFloatingToolbar({
       )}
 
       {/* Main toolbar */}
-      <div className="flex items-center gap-0 bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl shadow-slate-900/10 border border-slate-200/60 px-1.5 py-1">
+      <div className="flex items-center gap-0 bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl shadow-slate-900/10 border border-slate-200/60 px-1.5 py-1 max-w-[calc(100vw-16px)] overflow-x-auto scrollbar-none">
         {/* Rotate */}
         <ToolBtn onClick={() => onRotateBy(el.id, -90)} title="Rotate left 90°">
           <RotateCcw className="w-3.5 h-3.5" />

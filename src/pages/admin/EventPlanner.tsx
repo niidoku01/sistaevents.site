@@ -229,7 +229,7 @@ const EventPlanner: React.FC = () => {
     pushHistory(next);
     setSelectedIds([newEl.id]);
     trackUsage(type);
-  }, [elements, setElements, pushHistory, setSelectedIds, scale, canvasRef, uid]);
+  }, [elements, setElements, pushHistory, setSelectedIds, scale, canvasRef]);
   const sortedElements = useMemo(() => [...elements].sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0)), [elements]);
   const currentBg = useMemo(() => VENUE_BACKGROUNDS.find((b) => b.id === venueBg) || VENUE_BACKGROUNDS[0], [venueBg]);
 
@@ -244,7 +244,9 @@ const EventPlanner: React.FC = () => {
   const savePlan = useCallback(() => {
     try {
       localStorage.setItem("event-planner-save", JSON.stringify({ eventName, elements, scale, savedAt: new Date().toISOString() }));
-    } catch {}
+    } catch (err) {
+      console.error("Failed to save plan to localStorage:", err);
+    }
   }, [eventName, elements, scale]);
 
   const loadPlan = useCallback(() => {
@@ -255,10 +257,12 @@ const EventPlanner: React.FC = () => {
       setElements(data.elements || []);
       setEventName(data.eventName || "My Event");
       pushHistory(data.elements || []);
-    } catch {}
+    } catch (err) {
+      console.error("Failed to load saved plan from localStorage:", err);
+    }
   }, [setElements, pushHistory]);
 
-  useEffect(() => { loadPlan(); }, []);
+  useEffect(() => { loadPlan(); }, [loadPlan]);
 
   useEffect(() => {
     const perf = detectDevicePerf();
@@ -458,8 +462,15 @@ const EventPlanner: React.FC = () => {
         </div>
       )}
 
-      {/* ─── Keyboard hints (desktop only) ───────────────── */}
-      {!isMobile && (
+      {/* ─── Interaction hints ────────────────────────────── */}
+      {isMobile ? (
+        <div className="flex-shrink-0 text-[10px] text-slate-400 flex flex-wrap gap-x-4 gap-y-1 px-4 py-2 border-t border-slate-100 bg-white">
+          <span>Tap element to select</span>
+          <span>Drag to move</span>
+          <span>Pinch to zoom</span>
+          <span>Two fingers to pan</span>
+        </div>
+      ) : (
         <div className="flex-shrink-0 text-[10px] text-slate-400 flex flex-wrap gap-x-4 gap-y-1 px-5 py-2 border-t border-slate-100 bg-white">
           <span><kbd className="px-1 py-0.5 bg-slate-100 rounded text-slate-500 font-mono">Del</kbd> Delete</span>
           <span><kbd className="px-1 py-0.5 bg-slate-100 rounded text-slate-500 font-mono">R</kbd> Rotate 45&deg;</span>

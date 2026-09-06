@@ -261,7 +261,7 @@ export default function OurCollection() {
     }
 
     return (
-      <div className="columns-1 sm:columns-2 xl:columns-3 2xl:columns-4 gap-4 sm:gap-5 space-y-4 sm:space-y-5">
+      <div className="columns-2 gap-3 sm:gap-5 space-y-3 sm:space-y-5 xl:columns-3 2xl:columns-4">
         {images.map((img, i) => (
           <div 
             key={img._id || i} 
@@ -287,7 +287,7 @@ export default function OurCollection() {
                 loading={i < PRIORITY_GRID_IMAGES ? "eager" : "lazy"}
                 fetchPriority={i < PRIORITY_GRID_IMAGES ? "high" : "auto"}
                 decoding="sync"
-                sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                sizes="(max-width: 640px) 50vw, (max-width: 1280px) 50vw, 33vw"
                 width={800}
                 height={600}
                 onLoad={(e) => {

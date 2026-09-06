@@ -16,7 +16,9 @@ export function trackUsage(type: ElementType) {
     const counts: Record<string, number> = raw ? JSON.parse(raw) : {};
     counts[type] = (counts[type] || 0) + 1;
     localStorage.setItem(USAGE_KEY, JSON.stringify(counts));
-  } catch {}
+  } catch {
+    return;
+  }
 }
 
 export function getUsageCounts(): Record<string, number> {

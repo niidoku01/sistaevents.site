@@ -48,12 +48,6 @@ const authHeaders = (): Record<string, string> => {
 const getConvexAdminSecret = async (): Promise<string> => {
   if (_convexAdminSecret) return _convexAdminSecret;
 
-  const envSecret = (import.meta.env.VITE_CONVEX_ADMIN_SECRET as string | undefined)?.trim();
-  if (envSecret) {
-    _convexAdminSecret = envSecret;
-    return _convexAdminSecret;
-  }
-
   try {
     const response = await fetch(`${getNextApiBase()}/admin/convex-token`, { headers: authHeaders() });
     if (!response.ok) {
@@ -66,7 +60,7 @@ const getConvexAdminSecret = async (): Promise<string> => {
     return _convexAdminSecret;
   } catch (err) {
     if (err instanceof Error && err.message.startsWith("Failed to obtain")) throw err;
-    throw new Error("Failed to obtain admin token — server unreachable and no VITE_CONVEX_ADMIN_SECRET set");
+    throw new Error("Failed to obtain admin token — server unreachable");
   }
 };
 

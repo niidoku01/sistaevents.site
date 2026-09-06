@@ -238,3 +238,25 @@ npm outdated
 
 **Last Updated**: January 2026  
 **Version**: 1.0.0
+
+---
+
+## Secret Rotation (Firebase API Key)
+
+> **Action required by owner.** The Firebase web API key (`sistaer` project) was exposed in Git history before 2026-09-06. It has been scrubbed from repository history and all stale Dependabot branches were deleted, but anyone who forked/cloned early has seen it. **Rotate it.**
+
+1. Open the [Firebase console](https://console.firebase.google.com) → project `sistaer`.
+2. **Project Settings → General → Your apps → Web** → Regenerate the API key (`AIza...`) → copy the new key.
+3. In the [Google Cloud console](https://console.cloud.google.com) → **APIs & Services → Credentials → API keys**, open the old key and **delete it**. Open the new key and add **HTTP referrer (websites) restriction** to your exact domains (and `localhost` for dev) so it cannot be abused elsewhere.
+4. Update the value of `VITE_FIREBASE_API_KEY`:
+   - locally in `/.env` and `/.env.local`
+   - in deployed env vars (Vercel project settings → Environment Variables)
+5. Verify: `npm run security:scan` (must pass) and confirm Firebase Authentication screens still load.
+
+The key ships in the client bundle by design (Firebase web keys are public), so the real protection is the **referrer restriction** from step 3 plus Firebase **Authorized domains**.
+
+## Convex Admin Secret (server-side only)
+
+- `VITE_CONVEX_ADMIN_SECRET` was removed from the client. A Convex admin secret grants control of the deployment — it must **never** be inlined into the frontend bundle (`import.meta.env.VITE_*`).
+- Set `CONVEX_ADMIN_SECRET` only in the backend/server environment.
+- The admin UI obtains it at runtime from the authenticated endpoint `GET /api/admin/convex-token` (rate-limited + admins only), see `server/server.js` and `src/lib/api.ts`.

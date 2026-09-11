@@ -1,0 +1,100 @@
+import { images } from "@/lib/imageImports";
+import type { FeaturedItem } from "./Featured";
+
+export const featuredItems: FeaturedItem[] = [
+  {
+    key: "crystal-lighting",
+    title: "Crystal lighting",
+    category: "Lighting",
+    description: "Rental option",
+    available: true,
+    images: [
+      images.lights.light3,
+      images.lights.light4,
+      images.lights.light2,
+      images.lights.light1,
+      images.lights.light5,
+    ],
+  },
+  {
+    key: "chairs",
+    title: "Chairs",
+    category: "Seating",
+    description: "Rental option",
+    available: true,
+    images: [
+      images.chairs.chair4,
+      images.chairs.chair2,
+      images.chairs.chair3,
+      images.chairs.chair1,
+      images.chairs.chair5,
+      images.chairs.chair6,
+    ],
+  },
+  {
+    key: "tables",
+    title: "Tables",
+    category: "Setup",
+    description: "Rental option",
+    available: true,
+    images: [
+      images.tables.table2,
+      images.tables.table3,
+    ],
+  },
+  {
+    key: "stretch-tents",
+    title: "Stretch Tents",
+    category: "Outdoor coverage",
+    description: "Rental option",
+    available: true,
+    images: [
+      images.tents.tent3,
+      images.tents.tent2,
+      images.tents.tent1,
+      images.tents.tent4,
+    ],
+  },
+  {
+    key: "decoratives items ",
+    title: "Decorative items",
+    category: "Aesthetics",
+    description: "Rental option",
+    available: true,
+    images: [
+      images.flatware.flatware2,
+      images.flatware.flatware5,
+      images.others.other1,
+      images.others.other3,
+      images.others.other4,
+      images.others.other5,
+      images.others.other6,
+      images.others.other7,
+      images.others.other8,
+      images.others.other9,
+    ],
+  },
+  {
+    key: "floral-arrangements",
+    title: "Floral Arrangements",
+    category: "Decor",
+    description: "Rental and sales options",
+    available: true,
+    images: [
+      images.misc.sistaEvents,
+      images.flowers.flower1,
+      images.flowers.flower2,
+      images.flowers.flower3,
+      images.flowers.flower4,
+      images.flowers.flower5,
+    ],
+    imageDescriptions: [
+      "Rental option",
+      "Rental option",
+      "Sales option",
+      "Rental option",
+      "Sales option",
+      "Sales option"
+    ],
+  },
+];

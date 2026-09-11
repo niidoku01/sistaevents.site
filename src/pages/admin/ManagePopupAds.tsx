@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { getConvexAdminSecret } from "@/lib/api";
+import { useConvexAdminSecret } from "@/hooks/useConvexAdminSecret";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -24,7 +26,8 @@ type PopupAd = {
 
 const ManagePopupAds = () => {
   const { toast } = useToast();
-  const ads = (useQuery(api.popupAds.listPopupAds) || []) as PopupAd[];
+  const { secret: adminSecret } = useConvexAdminSecret();
+  const ads = (useQuery(api.popupAds.listPopupAds, adminSecret ? { secret: adminSecret } : "skip") || []) as PopupAd[];
   const createPopupAd = useMutation(api.popupAds.createPopupAd);
   const setPopupAdActive = useMutation(api.popupAds.setPopupAdActive);
   const deletePopupAd = useMutation(api.popupAds.deletePopupAd);
@@ -71,6 +74,7 @@ const ManagePopupAds = () => {
     try {
       setIsSaving(true);
       const imageUrl = form.imageUrl.trim() || undefined;
+      const secret = await getConvexAdminSecret();
 
       await createPopupAd({
         title: "",
@@ -79,6 +83,7 @@ const ManagePopupAds = () => {
         ctaText: form.ctaText || undefined,
         ctaUrl: form.ctaUrl || undefined,
         active: form.active,
+        secret,
       });
 
       toast({
@@ -142,7 +147,8 @@ const ManagePopupAds = () => {
 
   const handleToggle = async (id: Id<"popupAds">, active: boolean) => {
     try {
-      await setPopupAdActive({ id, active });
+      const secret = await getConvexAdminSecret();
+      await setPopupAdActive({ id, active, secret });
       toast({
         title: "Updated",
         description: active ? "Ad is now active." : "Ad deactivated.",
@@ -158,7 +164,8 @@ const ManagePopupAds = () => {
 
   const handleDelete = async (id: Id<"popupAds">) => {
     try {
-      await deletePopupAd({ id });
+      const secret = await getConvexAdminSecret();
+      await deletePopupAd({ id, secret });
       toast({
         title: "Deleted",
         description: "Popup ad removed.",
@@ -263,7 +270,7 @@ const ManagePopupAds = () => {
                       className="absolute inset-0 w-full h-full object-cover"
                       loading="eager"
                       decoding="sync"
-                      fetchPriority="high"
+                      fetchpriority="high"
                       width={800}
                       height={500}
                     />

@@ -12,11 +12,13 @@ import PlannerToolbar from "./planner/components/PlannerToolbar";
 import ElementSidebar from "./planner/components/ElementSidebar";
 import PlannerCanvas from "./planner/components/PlannerCanvas";
 import type { PlacedElement, ElementType } from "./planner/types";
+import { useAdminConfirm } from "@/components/admin/AdminConfirmProvider";
 
 const Venue3DView = lazy(() => import("./studio/viewport/Venue3D"));
 const Venue3DFullscreen = lazy(() => import("./planner/components/Venue3DFullscreen"));
 
 const EventPlanner: React.FC = () => {
+  const { confirm } = useAdminConfirm();
   const bp = useBreakpoint();
   const isMobile = bp === "mobile";
   const isTablet = bp === "tablet";
@@ -269,11 +271,17 @@ const EventPlanner: React.FC = () => {
     if (perf === "low") setShowGrid(false);
   }, []);
 
-  const clearAll = useCallback(() => {
-    if (confirm("Clear the entire floor plan?")) {
+  const clearAll = useCallback(async () => {
+    const approved = await confirm({
+      title: "Clear the entire floor plan?",
+      description: "Every item on this canvas will be removed. Your saved plan will also be replaced when you save again.",
+      confirmLabel: "Clear floor plan",
+      destructive: true,
+    });
+    if (approved) {
       setElements([]); pushHistory([]);
     }
-  }, [setElements, pushHistory]);
+  }, [confirm, setElements, pushHistory]);
 
   const exportPNG = useCallback(() => {
     if (!canvasRef.current) return;

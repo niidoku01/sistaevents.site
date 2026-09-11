@@ -32,7 +32,7 @@ const TABLE_TYPES = ["round-table", "rect-table", "sweetheart-table", "cake-tabl
 export default function ElementEditPopup({
   element, open, onOpenChange,
   onUpdate, onSetGuests, onRotateBy, onRotateTo, onFlip,
-  onDuplicate, onDelete,
+  onDuplicate, onDelete, scale = 1,
 }: Props) {
   const [localLabel, setLocalLabel] = useState("");
   const panelRef = useRef<HTMLDivElement>(null);

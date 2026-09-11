@@ -17,11 +17,15 @@ const configuredApiUrls = (import.meta.env.VITE_API_URLS as string | undefined)
   .map((url) => url.trim())
   .filter(Boolean);
 
-const fallbackApiUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim() || "http://localhost:5000";
+const configuredApiUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
+const fallbackApiUrl = configuredApiUrl || (import.meta.env.DEV ? "http://localhost:5000" : "");
 
-const apiBases = (configuredApiUrls && configuredApiUrls.length > 0 ? configuredApiUrls : [fallbackApiUrl]).map(
-  (url) => url.replace(/\/+$/, "")
-);
+const apiBases = (configuredApiUrls && configuredApiUrls.length > 0
+  ? configuredApiUrls
+  : fallbackApiUrl
+    ? [fallbackApiUrl]
+    : []
+).map((url) => url.replace(/\/+$/, ""));
 
 let apiRotationIndex = 0;
 let _authToken: string | null = null;
@@ -33,6 +37,10 @@ export const setAuthToken = (token: string | null) => {
 };
 
 const getNextApiBase = () => {
+  if (apiBases.length === 0) {
+    throw new Error("Admin API is not configured — set VITE_API_URL to the deployed backend URL");
+  }
+
   const next = apiBases[apiRotationIndex];
   apiRotationIndex = (apiRotationIndex + 1) % apiBases.length;
   return `${next}/api`;
@@ -45,23 +53,52 @@ const authHeaders = (): Record<string, string> => {
   return {};
 };
 
-const getConvexAdminSecret = async (): Promise<string> => {
+export const getConvexAdminSecret = async (): Promise<string> => {
   if (_convexAdminSecret) return _convexAdminSecret;
 
-  try {
-    const response = await fetch(`${getNextApiBase()}/admin/convex-token`, { headers: authHeaders() });
-    if (!response.ok) {
-      const body = await response.text().catch(() => "");
-      console.error(`Convex admin token fetch failed (${response.status}):`, body);
-      throw new Error(`Failed to obtain admin token for Convex (${response.status})`);
-    }
-    const data = await response.json();
-    _convexAdminSecret = data.token;
-    return _convexAdminSecret;
-  } catch (err) {
-    if (err instanceof Error && err.message.startsWith("Failed to obtain")) throw err;
-    throw new Error("Failed to obtain admin token — server unreachable");
+  if (apiBases.length === 0) {
+    throw new Error("Admin API is not configured — set VITE_API_URL to the deployed backend URL");
   }
+
+  // Try every base so a single unreachable server can't break uploads.
+  // Rotate the start position so repeated failures don't always hit the same host.
+  const startIndex = apiRotationIndex % apiBases.length;
+  const order = [...apiBases.slice(startIndex), ...apiBases.slice(0, startIndex)];
+  let lastError: unknown = null;
+
+  for (const base of order) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
+    try {
+      const response = await fetch(`${base}/api/admin/convex-token`, {
+        headers: authHeaders(),
+        signal: controller.signal,
+      });
+      if (!response.ok) {
+        const body = await response.text().catch(() => "");
+        console.error(`Convex admin token fetch failed (${response.status}):`, body);
+        lastError = new Error(`Failed to obtain admin token for Convex (${response.status})`);
+        continue;
+      }
+      const data = await response.json();
+      _convexAdminSecret = data.token;
+      apiRotationIndex = (apiRotationIndex + 1) % apiBases.length;
+      return _convexAdminSecret;
+    } catch (err) {
+      lastError = err;
+      console.error(`Convex admin token fetch failed for ${base}:`, err);
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  if (lastError instanceof Error && lastError.message.startsWith("Failed to obtain admin token for Convex")) {
+    throw lastError;
+  }
+  throw new Error(
+    "Failed to obtain admin token — server unreachable. " +
+      "Start the backend (`npm run dev` in /server) or set VITE_API_URL to the deployed backend URL."
+  );
 };
 
 export const bookingAPI = {
@@ -132,7 +169,7 @@ export type UploadProgressState = {
   files: { name: string; status: UploadFileStatus }[];
 };
 
-const UPLOAD_CONCURRENCY = 4;
+const UPLOAD_CONCURRENCY = 8;
 
 function uploadBlobToConvexWithProgress(
   uploadUrl: string,
@@ -323,10 +360,16 @@ export const popupAdAPI = {
     }
 
     if (!response.ok) {
-      const message =
-        typeof body === "string"
-          ? body
-          : body?.error || body?.message || `Upload failed: ${response.status} ${response.statusText}`;
+      const detail =
+        typeof body === "object" && body !== null ? (body as { error?: unknown; message?: unknown }) : null;
+      const fallback = `Upload failed: ${response.status} ${response.statusText}`;
+      const detailMessage =
+        typeof detail?.error === "string"
+          ? detail.error
+          : typeof detail?.message === "string"
+            ? detail.message
+            : fallback;
+      const message = typeof body === "string" ? body : detailMessage;
       throw new Error(message);
     }
 

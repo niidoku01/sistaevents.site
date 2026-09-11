@@ -6,7 +6,7 @@ import { getFirestore, type Firestore } from "firebase/firestore";
 
 const getRequiredEnv = (name: keyof ImportMetaEnv) => {
   const value = (import.meta.env[name] as string | undefined)?.trim();
-  if (!value) {
+  if (!value || value.startsWith("REPLACE_WITH_")) {
     return null;
   }
   return value;

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { User, onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
+import { User, onIdTokenChanged, signOut as firebaseSignOut } from "firebase/auth";
 import { auth, initError } from "@/lib/firebase";
 import { setAuthToken } from "@/lib/api";
 
@@ -21,7 +21,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(
+    const unsubscribe = onIdTokenChanged(
       auth,
       async (user) => {
         setUser(user);

@@ -89,7 +89,7 @@ export default function LightingRig({ venueW, venueH }: LightingRigProps) {
         />
       ))}
       <hemisphereLight
-        skyColor={lightingPreset === "romantic" ? "#2a1520" : "#e8e0ff"}
+        color={lightingPreset === "romantic" ? "#2a1520" : "#e8e0ff"}
         groundColor={lightingPreset === "romantic" ? "#0d0a10" : "#f5f0e8"}
         intensity={0.3}
       />

@@ -6,7 +6,7 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "../convex/_generated/api.js";
 
 const require = createRequire(import.meta.url);
-const { pool, initDb } = require("../server/db.js");
+const { db, initDb } = require("../server/db.js");
 
 const readEnvValue = (key: string): string | undefined => {
   if (process.env[key]) return process.env[key];
@@ -31,18 +31,17 @@ async function main() {
 
   await initDb();
 
-  const result = await pool.query(
+  const rows = db.prepare(
     `SELECT id, name, email, event, content, rating, approved, created_at
      FROM reviews
      ORDER BY created_at ASC`
-  );
+  ).all();
 
-  const rows = result.rows;
-  console.log(`Found ${rows.length} reviews in PostgreSQL`);
+  console.log(`Found ${rows.length} reviews in SQLite`);
 
   if (rows.length === 0) {
     console.log("No reviews to migrate.");
-    await pool.end();
+    db.close();
     return;
   }
 
@@ -83,7 +82,7 @@ async function main() {
   }
 
   console.log(`Migration complete: ${migrated} inserted, ${skipped} skipped`);
-  await pool.end();
+  db.close();
 }
 
 main().catch((err) => {

@@ -47,7 +47,7 @@ const Admin: React.FC = () => {
                     className="logo-icon"
                     loading="eager"
                     decoding="sync"
-                    fetchPriority="high"
+                    fetchpriority="high"
                   />
                   <div className="min-w-0">
                     <h1 className="text-base sm:text-lg md:text-xl font-extrabold text-slate-900 tracking-tight truncate whitespace-nowrap">ADMIN</h1>

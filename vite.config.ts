@@ -128,6 +128,9 @@ function responsiveImages(): Plugin {
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  css: {
+    postcss: "./postcss.config.cjs",
+  },
   server: {
     host: "127.0.0.1",
     port: 8080,
@@ -154,7 +157,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@": path.resolve(import.meta.dirname, "./src"),
     },
   },
   build: {

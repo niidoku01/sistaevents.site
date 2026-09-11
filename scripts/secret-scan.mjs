@@ -20,6 +20,7 @@ const PLACEHOLDER_MARKERS = [
 
 const SECRET_PATTERNS = [
   { name: "Google API key", regex: /AIza[0-9A-Za-z_\-]{35}/g },
+  { name: "Convex admin secret", regex: /prod:[A-Za-z0-9-]+\|[A-Za-z0-9+/=]+/g },
   { name: "GitHub token", regex: /ghp_[0-9A-Za-z]{36}/g },
   { name: "Slack token", regex: /xox[baprs]-[0-9A-Za-z-]{10,}/g },
   { name: "OpenAI key", regex: /sk-[0-9A-Za-z]{20,}/g },

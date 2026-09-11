@@ -16,7 +16,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Calendar as CalendarIcon, CalendarClock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { bookingAPI } from "@/lib/api";
+import { useConvexAdminSecret } from "@/hooks/useConvexAdminSecret";
+import { bookingAPI, getConvexAdminSecret } from "@/lib/api";
 
 type BookingRow = {
   _id: string;
@@ -31,8 +32,13 @@ type BookingRow = {
 
 const Bookings: React.FC = () => {
   const { toast } = useToast();
-  const convexBookings = useQuery(api.bookings.getAllBookings);
-  const blockedDates = useQuery(api.bookings.getBlockedDates) || [];
+  const { secret: adminSecret, status: adminSecretStatus } = useConvexAdminSecret();
+  const convexBookings = useQuery(
+    api.bookings.getAllBookings,
+    adminSecret ? { secret: adminSecret } : "skip"
+  );
+  const blockedDates =
+    useQuery(api.bookings.getBlockedDates, adminSecret ? { secret: adminSecret } : "skip") || [];
   const blockDate = useMutation(api.bookings.blockDate);
   const unblockDate = useMutation(api.bookings.unblockDate);
   const [serverBookings, setServerBookings] = useState<BookingRow[]>([]);
@@ -141,9 +147,11 @@ const Bookings: React.FC = () => {
     }
 
     try {
+      const secret = await getConvexAdminSecret();
       await blockDate({
         eventDate,
         reason: reason || undefined,
+        secret,
       });
 
       toast({
@@ -163,7 +171,8 @@ const Bookings: React.FC = () => {
 
   const handleUnblockDate = async (id: (typeof blockedDates)[number]["_id"]) => {
     try {
-      await unblockDate({ id });
+      const secret = await getConvexAdminSecret();
+      await unblockDate({ id, secret });
       toast({
         title: "Date unblocked",
         description: "Date now available ",

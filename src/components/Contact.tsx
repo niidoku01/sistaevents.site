@@ -33,6 +33,7 @@ export const Contact = () => {
   const fallbackAudioContextRef = useRef<AudioContext | null>(null);
   const isAudioPrimedRef = useRef(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDatePreFilled, setIsDatePreFilled] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -41,6 +42,7 @@ export const Contact = () => {
     message: "",
   });
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const hasRequiredFields = Boolean(formData.name.trim() && formData.email.trim() && formData.message.trim());
 
   const getMissingFieldMessage = () => {
@@ -157,16 +159,49 @@ export const Contact = () => {
   useEffect(() => {
     const loadPackageData = () => {
       const data = sessionStorage.getItem('selectedPackage');
-      if (data) {
-        setFormData(prev => ({ ...prev, message: `Interested in the ${data} package.` }));
-        sessionStorage.removeItem('selectedPackage');
+      if (!data) return;
+
+      const formatMessage = (value: string): string => {
+        if (value.startsWith("{")) {
+          try {
+            const pkg = JSON.parse(value) as {
+              name?: string;
+              price?: string;
+              description?: string;
+              features?: string[];
+            };
+            const featureList = (pkg.features ?? [])
+              .map((f) => `  • ${f}`)
+              .join("\n");
+            return [
+              `Interested in the ${pkg.name} package (${pkg.price}).`,
+              pkg.description,
+              "Package includes:",
+              featureList,
+            ]
+              .filter((line): line is string => Boolean(line))
+              .join("\n");
+          } catch {
+            return "";
+          }
+        }
+        return `Interested in the ${value} package.`;
+      };
+
+      const message = formatMessage(data);
+      if (message) {
+        setFormData((prev) => ({ ...prev, message }));
       }
+      sessionStorage.removeItem('selectedPackage');
     };
 
     const loadPrefilledDate = () => {
       const date = sessionStorage.getItem('prefilledEventDate');
       if (date) {
         setFormData(prev => ({ ...prev, eventDate: date }));
+        setIsDatePreFilled(true);
+        // Remove highlight after 3 seconds
+        setTimeout(() => setIsDatePreFilled(false), 3000);
         sessionStorage.removeItem('prefilledEventDate');
       }
     };
@@ -193,13 +228,16 @@ export const Contact = () => {
     setIsLoading(true);
 
     try {
-      await primeSuccessSound();
       await createBooking(formData);
+      
+      // Play success sound only after successful booking
+      await primeSuccessSound();
       playSuccessSound();
-      toast({
-        title: "Booking Received!",
-        description: "We'll get back to you within 24 hours.",
-      });
+      
+      // Display prominent green success message
+      setSuccessMessage("✓ Booking Received! We'll get back to you within 24 hours.");
+      
+      // Clear form
       setFormData({
         name: "",
         email: "",
@@ -207,6 +245,9 @@ export const Contact = () => {
         eventDate: "",
         message: "",
       });
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => setSuccessMessage(""), 5000);
     } catch (error) {
       toast({
         title: "Error",
@@ -219,7 +260,7 @@ export const Contact = () => {
   };
 
   return (
-    <section id="contact" className="section-mobile-padding bg-muted/50">
+    <section id="contact" className="section-mobile-padding bg-muted/50 scroll-mt-16 sm:scroll-mt-20 lg:scroll-mt-24">
       <div className="container mx-auto px-4 lg:px-6">
         <div className="text-center mb-10 sm:mb-16">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
@@ -238,6 +279,11 @@ export const Contact = () => {
             <Card className="border-border">
               <CardContent className="p-4 sm:p-6 lg:p-8">
                 <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6" noValidate>
+                  {successMessage && (
+                    <div className="p-4 sm:p-5 bg-green-500/15 border border-green-500/40 rounded-lg animate-fade-in">
+                      <p className="text-sm sm:text-base font-semibold text-green-400 text-center">{successMessage}</p>
+                    </div>
+                  )}
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
                       <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
@@ -292,13 +338,20 @@ export const Contact = () => {
                           <Button
                             type="button"
                             variant="outline"
-                            className={
-                              `w-full justify-start text-left font-normal ${!formData.eventDate ? "text-muted-foreground" : ""}`
-                            }
+                            className={`w-full justify-start text-left font-normal transition-all duration-300 ${
+                              !formData.eventDate 
+                                ? "text-muted-foreground" 
+                                : ""
+                            } ${
+                              isDatePreFilled
+                                ? "ring-2 ring-accent ring-offset-2 bg-accent/5 border-accent"
+                                : ""
+                            }`}
                             onClick={() => setCalendarOpen((open) => !open)}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4 text-accent" />
                             {formData.eventDate ? formatDate(formData.eventDate) : "Pick a date"}
+                            {isDatePreFilled && <span className="ml-auto text-[10px] text-accent font-semibold">✓ From availability check</span>}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent align="start" className="w-auto p-0">
@@ -308,6 +361,7 @@ export const Contact = () => {
                             onSelect={(date) => {
                               setFormData({ ...formData, eventDate: date ? date.toISOString().split("T")[0] : "" });
                               setCalendarOpen(false);
+                              setIsDatePreFilled(false);
                             }}
                             initialFocus
                           />

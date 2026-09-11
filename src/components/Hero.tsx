@@ -27,7 +27,8 @@ const HeroContent = () => {
 
   const scrollToContact = () => {
     const element = document.getElementById("contact");
-    element?.scrollIntoView({ behavior: "smooth" });
+    element?.scrollIntoView({ behavior: "auto", block: "start" });
+    document.getElementById("name")?.focus({ preventScroll: true });
   };
 
   const goToGallery = () => {
@@ -55,12 +56,27 @@ const HeroContent = () => {
       return;
     }
 
+    // Date is available - smooth transition to booking
     setDateStatus("available");
     sessionStorage.setItem("prefilledEventDate", eventDate);
+    
+    // Smooth scroll to contact section with enhanced experience
     setTimeout(() => {
       const contactEl = document.getElementById("contact");
-      contactEl?.scrollIntoView({ behavior: "smooth" });
-    }, 600);
+      if (contactEl) {
+        // Scroll with smooth behavior
+        contactEl.scrollIntoView({ behavior: "smooth", block: "start" });
+        
+        // After scroll completes, focus the form or highlight the section
+        setTimeout(() => {
+          const nameInput = document.getElementById("name");
+          if (nameInput) {
+            nameInput.focus();
+            nameInput.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }, 800);
+      }
+    }, 300);
   };
 
   return (
@@ -73,7 +89,7 @@ const HeroContent = () => {
           aria-hidden="true"
           className="w-full h-full object-cover"
           loading="eager"
-          fetchPriority="high"
+          fetchpriority="high"
           decoding="sync"
           sizes="100vw"
         />
@@ -92,10 +108,10 @@ const HeroContent = () => {
         
         <div className="inline-flex flex-nowrap gap-3 sm:gap-4 items-center justify-center animate-fade-in w-full overflow-x-auto pb-1" style={{ animationDelay: "0.4s" }}>
           <Button variant="hero" size="default" onClick={scrollToContact} className="w-auto whitespace-nowrap flex-none active:scale-95 transition-transform">
-            Book Us Now
+            Book Now
           </Button>
           <Button variant="outline" size="default" className="w-auto whitespace-nowrap flex-none border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary active:scale-95 transition-transform" onClick={goToGallery}>
-            View Our Collection
+            View Collection
           </Button>
         </div>
         <div className="mt-16 lg:mt-20 max-w-md mx-auto bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 sm:p-5 md:p-4 animate-fade-in shadow-lg" style={{ animationDelay: "0.9s" }}>
@@ -142,10 +158,10 @@ const HeroContent = () => {
           </div>
           {dateError ? <p className="text-[11px] mt-2 text-red-500 font-medium animate-fade-in">{dateError}</p> : null}
           {!dateError && dateStatus === "available" ? (
-            <p className="text-[11px] mt-2 text-green-500 font-medium animate-fade-in">This date is available. Scrolling to booking form...</p>
+            <p className="text-[11px] mt-2 text-green-400 font-medium animate-fade-in">✓ This date is available</p>
           ) : null}
           {!dateError && dateStatus === "unavailable" ? (
-            <p className="text-[11px] mt-2 text-red-500 font-medium animate-fade-in">This date is unavailable. Please choose another date.</p>
+            <p className="text-[11px] mt-2 text-red-400 font-medium animate-fade-in">This date is unavailable. Please choose another date.</p>
           ) : null}
         </div>
       </div>

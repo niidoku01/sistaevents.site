@@ -31,7 +31,7 @@ export interface PlacedElement {
 export interface ElementDef {
   type: ElementType;
   label: string;
-  icon: React.FC<{ className?: string }>;
+  icon: React.FC<{ className?: string; style?: React.CSSProperties }>;
   category: string;
   defaultWidth: number;
   defaultHeight: number;
@@ -55,7 +55,7 @@ export interface Guide {
 export interface VenueBg {
   id: string;
   label: string;
-  icon: React.FC<{ className?: string }>;
+  icon: React.FC<{ className?: string; style?: React.CSSProperties }>;
   group: "Interior" | "Exterior";
   bg: string;
   bgSize?: string;

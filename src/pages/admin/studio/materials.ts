@@ -56,7 +56,7 @@ export const FLOOR_MATERIALS: Record<string, MaterialPreset> = {
   "ceramic":  MATERIAL_PRESETS["ceramic-white"],
 };
 
-export function makeThreeMaterial(preset: MaterialPreset): THREE.MeshStandardMaterialProps {
+export function makeThreeMaterial(preset: MaterialPreset): THREE.MeshStandardMaterialParameters {
   return {
     color: preset.color,
     metalness: preset.metalness,

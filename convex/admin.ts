@@ -6,7 +6,10 @@ export const adminSecretArg = {
 
 export const validateAdminSecret = (secret: string) => {
   const configured = (globalThis.process?.env as Record<string, string | undefined>)?.["CONVEX_ADMIN_SECRET"];
-  if (configured && secret !== configured) {
+  if (!configured) {
+    throw new Error("Server misconfiguration: admin secret not set");
+  }
+  if (secret !== configured) {
     throw new Error("Unauthorized: invalid admin secret");
   }
 };

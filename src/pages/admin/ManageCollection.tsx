@@ -1,12 +1,14 @@
-import React, { useEffect, useState, useCallback } from "react";
+﻿import React, { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "@/hooks/use-toast";
 import { Trash2, Image as ImageIcon, RefreshCw, ExternalLink, Loader2, X, ArrowUp, ArrowDown, ArrowLeftRight, EyeOff, Eye, RotateCcw, FolderOpen, Upload, Sparkles } from "lucide-react";
 import { collectionAPI } from "@/lib/api";
 import { staticCollectionImagesByCategory, type CollectionCategory, type StaticCollectionImage } from "@/lib/staticCollections";
+import { useAdminConfirm } from "@/components/admin/AdminConfirmProvider";
 import { getOrderedImages, getOrderRaw, ensureImagesInOrder, moveImage, swapImages, toggleHidden, isHidden, removeFromOrder, resetOrder } from "@/lib/collectionOrder";
 
 interface UploadedImage {
@@ -39,6 +41,7 @@ const CATEGORIES: { value: CollectionCategory | "all"; label: string }[] = [
 const CATEGORY_ORDER: CollectionCategory[] = ["weddings", "funerals", "corporate"];
 
 const ManageCollection = () => {
+  const { confirm } = useAdminConfirm();
   const [selectedCategory, setSelectedCategory] = useState<CollectionCategory | "all">("all");
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,14 +112,25 @@ const ManageCollection = () => {
   const allStaticCount = Object.values(staticCollectionImagesByCategory).flat().length;
 
   const handleDelete = async (id: string, category: string) => {
-    if (!confirm("Delete this uploaded image? This cannot be undone.")) return;
+    const approved = await confirm({
+      title: "Delete uploaded image?",
+      description: "This image will be removed from the collection permanently. This action cannot be undone.",
+      confirmLabel: "Delete image",
+      destructive: true,
+    });
+    if (!approved) return;
     setDeleting(id);
     try {
       await collectionAPI.deleteImage(id);
       removeFromOrder(category as CollectionCategory, id);
       setUploadedImages((prev) => prev.filter((img) => img._id !== id));
+      toast({ title: "Image deleted", description: "The image was removed from the collection." });
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Failed to delete image");
+      toast({
+        title: "Delete failed",
+        description: err instanceof Error ? err.message : "Failed to delete image",
+        variant: "destructive",
+      });
     } finally {
       setDeleting(null);
     }
@@ -159,8 +173,13 @@ const ManageCollection = () => {
     rerender();
   };
 
-  const handleReset = () => {
-    if (!confirm("Reset all images to default order and show all?")) return;
+  const handleReset = async () => {
+    const approved = await confirm({
+      title: "Reset collection layout?",
+      description: "All custom ordering and hidden-image settings will be restored to the default layout.",
+      confirmLabel: "Reset layout",
+    });
+    if (!approved) return;
     resetOrder();
     rerender();
   };
@@ -327,7 +346,21 @@ const ManageCollection = () => {
                         </div>
                       </div>
                       <CardContent className="p-2.5">
-                        <p className="truncate text-xs font-medium text-slate-700">{img.originalName}</p>
+                        <div className="flex items-center gap-1.5">
+                          <p className="min-w-0 flex-1 truncate text-xs font-medium text-slate-700">{img.originalName}</p>
+                          {"isUploaded" in img && img.isUploaded && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 shrink-0 rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 hover:shadow-sm transition-all duration-200 active:scale-90"
+                              onClick={() => handleDelete(img._id, img.category)}
+                              disabled={deleting === img._id}
+                              title="Delete uploaded image"
+                            >
+                              {deleting === img._id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+                            </Button>
+                          )}
+                        </div>
                       </CardContent>
                     </div>
                   ))
@@ -384,7 +417,7 @@ const ManageCollection = () => {
                         className="h-12 w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-muted sm:h-16 sm:w-24 shadow-sm ring-1 ring-black/5 transition-shadow duration-200 hover:shadow-md"
                         onClick={() => img.url && setPreview({ url: img.url, name: img.originalName })}
                       >
-                        <img src={img.url || ""} srcSet={img.srcset} alt={img.originalName} className="h-full w-full object-cover transition-transform duration-300 hover:scale-110" loading="lazy" decoding="async" fetchPriority="low" sizes="80px" width={160} height={120} />
+                        <img src={img.url || ""} srcSet={img.srcset} alt={img.originalName} className="h-full w-full object-cover transition-transform duration-300 hover:scale-110" loading="lazy" decoding="async" fetchpriority="low" sizes="80px" width={160} height={120} />
                       </div>
                       <div className="min-w-0 flex-1 overflow-hidden">
                         <div className="flex items-center gap-2">

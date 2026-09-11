@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth, initError } from "@/lib/firebase";
+import { setAuthToken } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
@@ -17,6 +18,10 @@ const getLoginErrorMessage = (err: unknown): string => {
   const maybeCode = (err as { code?: string }).code;
   if (maybeCode === "auth/network-request-failed") {
     return "Network error while contacting Firebase Auth. Check internet/DNS/firewall or VPN, then ensure your current host is added to Firebase Authentication Authorized domains (include localhost for local dev).";
+  }
+
+  if (maybeCode === "auth/api-key-not-valid") {
+    return "Firebase API key is invalid. Set a current Web API key from Firebase Project Settings in VITE_FIREBASE_API_KEY, then restart or redeploy the app.";
   }
 
   if (maybeCode === "auth/invalid-credential") {
@@ -53,6 +58,10 @@ const Login: React.FC = () => {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      const token = await auth.currentUser?.getIdToken();
+      if (token) {
+        setAuthToken(token);
+      }
       navigate("/admin/bookings");
     } catch (err: unknown) {
       setError(getLoginErrorMessage(err));
@@ -72,7 +81,7 @@ const Login: React.FC = () => {
           {initError && (
             <div className="rounded-lg border border-red-200/60 bg-red-50/80 p-4 mb-6">
               <p className="font-semibold text-red-900 text-sm mb-2">Firebase Configuration Error</p>
-              <p className="text-xs text-red-800 mb-3">Admin features require these environment variables:</p>
+              <p className="text-xs text-red-800 mb-3">Set the Firebase Web app configuration in your environment. The API key must be a current key beginning with <code>AIza</code>, not a placeholder.</p>
               <ul className="text-xs text-red-800 space-y-1 ml-4 list-disc">
                 <li>VITE_FIREBASE_API_KEY</li>
                 <li>VITE_FIREBASE_AUTH_DOMAIN</li>
@@ -81,7 +90,7 @@ const Login: React.FC = () => {
                 <li>VITE_FIREBASE_MESSAGING_SENDER_ID</li>
                 <li>VITE_FIREBASE_APP_ID</li>
               </ul>
-              <p className="text-xs text-red-800 mt-3">Add these to your .env file and restart the app.</p>
+              <p className="text-xs text-red-800 mt-3">Update <code>VITE_FIREBASE_API_KEY</code> in local .env files or Vercel environment variables, then restart or redeploy.</p>
             </div>
           )}
           <form onSubmit={handleSubmit} className="space-y-4">

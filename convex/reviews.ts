@@ -41,16 +41,21 @@ export const submitReview = mutation({
 
 export const getApprovedReviews = query({
   handler: async (ctx) => {
-    return await ctx.db
+    const reviews = await ctx.db
       .query("reviews")
       .withIndex("by_approved", (q) => q.eq("approved", true))
       .order("desc")
       .collect();
+    return reviews.map(({ email, ...review }) => review);
   },
 });
 
 export const getPendingReviews = query({
-  handler: async (ctx) => {
+  args: {
+    ...adminSecretArg,
+  },
+  handler: async (ctx, args) => {
+    validateAdminSecret(args.secret);
     return await ctx.db
       .query("reviews")
       .withIndex("by_approved", (q) => q.eq("approved", false))

@@ -9,13 +9,27 @@ const router = Router();
 const verifyAdmin = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ error: "Unauthorized" });
+    return res.status(401).json({ error: "Unauthorized — missing or invalid token" });
   }
+
+  const token = authHeader.split("Bearer ")[1];
+
   try {
-    await getAuth().verifyIdToken(authHeader.split("Bearer ")[1]);
+    const decoded = await getAuth().verifyIdToken(token);
+
+    const adminEmails = (process.env.FIREBASE_ADMIN_EMAILS || "")
+      .split(",")
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
+
+    if (adminEmails.length > 0 && (!decoded.email || !adminEmails.includes(decoded.email.toLowerCase()))) {
+      return res.status(403).json({ error: "Forbidden — not an admin user" });
+    }
+
+    req.user = decoded;
     next();
   } catch {
-    return res.status(401).json({ error: "Unauthorized" });
+    return res.status(401).json({ error: "Unauthorized — invalid token" });
   }
 };
 
@@ -23,6 +37,12 @@ const reviewLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 3,
   message: "Too many review submissions, please try again later.",
+});
+
+const adminLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: "Too many admin requests, please try again later.",
 });
 
 const validateReview = [
@@ -83,14 +103,14 @@ router.get("/", (req, res) => {
        ORDER BY created_at DESC`
     ).all();
 
-    res.json({ reviews: rows });
+    res.json({ reviews: rows.map(({ email, ...review }) => review) });
   } catch (error) {
     console.error("GET /api/reviews error:", error.message);
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
-router.get("/pending", (req, res) => {
+router.get("/pending", adminLimiter, verifyAdmin, (req, res) => {
   try {
     const rows = db.prepare(
       `SELECT id, name, email, event, content, rating, approved, created_at

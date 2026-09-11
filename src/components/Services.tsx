@@ -20,12 +20,12 @@ const services = [
   {
     icon: Lightbulb,
     title: "Lighting Solutions",
-    description: "Create the perfect ambiance with our professional lighting",
+    description: "Create the perfect ambiance for your event with our lighting options",
   },
   {
     icon: Flower2,
-    title: "Decor & Accessories",
-    description: "Centerpieces, backdrops, and styling elements",
+    title: "Decoration",
+    description: "Centerpieces, backdrops, and decor accessories",
   },
   {
     icon: MessageCircleMore,

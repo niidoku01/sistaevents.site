@@ -6,7 +6,11 @@ const sortNewestFirst = <T extends { createdAt: number }>(items: T[]) =>
 	items.sort((a, b) => b.createdAt - a.createdAt);
 
 export const listPopupAds = query({
-	handler: async (ctx) => {
+	args: {
+		...adminSecretArg,
+	},
+	handler: async (ctx, args) => {
+		validateAdminSecret(args.secret);
 		const ads = await ctx.db.query("popupAds").collect();
 		return sortNewestFirst(ads).map((ad) => ({
 			...ad,

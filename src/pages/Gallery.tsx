@@ -285,7 +285,7 @@ export default function OurCollection() {
                 alt={img.originalName || `Image ${i + 1}`}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 relative z-10"
                 loading={i < PRIORITY_GRID_IMAGES ? "eager" : "lazy"}
-                fetchPriority={i < PRIORITY_GRID_IMAGES ? "high" : "auto"}
+                fetchpriority={i < PRIORITY_GRID_IMAGES ? "high" : "auto"}
                 decoding="sync"
                 sizes="(max-width: 640px) 50vw, (max-width: 1280px) 50vw, 33vw"
                 width={800}
@@ -345,7 +345,7 @@ export default function OurCollection() {
                               alt={categoryTitleMap[category]}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                               loading={category === "weddings" ? "eager" : "lazy"}
-                              fetchPriority={category === "weddings" ? "high" : "auto"}
+                              fetchpriority={category === "weddings" ? "high" : "auto"}
                               decoding={category === "weddings" ? "sync" : "async"}
                               sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
                               width={1200}
@@ -479,7 +479,7 @@ export default function OurCollection() {
                 alt={currentImageIndex !== null && categoryImages ? categoryImages[currentImageIndex]?.originalName || "Full size view" : "Full size view"}
                 className="lightbox-img max-w-full max-h-full object-contain select-none"
                 decoding="sync"
-                fetchPriority="high"
+                fetchpriority="high"
                 sizes="100vw"
                 width={1600}
                 height={1200}

@@ -8,6 +8,7 @@ import {
   Copy, Minus, Plus,
 } from "lucide-react";
 import { GRID_SIZE } from "../constants";
+import { useIsMobile } from "../hooks/useBreakpoint";
 import type { PlacedElement } from "../types";
 
 interface SelectionToolbarProps {
@@ -48,6 +49,7 @@ export default function SelectionToolbar({
   sendBackward, bringForward, sendToBack, bringToFront,
   duplicateSelected, startEditLabel, deleteSelected, updateGuests,
 }: SelectionToolbarProps) {
+  const isMobile = useIsMobile();
   if (!selectedEl) return null;
 
   const rawLeft = selectedEl.x * scale + (selectedEl.width * scale) + 8;

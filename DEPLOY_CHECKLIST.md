@@ -2,7 +2,7 @@
 
 ## Pre-Deployment (Local)
 
-- [ ] Run `npm run build` and verify no TypeScript/ESLint errors
+- [x] Run `npm run build` and verify no TypeScript/ESLint errors
 - [ ] Test admin login page (password eye toggle working)
 - [ ] Test booking phone dropdown (Call/WhatsApp with color hover)
 - [ ] Test gallery images load and lazy-load as expected
@@ -34,8 +34,11 @@
 ## Vercel Deployment
 
 ### Environment Variables
-- [ ] All `VITE_*` Firebase keys are set in Vercel project settings
-- [ ] `VITE_FIREBASE_API_KEY` is public, others should be treated as sensitive
+- [x] All `VITE_*` Firebase keys are set in Vercel project settings
+- [x] `VITE_API_URL` points to the deployed backend (`https://server-seven-ochre.vercel.app`)
+- [x] `VITE_CONVEX_SITE_URL` / `VITE_CONVEX_URL` point to `judicious-rhinoceros-41`
+- [x] Server project has `CONVEX_ADMIN_SECRET`, `FIREBASE_ADMIN_EMAILS`, `FRONTEND_URL`, `ALLOWED_ORIGINS`, `FIREBASE_PROJECT_ID`, `SERVICE_ACCOUNT_JSON_BASE64`
+- [x] `CONVEX_ADMIN_SECRET` is set on the Convex deployment (`dev:judicious-rhinoceros-41`) and matches the server value
 - [ ] Convex environment variables (if applicable) are configured
 
 ### Security Headers (`vercel.json`)
@@ -45,19 +48,20 @@
 - [ ] CORS headers match your domain
 
 ### Redirects
-- [ ] SPA fallback to `/index.html` is active (for client-side routing)
-- [ ] Static assets have long cache TTL (1 year, immutable)
-- [ ] HTML pages have no-cache to allow updates
+- [x] SPA fallback to `/index.html` is active (for client-side routing)
+- [x] Static assets have long cache TTL (1 year, immutable)
+- [x] HTML pages have no-cache to allow updates
 
 ### Domain & SSL
-- [ ] Custom domain is configured in Vercel project
-- [ ] SSL certificate is auto-provisioned and active
+- [x] Custom domain is configured in Vercel project (`sistaevents.site`)
+- [x] SSL certificate is auto-provisioned and active
 - [ ] DNS records point to Vercel
 
 ## Testing Post-Deployment
 
 - [ ] Homepage loads and images render (check Network tab for lazy loading)
 - [ ] Admin login works (Firebase auth from Vercel domain)
+- [ ] Admin collection uploads succeed (convex-token no longer 500s)
 - [ ] Bookings page displays booking IDs in YEAR-XXX format
 - [ ] Phone dropdowns show Call/WhatsApp with correct hover colors
 - [ ] Gallery loads collection images with correct lazy-load behavior

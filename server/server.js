@@ -123,6 +123,7 @@ app.use(helmet({
 // Additional security headers not covered by Helmet
 app.use((req, res, next) => {
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  res.setHeader("X-Permitted-Cross-Domain-Policies", "none");
   next();
 });
 
@@ -155,6 +156,7 @@ app.use("/api/", limiter);
 // CORS - Configure allowed origins (update with your production domain)
 const defaultAllowedOrigins = [
   "http://localhost:8080",
+  "http://127.0.0.1:8080",
   "http://localhost:5173",
   "http://localhost:3000",
 ];
@@ -297,6 +299,38 @@ const isAllowedExtension = (filename) => {
   return VALID_EXTENSIONS.includes(ext);
 };
 
+// Verify the actual file content (magic bytes), not just the client-supplied
+// MIME type / filename, to reject disguised HTML/polyglot uploads.
+const sniffImageType = (buf) => {
+  if (!buf || buf.length < 12) return null;
+  if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return "jpeg";
+  if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47 && buf[4] === 0x0d && buf[5] === 0x0a && buf[6] === 0x1a && buf[7] === 0x0a) return "png";
+  const ascii = buf.toString("ascii", 0, 8);
+  if (ascii.startsWith("GIF87a") || ascii.startsWith("GIF89a")) return "gif";
+  if (ascii.startsWith("RIFF") && buf.toString("ascii", 8, 12) === "WEBP") return "webp";
+  return null;
+};
+
+const validateImageFiles = (files, allowed) => {
+  if (!files) return [];
+  const rejected = [];
+  for (const file of Array.isArray(files) ? files : [files]) {
+    let buf;
+    try {
+      buf = fs.readFileSync(file.path);
+    } catch {
+      rejected.push(file);
+      continue;
+    }
+    const sniffed = sniffImageType(buf);
+    if (!sniffed || !allowed.includes(sniffed)) {
+      rejected.push(file);
+      try { fs.unlinkSync(file.path); } catch { /* ignore */ }
+    }
+  }
+  return rejected;
+};
+
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024, files: 20, fields: 50, fieldNestingDepth: 10, parts: 60 },
@@ -337,18 +371,37 @@ const popupAdUpload = multer({
   },
 });
 
-// Serve static files (uploaded images) with directory browsing disabled
-app.use("/uploads", express.static(uploadsDir, {
+// Serve only image subdirectories statically. Backups (bookings/, reviews/)
+// and metadata live outside the exposed mount to avoid leaking PII.
+const staticHeaders = (res, filePath) => {
+  res.removeHeader("X-Powered-By");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+  res.setHeader("Cross-Origin-Resource-Policy", "same-site");
+};
+
+// Block internal metadata files from being served, even though they live
+// inside a public image directory.
+const blockInternalFiles = (req, res, next) => {
+  if (req.path.endsWith("collections-meta.json") || req.path.includes("..")) {
+    return res.status(404).json({ error: "Not found" });
+  }
+  next();
+};
+
+app.use("/uploads/collections", blockInternalFiles, express.static(collectionDir, {
   index: false,
   redirect: false,
-  setHeaders: (res, path) => {
-    // Remove X-Powered-By and other inspect info
-    res.removeHeader("X-Powered-By");
-    res.setHeader("X-Content-Type-Options", "nosniff");
-    res.setHeader("X-Frame-Options", "DENY");
-    res.setHeader("X-XSS-Protection", "1; mode=block");
-    res.setHeader("Cross-Origin-Resource-Policy", "same-site");
-  }
+  dotfiles: "deny",
+  setHeaders: staticHeaders,
+}));
+
+app.use("/uploads/popup-ads", express.static(popupAdsDir, {
+  index: false,
+  redirect: false,
+  dotfiles: "deny",
+  setHeaders: staticHeaders,
 }));
 
 // Sanitize user-provided text for SMS to prevent injection
@@ -516,6 +569,11 @@ app.post("/api/uploads/collections", verifyAdmin, upload.array("images", 10), (r
       return res.status(400).json({ error: "No images provided" });
     }
 
+    const rejected = validateImageFiles(req.files, ["jpeg", "png", "gif", "webp"]);
+    if (rejected.length > 0) {
+      return res.status(400).json({ error: `Rejected ${rejected.length} file(s): content is not a valid image` });
+    }
+
     const baseUrl = getBaseUrl(req);
     const category = req.body.category || "weddings";
     const meta = readMeta();
@@ -552,6 +610,11 @@ app.post("/api/uploads/popup-ads", verifyAdmin, popupAdUpload.single("image"), (
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No image provided" });
+    }
+
+    const rejected = validateImageFiles(req.file, ["jpeg", "png", "gif", "webp"]);
+    if (rejected.length > 0) {
+      return res.status(400).json({ error: "Rejected file: content is not a valid image" });
     }
 
     const baseUrl = getBaseUrl(req);

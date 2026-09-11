@@ -500,6 +500,27 @@ a:focus-visible {
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.1));
 }
 
+/* ── Glass Popup ─────────────────────────────────────── */
+body.modal-open {
+  overflow: hidden;
+}
+
+.glass-popup {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(255, 255, 255, 0.65) 40%,
+    rgba(255, 255, 255, 0.55) 100%
+  );
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.05) inset;
+  overscroll-behavior: contain;
+}
+
 /* ── Glass Navbar ──────────────────────────────────────── */
 .glass-nav {
   position: relative;

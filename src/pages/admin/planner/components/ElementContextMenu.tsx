@@ -75,9 +75,6 @@ export default function ElementContextMenu({
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
       <ContextMenuContent
         className="w-64 p-1.5"
-        side="top"
-        align="start"
-        sideOffset={8}
         onPointerDown={(e) => e.stopPropagation()}
       >
         {/* Label */}

@@ -36,6 +36,8 @@ import other4 from "@/assets/others/other 4.jpg?responsive";
 import other5 from "@/assets/others/other 5.jpg?responsive";
 import other6 from "@/assets/others/other 6.jpg?responsive";
 import other7 from "@/assets/others/other 7.jpg?responsive";
+import other8 from "@/assets/others/others 8.jpg?responsive";
+import other9 from "@/assets/others/other 9.jpg?responsive";
 
 // Flowers
 import flower1 from "@/assets/flowers/flower 1.jpg?responsive";
@@ -55,7 +57,7 @@ export const images = {
   tables: { table2, table3 },
   tents: { tent1, tent2, tent3, tent4 },
   flatware: { flatware2, flatware4, flatware5 },
-  others: { other1, other3, other4, other5, other6, other7 },
+  others: { other1, other3, other4, other5, other6, other7, other8, other9 },
   flowers: { flower1, flower2, flower3, flower4, flower5 },
   misc: { sistaEvents, sabout, sistalogo },
 };

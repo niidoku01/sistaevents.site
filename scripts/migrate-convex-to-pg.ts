@@ -6,7 +6,7 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "../convex/_generated/api.js";
 
 const require = createRequire(import.meta.url);
-const { pool, initDb } = require("../server/db.js");
+const { db, initDb } = require("../server/db.js");
 
 const readEnvValue = (key: string): string | undefined => {
   if (process.env[key]) return process.env[key];
@@ -50,29 +50,30 @@ async function main() {
 
   if (convexReviews.length === 0) {
     console.log("No reviews to migrate.");
-    await pool.end();
+    db.close();
     return;
   }
 
   await initDb();
 
+  const insert = db.prepare(
+    `INSERT INTO reviews (name, email, event, content, rating, approved, created_at, convex_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT (convex_id) DO NOTHING`
+  );
+
   let migrated = 0;
   for (const review of convexReviews) {
     try {
-      await pool.query(
-        `INSERT INTO reviews (name, email, event, content, rating, approved, created_at, convex_id)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-         ON CONFLICT (convex_id) DO NOTHING`,
-        [
-          review.name ?? "",
-          review.email ?? "",
-          review.event ?? "",
-          review.content ?? "",
-          review.rating ?? 5,
-          review.approved ?? false,
-          review.createdAt ?? Date.now(),
-          review._id ?? null,
-        ]
+      insert.run(
+        review.name ?? "",
+        review.email ?? "",
+        review.event ?? "",
+        review.content ?? "",
+        review.rating ?? 5,
+        review.approved ?? false,
+        review.createdAt ?? Date.now(),
+        review._id ?? null
       );
       migrated++;
     } catch (err: unknown) {
@@ -80,8 +81,8 @@ async function main() {
     }
   }
 
-  console.log(`Migrated ${migrated} / ${convexReviews.length} reviews to PostgreSQL.`);
-  await pool.end();
+  console.log(`Migrated ${migrated} / ${convexReviews.length} reviews to SQLite.`);
+  db.close();
 }
 
 main().catch((err) => {

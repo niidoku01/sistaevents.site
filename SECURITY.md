@@ -244,6 +244,8 @@ npm outdated
 ## Secret Rotation (Firebase API Key)
 
 > **Action required by owner.** The Firebase web API key (`sistaer` project) was exposed in Git history before 2026-09-06. It has been scrubbed from repository history and all stale Dependabot branches were deleted, but anyone who forked/cloned early has seen it. **Rotate it.**
+>
+> **Status:** On 2026-09-07 the previously scrubbed key was **temporarily re-restored** so the app works again while rotation is pending. This key is a *public* Firebase web key — it ships in the client bundle by design — so the real risks are (a) it was seen in old Git history, and (b) it currently has **no HTTP referrer restriction**, so anyone could call Firebase APIs with it from any origin. Complete steps 1–4 below to close this out.
 
 1. Open the [Firebase console](https://console.firebase.google.com) → project `sistaer`.
 2. **Project Settings → General → Your apps → Web** → Regenerate the API key (`AIza...`) → copy the new key.
@@ -254,6 +256,25 @@ npm outdated
 5. Verify: `npm run security:scan` (must pass) and confirm Firebase Authentication screens still load.
 
 The key ships in the client bundle by design (Firebase web keys are public), so the real protection is the **referrer restriction** from step 3 plus Firebase **Authorized domains**.
+
+## Secret Inventory & Rotation Runbook
+
+Every secret in this project, where it is used, and exactly how to rotate it. In all cases: rotate FIRST (while the old value is still valid), then swap the new value into the places below, then **delete the old key/credential** and redeploy.
+
+| # | Secret | Where used | Stored in | Rotate via | After rotating, update |
+|---|--------|-----------|-----------|------------|------------------------|
+| 1 | **Firebase web API key** (public, but restrict it) | Client Firebase init (`src/lib/firebase.ts`) | `VITE_FIREBASE_API_KEY` in `/.env` + `.env.local` + Vercel env | Firebase console → Project settings → Your apps → Web → Regenerate. Then Google Cloud → APIs & Services → Credentials → add **HTTP referrer restriction** ✓ | `/.env`, `/.env.local`, Vercel → Environment Variables |
+| 2 | **Firebase Admin service account** (server-only, root access) | `server/server.js` cert init | `server/serviceAccountKey.json` **or** `SERVICE_ACCOUNT_JSON_BASE64` (server env/Vercel) | Google Cloud → IAM & Admin → Service Accounts → Keys → Add key → download new JSON. Delete old key. **Never place client-side.** | server env/Vercel `SERVICE_ACCOUNT_JSON_BASE64`, or replace `server/serviceAccountKey.json` |
+| 3 | **Convex admin secret** (server-only, full deployment control) | Admin uploads via `GET /api/admin/convex-token` (`server/server.js`) | `CONVEX_ADMIN_SECRET` (server env/Vercel only — never a `VITE_*` var) | Convex dashboard → Settings → Admin secret → rotate | server env / Vercel `CONVEX_ADMIN_SECRET` |
+| 4 | **Twilio credentials** (server-only, sends SMS) | `server/server.js` Twilio init | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` (server env/Vercel) | Twilio console → Verify API keys → create new, delete old | server env / Vercel |
+| 5 | **FIREBASE_ADMIN_EMAILS** | `verifyAdmin` allow-list (`server/server.js`) | server env/Vercel | Remove admin from Firebase Auth console & the env var for offboarding | server env / Vercel |
+| 6 | **Vercel OIDC token** (ephemeral) | appears in local `.env.local` from `vercel env pull` | `VERCEL_OIDC_TOKEN` (gitignored) | Self-expiring; re-run `vercel login` + `vercel env pull` | delete stale values in `.env.local` |
+| 7 | **Service-account-adjacent file creds** | `GOOGLE_APPLICATION_CREDENTIALS` | server env | rotate via GCP (case 2) | server env |
+
+**Daily hygiene:**
+- Keep `/.env`, `/.env.local`, `server/.env` out of Git (`git check-ignore -v` to confirm).
+- After any rotation, run `npm run security:scan` (must pass) and re-deploy both frontend and backend.
+- Emergency: disable the key immediately under Google Cloud Console → Credentials (revoke > rotate), then rotate the remaining secrets.
 
 ## Convex Admin Secret (server-side only)
 

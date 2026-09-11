@@ -3,22 +3,43 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Star, Check, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { getConvexAdminSecret } from "@/lib/api";
+import { useConvexAdminSecret } from "@/hooks/useConvexAdminSecret";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { useAdminConfirm } from "@/components/admin/AdminConfirmProvider";
+
+type ReviewCardReview = {
+  _id: Id<"reviews">;
+  name: string;
+  email?: string;
+  event: string;
+  content: string;
+  rating: number;
+  createdAt: number;
+  approved: boolean;
+};
 
 const ManageReviews = () => {
+  const { confirm } = useAdminConfirm();
   const { toast } = useToast();
-  const pendingReviews = useQuery(api.reviews.getPendingReviews);
+  const { secret: adminSecret, status: adminSecretStatus } = useConvexAdminSecret();
+  const pendingReviews = useQuery(
+    api.reviews.getPendingReviews,
+    adminSecret ? { secret: adminSecret } : "skip"
+  );
   const approvedReviews = useQuery(api.reviews.getApprovedReviews);
   const approveReview = useMutation(api.reviews.approveReview);
   const deleteReview = useMutation(api.reviews.deleteReview);
 
-  const loading = pendingReviews === undefined || approvedReviews === undefined;
+  const loading = adminSecretStatus === "loading" || pendingReviews === undefined || approvedReviews === undefined;
+  const failed = adminSecretStatus === "error";
 
   const handleApprove = async (id: Id<"reviews">) => {
     try {
-      await approveReview({ id });
+      const secret = await getConvexAdminSecret();
+      await approveReview({ id, secret });
       toast({
         title: "Success",
         description: "Review approved successfully",
@@ -33,10 +54,17 @@ const ManageReviews = () => {
   };
 
   const handleDelete = async (id: Id<"reviews">) => {
-    if (!confirm("Are you sure you want to delete this review?")) return;
+    const approved = await confirm({
+      title: "Delete this review?",
+      description: "This review will be permanently removed and cannot be restored.",
+      confirmLabel: "Delete review",
+      destructive: true,
+    });
+    if (!approved) return;
 
     try {
-      await deleteReview({ id });
+      const secret = await getConvexAdminSecret();
+      await deleteReview({ id, secret });
       toast({
         title: "Success",
         description: "Review deleted successfully",
@@ -50,14 +78,16 @@ const ManageReviews = () => {
     }
   };
 
-  const ReviewCard = ({ review, isPending }: { review: NonNullable<typeof pendingReviews>[number]; isPending: boolean }) => (
+  const ReviewCard = ({ review, isPending }: { review: ReviewCardReview; isPending: boolean }) => (
     <Card className="border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300 bg-gradient-to-br from-white to-slate-50/50 hover:to-slate-50 backdrop-blur-sm overflow-hidden group">
       <CardContent className="p-5">
         <div className="space-y-4">
           <div className="flex justify-between items-start gap-3">
             <div className="min-w-0">
               <h3 className="font-semibold text-slate-900 truncate">{review.name}</h3>
-              <p className="text-xs text-slate-500 truncate">{review.email}</p>
+              {review.email && isPending && (
+                <p className="text-xs text-slate-500 truncate">{review.email}</p>
+              )}
               <div className="flex items-center gap-1 mt-1.5">
                 <span className="text-xs font-medium text-slate-600 bg-slate-100/60 px-2 py-1 rounded">
                   {review.event}
@@ -111,6 +141,14 @@ const ManageReviews = () => {
       </CardContent>
     </Card>
   );
+
+  if (failed) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-500 font-medium">Could not load reviews — admin session unavailable.</p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

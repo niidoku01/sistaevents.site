@@ -1,5 +1,17 @@
 /// <reference types="vite/client" />
 
+declare module "*?responsive" {
+	const image: { src: string; srcset: string };
+	export const src: string;
+	export const srcset: string;
+	export default image;
+}
+
+declare module "virtual:responsive-collection-manifest" {
+	const manifest: Record<string, { srcset: string }>;
+	export default manifest;
+}
+
 interface ImportMetaEnv {
 	readonly VITE_API_URL?: string;
 	readonly VITE_API_URLS?: string;

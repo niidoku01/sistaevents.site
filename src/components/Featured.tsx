@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { images } from "@/lib/imageImports";
 import { getLogisticsAvailability, LOGISTICS_AVAILABILITY_EVENT } from "@/lib/logisticsAvailability";
 type ResponsiveImage = { src: string; srcset?: string };
-type FeaturedItem = {
+export type FeaturedItem = {
   key: string;
   title: string;
   category: string;
@@ -86,6 +86,7 @@ const featuredItems: FeaturedItem[] = [
       images.others.other6,
       images.others.other7,
       images.others.other8,
+      images.others.other9,
     ],
   },
   {
@@ -237,7 +238,7 @@ export const Featured = () => {
                         item.category === "Aesthetics" || item.category === "Decor" ? "object-cover" : "object-contain"
                       }`}
                       loading={index < 3 ? "eager" : "lazy"}
-                      fetchPriority={index < 3 ? "high" : "auto"}
+                      fetchpriority={index < 3 ? "high" : "auto"}
                       decoding={index < 3 ? "sync" : "async"}
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       width={800}
@@ -291,7 +292,7 @@ export const Featured = () => {
                   alt={`${selectedItem.title} - Image ${currentImageIndex + 1}`}
                   className="w-full h-full object-contain"
                   loading={currentImageIndex === 0 ? "eager" : "lazy"}
-                  fetchPriority="high"
+                  fetchpriority="high"
                   decoding="sync"
                   sizes="100vw"
                   width={1600}

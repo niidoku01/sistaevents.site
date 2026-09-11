@@ -41,7 +41,7 @@ export function getFrequentTypes(minCount = 2): ElementType[] {
 export function detectDevicePerf(): "low" | "medium" | "high" {
   try {
     const cores = navigator.hardwareConcurrency || 2;
-    const mem = (navigator as Record<string, number | undefined>).deviceMemory || 4;
+    const mem = (navigator as Navigator & { deviceMemory?: number }).deviceMemory || 4;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reducedMotion || cores <= 2 || mem <= 2) return "low";
     if (cores <= 4 || mem <= 4) return "medium";

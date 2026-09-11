@@ -3,7 +3,7 @@
 
 require("dotenv").config();
 const { ConvexHttpClient } = require("convex/browser");
-const { pool, initDb } = require("./db");
+const { db, initDb } = require("./db");
 
 const CONVEX_URL = process.env.VITE_CONVEX_URL || "https://judicious-rhinoceros-41.convex.cloud";
 
@@ -31,36 +31,35 @@ async function migrate() {
 
   if (!reviews || reviews.length === 0) {
     console.log("No reviews to migrate.");
-    await pool.end();
+    db.close();
     return;
   }
 
-  console.log("Initializing PostgreSQL schema...");
+  console.log("Initializing SQLite schema...");
   await initDb();
+
+  const existsStmt = db.prepare("SELECT id FROM reviews WHERE convex_id = ?");
+  const insertStmt = db.prepare(
+    `INSERT INTO reviews (name, email, event, content, rating, approved, created_at, convex_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+  );
 
   let migrated = 0;
   let skipped = 0;
 
   for (const r of reviews) {
-    const exists = await pool.query(
-      "SELECT id FROM reviews WHERE convex_id = $1",
-      [r._id]
-    );
-    if (exists.rows.length > 0) {
+    const exists = existsStmt.get(r._id);
+    if (exists) {
       skipped++;
       continue;
     }
 
-    await pool.query(
-      `INSERT INTO reviews (name, email, event, content, rating, approved, created_at, convex_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      [r.name, r.email, r.event, r.content, r.rating, r.approved ?? true, r.createdAt ?? r._creationTime, r._id]
-    );
+    insertStmt.run(r.name, r.email, r.event, r.content, r.rating, r.approved ?? true, r.createdAt ?? r._creationTime, r._id);
     migrated++;
   }
 
   console.log(`Migration complete: ${migrated} inserted, ${skipped} skipped`);
-  await pool.end();
+  db.close();
 }
 
 migrate().catch((err) => {

@@ -39,7 +39,7 @@ export const Header = () => {
               className="logo-icon transition-transform duration-300 group-hover:scale-110"
               loading="eager"
               decoding="sync"
-              fetchPriority="high"
+              fetchpriority="high"
             />
 
             <div className="inline-flex items-center min-w-0 max-w-[calc(100vw-8rem)] sm:max-w-none">

@@ -16,6 +16,8 @@ const CATEGORIES: { value: Category; label: string }[] = [
   { value: "corporate", label: "Corporate Events" },
 ];
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
 const UploadCollection = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [category, setCategory] = useState<Category>("weddings");
@@ -47,11 +49,12 @@ const UploadCollection = () => {
   }, []);
 
   const handleFiles = useCallback((incoming: FileList | File[]) => {
-    const valid = Array.from(incoming).filter((f) =>
-      ["image/jpeg", "image/png", "image/gif", "image/webp"].includes(f.type)
+    const selected = Array.from(incoming);
+    const valid = selected.filter((f) =>
+      ["image/jpeg", "image/png", "image/gif", "image/webp"].includes(f.type) && f.size <= MAX_FILE_SIZE
     );
-    if (valid.length !== Array.from(incoming).length) {
-      setResult({ type: "error", message: "Some files were skipped (unsupported format). Only JPEG, PNG, GIF & WebP allowed." });
+    if (valid.length !== selected.length) {
+      setResult({ type: "error", message: "Some files were skipped. Use JPEG, PNG, GIF, or WebP images under 10MB." });
     }
     setFiles((prev) => [...prev, ...valid].slice(0, 5));
   }, []);
@@ -60,9 +63,10 @@ const UploadCollection = () => {
     (e: React.DragEvent) => {
       e.preventDefault();
       setDragOver(false);
+      if (uploading) return;
       handleFiles(e.dataTransfer.files);
     },
-    [handleFiles]
+    [handleFiles, uploading]
   );
 
   const removeFile = (idx: number) => setFiles((prev) => prev.filter((_, i) => i !== idx));
@@ -114,7 +118,7 @@ const UploadCollection = () => {
           <div className="max-w-xs">
             <Label className="mb-1.5 block text-sm font-medium">Category</Label>
             <Select value={category} onValueChange={(v: Category) => setCategory(v)}>
-              <SelectTrigger>
+              <SelectTrigger disabled={uploading}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -130,9 +134,19 @@ const UploadCollection = () => {
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
-            onClick={() => inputRef.current?.click()}
-            className={`flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 transition-colors ${
-              dragOver ? "border-accent bg-accent/5" : "border-border hover:border-accent/50"
+            onClick={() => !uploading && inputRef.current?.click()}
+            onKeyDown={(e) => {
+              if ((e.key === "Enter" || e.key === " ") && !uploading) inputRef.current?.click();
+            }}
+            role="button"
+            tabIndex={uploading ? -1 : 0}
+            aria-disabled={uploading}
+            className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 transition-colors ${
+              uploading
+                ? "cursor-not-allowed border-border bg-muted/30 opacity-60"
+                : dragOver
+                  ? "cursor-pointer border-accent bg-accent/5"
+                  : "cursor-pointer border-border hover:border-accent/50"
             }`}
           >
             <input
@@ -141,6 +155,7 @@ const UploadCollection = () => {
               multiple
               accept="image/jpeg,image/png,image/gif,image/webp"
               className="hidden"
+              disabled={uploading}
               onChange={(e) => e.target.files && handleFiles(e.target.files)}
             />
             <Upload className="mb-2 h-8 w-8 text-muted-foreground" />
@@ -152,33 +167,38 @@ const UploadCollection = () => {
           {progress && (uploading || progress.percent === 100) && (
             <div className="space-y-3 rounded-lg border bg-muted/40 p-4">
               <div className="flex items-center justify-between text-sm">
-                {progress.percent >= 100 && progress.currentFile === null ? (
-                  <span className="flex items-center gap-1.5 font-semibold text-green-600">
-                    <CheckCircle2 className="h-4 w-4" />
-                    Done — {progress.completedFiles} of {progress.totalFiles} uploaded
-                  </span>
-                ) : (
-                  <span className="font-medium text-foreground/80">
-                    {progress.completedFiles} of {progress.totalFiles} uploaded
-                    {progress.failedFiles > 0 && <span className="text-red-600"> · {progress.failedFiles} failed</span>}
-                  </span>
-                )}
-                <span className="font-medium tabular-nums text-foreground/80">{progress.percent}%</span>
-              </div>
-
-              {/* Traffic-light gradient progress bar */}
-              <div
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={progress.percent}
-                aria-label="Upload progress"
-                className="relative h-3 w-full overflow-hidden rounded-full bg-secondary"
-              >
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-red-500 via-yellow-400 to-green-500 transition-all duration-300"
-                  style={{ width: `${progress.percent}%` }}
-                />
+                <div className="flex items-center gap-2">
+                    <div
+                      role="progressbar"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={progress.percent}
+                    aria-label={progress.percent >= 100 ? "Upload complete" : "Upload in progress"}
+                    className="relative h-9 w-9 shrink-0"
+                    style={{
+                      background: `conic-gradient(${progress.percent >= 100 ? "#22c55e" : progress.percent >= 50 ? "#facc15" : "#ef4444"} ${progress.percent}%, hsl(var(--secondary)) 0)`,
+                      borderRadius: "9999px",
+                    }}
+                  >
+                    <span className="absolute inset-1 flex items-center justify-center rounded-full bg-background text-[9px] font-bold tabular-nums text-foreground">
+                      {progress.percent}%
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <span className={`block font-semibold ${progress.percent >= 100 ? "text-green-600" : "text-foreground/80"}`}>
+                      {progress.percent >= 100 ? "Upload complete" : progress.percent >= 50 ? "Finishing upload" : "Uploading files"}
+                    </span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {progress.completedFiles} of {progress.totalFiles} uploaded
+                      {progress.failedFiles > 0 && <span className="text-red-600"> · {progress.failedFiles} failed</span>}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5" aria-hidden="true">
+                  <span className={`h-1.5 w-1.5 rounded-full ${progress.percent < 50 ? "bg-red-500" : "bg-muted-foreground/25"}`} />
+                  <span className={`h-1.5 w-1.5 rounded-full ${progress.percent >= 50 && progress.percent < 100 ? "bg-yellow-400" : progress.percent >= 100 ? "bg-green-500" : "bg-muted-foreground/25"}`} />
+                  <span className={`h-1.5 w-1.5 rounded-full ${progress.percent >= 100 ? "bg-green-500" : "bg-muted-foreground/25"}`} />
+                </div>
               </div>
 
               {progress.failedFiles > 0 && progress.percent < 100 && (

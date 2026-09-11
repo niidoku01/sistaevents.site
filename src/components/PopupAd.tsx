@@ -76,6 +76,13 @@ const PopupAdWithConvex = () => {
     }, ANIMATION_DURATION_MS);
   };
 
+  useEffect(() => {
+    if (!open) return;
+    const onScroll = () => handleClose();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [open, canShow]);
+
   const handleCtaClick = () => {
     handleClose();
     setTimeout(() => {
@@ -90,15 +97,14 @@ const PopupAdWithConvex = () => {
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-start justify-center p-3 backdrop-blur-[2px] sm:items-center sm:p-6 transition-all duration-300 ease-out ${
-        animateIn ? "bg-slate-950/45" : "bg-transparent pointer-events-none"
+      className={`pointer-events-none fixed inset-0 z-50 flex items-start justify-center p-3 backdrop-blur-[2px] sm:items-center sm:p-6 transition-all duration-300 ease-out ${
+        animateIn ? "bg-slate-950/45" : "bg-transparent"
       }`}
       role="dialog"
       aria-modal="true"
-      onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
     >
       <div
-        className={`relative w-full max-w-[min(100vw-1.5rem,420px)] overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-2xl mt-16 sm:mt-0 ${
+        className={`pointer-events-auto relative w-full max-w-[min(100vw-1.5rem,420px)] overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-2xl mt-16 sm:mt-0 ${
           animateIn ? "animate-bounce-in" : "scale-75 opacity-0 translate-y-8"
         }`}
       >
@@ -117,7 +123,7 @@ const PopupAdWithConvex = () => {
             className="absolute inset-0 h-full w-full object-cover"
             loading="eager"
             decoding="sync"
-            fetchPriority="high"
+            fetchpriority="high"
             sizes="(max-width: 640px) 100vw, 420px"
             width={420}
             height={263}

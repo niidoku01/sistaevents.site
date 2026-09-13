@@ -24,7 +24,7 @@
     "firebase-admin": "^13.10.0",
     "helmet": "^8.1.0",
     "multer": "^2.2.0",
-    "twilio": "^4.23.0"
+    "twilio": "^6.1.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

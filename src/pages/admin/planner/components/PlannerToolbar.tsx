@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Trash2, Download, ZoomIn, ZoomOut, RotateCcw, Save,
-  Grid3x3, Users, Wand2, Undo2, Box, Maximize2,
+  Grid3x3, Users, Shuffle, Undo2, Box, Maximize2, LayoutGrid, Columns2,
 } from "lucide-react";
 import { VENUE_BACKGROUNDS } from "../constants";
 import VenueBackgroundPicker from "./VenueBackgroundPicker";
+import type { ViewMode } from "../types";
 
 interface PlannerToolbarProps {
   eventName: string;
@@ -16,8 +17,8 @@ interface PlannerToolbarProps {
   setScale: (fn: (s: number) => number) => void;
   showGrid: boolean;
   setShowGrid: (v: boolean) => void;
-  show3D: boolean;
-  setShow3D: (v: boolean) => void;
+  viewMode: ViewMode;
+  setViewMode: (v: ViewMode) => void;
   venueBg: string;
   setVenueBg: (id: string) => void;
   showBgPicker: boolean;
@@ -38,7 +39,7 @@ interface PlannerToolbarProps {
 export default function PlannerToolbar({
   eventName, setEventName, totalGuests,
   scale, setScale, showGrid, setShowGrid,
-  show3D, setShow3D, venueBg, setVenueBg,
+  viewMode, setViewMode, venueBg, setVenueBg,
   showBgPicker, setShowBgPicker,
   undo, redo, canUndo, canRedo,
   handleAutoArrange, savePlan, exportPNG, clearAll,
@@ -80,10 +81,31 @@ export default function PlannerToolbar({
           <TbBtn onClick={() => setScale((s) => Math.min(3, s + 0.15))} title="Zoom in"><ZoomIn className="w-4 h-4" /></TbBtn>
         </div>
 
+        {/* View mode: 2D / 3D / Split */}
+        <div className="flex items-center gap-0.5 bg-slate-50/80 rounded-xl p-0.5 flex-shrink-0" title="View mode">
+          <button
+            onClick={() => setViewMode("2d")}
+            className={`flex items-center gap-1 h-8 px-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-150 ${viewMode === "2d" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+          >
+            <LayoutGrid className="w-3.5 h-3.5" />2D
+          </button>
+          <button
+            onClick={() => setViewMode("3d")}
+            className={`flex items-center gap-1 h-8 px-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-150 ${viewMode === "3d" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+          >
+            <Box className="w-3.5 h-3.5" />3D
+          </button>
+          <button
+            onClick={() => setViewMode("split")}
+            className={`flex items-center gap-1 h-8 px-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-150 ${viewMode === "split" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+          >
+            <Columns2 className="w-3.5 h-3.5" />Split
+          </button>
+        </div>
+
         {/* Toggles */}
         <div className="flex items-center gap-0.5 bg-slate-50/80 rounded-xl px-1 py-0.5 flex-shrink-0">
           <TbBtn onClick={() => setShowGrid(!showGrid)} active={showGrid} title="Grid"><Grid3x3 className="w-4 h-4" /></TbBtn>
-          <TbBtn onClick={() => setShow3D(!show3D)} active={show3D} title="3D Preview"><Box className="w-4 h-4" /></TbBtn>
           <div className="relative">
             <TbBtn onClick={() => setShowBgPicker(!showBgPicker)} active={venueBg !== "default"} title="Venue background">
               {React.createElement(currentBg.icon, { className: "w-4 h-4" })}
@@ -94,7 +116,7 @@ export default function PlannerToolbar({
 
         {/* Actions */}
         <div className="flex items-center gap-0.5 bg-slate-50/80 rounded-xl px-1 py-0.5 flex-shrink-0">
-          <TbBtn onClick={handleAutoArrange} title="AI Auto-arrange"><Wand2 className="w-4 h-4" /></TbBtn>
+          <TbBtn onClick={handleAutoArrange} title="Auto-arrange"><Shuffle className="w-4 h-4" /></TbBtn>
           <TbBtn onClick={savePlan} title="Save"><Save className="w-4 h-4" /></TbBtn>
           <TbBtn onClick={exportPNG} title="Export 2D PNG"><Download className="w-4 h-4" /></TbBtn>
           <TbBtn onClick={clearAll} title="Clear all" variant="danger"><Trash2 className="w-4 h-4" /></TbBtn>

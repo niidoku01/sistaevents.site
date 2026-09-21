@@ -63,6 +63,8 @@ export interface VenueBg {
   label3d: string;
 }
 
+export type ViewMode = "2d" | "3d" | "split";
+
 export interface PlannerHistory {
   push: (next: PlacedElement[]) => void;
   undo: () => void;

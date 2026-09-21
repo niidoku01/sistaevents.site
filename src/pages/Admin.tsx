@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from "react";
+﻿import React, { Suspense, lazy } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import AdminNav from "./admin/AdminNav";
@@ -14,6 +14,7 @@ const ManagePopupAds = lazy(() => import("./admin/ManagePopupAds"));
 const UploadCollection = lazy(() => import("./admin/UploadCollection"));
 const ManageCollection = lazy(() => import("./admin/ManageCollection"));
 const EventPlanner = lazy(() => import("./admin/EventPlanner"));
+const Billing = lazy(() => import("./admin/Billing"));
 
 const Admin: React.FC = () => {
   const { user, loading, signOut } = useAuth();
@@ -44,13 +45,15 @@ const Admin: React.FC = () => {
                   <img
                     src={images.misc.sistalogo}
                     alt="Sista Events logo"
-                    className="logo-icon"
+                    className="logo-icon "
                     loading="eager"
                     decoding="sync"
                     fetchpriority="high"
                   />
                   <div className="min-w-0">
-                    <h1 className="text-base sm:text-lg md:text-xl font-extrabold text-slate-900 tracking-tight truncate whitespace-nowrap">ADMIN</h1>
+                    <div className="flex items-center gap-2">
+                      <h1 className="text-base sm:text-lg md:text-xl font-extrabold text-slate-900 tracking-[0.22em]">ADMIN</h1>
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -88,6 +91,7 @@ const Admin: React.FC = () => {
                   <Route path="manage" element={<ManageCollection />} />
                   <Route path="popup-ads" element={<ManagePopupAds />} />
                   <Route path="planner" element={<EventPlanner />} />
+                  <Route path="billing" element={<Billing />} />
                   <Route path="*" element={<Navigate to="bookings" replace />} />
                 </Routes>
               </Suspense>

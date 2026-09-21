@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getConvexAdminSecret } from "@/lib/api";
 import { useConvexAdminSecret } from "@/hooks/useConvexAdminSecret";
 import { useMutation, useQuery } from "convex/react";
+import { Check } from "lucide-react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 // Image uploads will be stored in Convex as data URLs.
@@ -47,7 +48,7 @@ const ManagePopupAds = () => {
     if (!form.imageUrl.trim()) {
       toast({
         title: "Image required",
-        description: "Upload an image or paste an image URL.",
+        description: "Upload an image to create the popup ad.",
         variant: "destructive",
       });
       return;
@@ -192,34 +193,27 @@ const ManagePopupAds = () => {
         <CardContent>
           <form onSubmit={handleCreate} className="space-y-6">
             {/* Image */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-900">Image URL</label>
-                <Input
-                  value={form.imageUrl}
-                  onChange={(e) => setForm((prev) => ({ ...prev, imageUrl: e.target.value }))}
-                  placeholder="https://example.com/image.jpg"
-                  className="rounded-lg border-slate-200/60 focus:border-amber-500 focus:ring-amber-500/20"
-                />
-                <p className="text-xs text-slate-500">Paste a hosted image URL or upload below</p>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-900">Upload Image</label>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  disabled={isUploadingImage}
-                  className="rounded-lg border-slate-200/60 focus:border-amber-500 focus:ring-amber-500/20 cursor-pointer"
-                />
-                <p className="text-xs text-slate-500">
-                  {isUploadingImage
-                    ? "Converting image..."
-                    : imageFileName
-                      ? `✓ ${imageFileName}`
-                      : "Max 200KB (auto-compressed)"}
-                </p>
-              </div>
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-900">Upload Image</label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={isUploadingImage}
+                className="rounded-lg border-slate-200/60 focus:border-amber-500 focus:ring-amber-500/20 cursor-pointer"
+              />
+              <p className="text-xs text-slate-500">
+                {isUploadingImage
+                  ? "Converting image..."
+                  : imageFileName
+                    ? (
+                      <span className="inline-flex items-center gap-1 text-emerald-600 font-medium">
+                        <Check className="w-3.5 h-3.5" />
+                        {imageFileName}
+                      </span>
+                    )
+                    : "Max 200KB (auto-compressed)"}
+              </p>
             </div>
 
             {/* CTA */}
@@ -322,7 +316,15 @@ const ManagePopupAds = () => {
                           variant={ad.active ? "default" : "secondary"}
                           className={ad.active ? "bg-green-500/20 text-green-700 border-green-200" : "bg-slate-200 text-slate-700"}
                         >
-                          {ad.active ? "● Active" : "○ Inactive"}
+                          {ad.active ? (
+                            <span>
+                              Active
+                            </span>
+                          ) : (
+                            <span>
+                              Inactive
+                            </span>
+                          )}
                         </Badge>
                       </div>
                       {ad.imageUrl && (

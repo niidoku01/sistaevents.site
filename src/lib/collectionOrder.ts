@@ -9,6 +9,8 @@ type CollectionOrderMap = Record<CollectionCategory, OrderedImage[]>;
 
 const STORAGE_KEY = "sista-collection-order";
 
+const CATEGORY_KEYS: CollectionCategory[] = ["weddings", "funerals", "corporate"];
+
 const defaultOrder = (): CollectionOrderMap => ({
   weddings: staticCollectionImagesByCategory.weddings.map((img) => ({ id: img._id, hidden: false })),
   funerals: staticCollectionImagesByCategory.funerals.map((img) => ({ id: img._id, hidden: false })),
@@ -16,15 +18,41 @@ const defaultOrder = (): CollectionOrderMap => ({
 });
 
 const load = (): CollectionOrderMap => {
+  const base = defaultOrder();
+  let parsed: unknown = null;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      return JSON.parse(raw);
-    }
+    if (raw) parsed = JSON.parse(raw);
   } catch {
     // ignore parse errors, use defaults
   }
-  return defaultOrder();
+
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    return base;
+  }
+
+  const candidate = parsed as Record<string, unknown>;
+  for (const category of CATEGORY_KEYS) {
+    const existing = candidate[category];
+    if (!Array.isArray(existing)) continue;
+    const sanitized: OrderedImage[] = [];
+    for (const entry of existing) {
+      if (
+        entry &&
+        typeof entry === "object" &&
+        typeof (entry as { id?: unknown }).id === "string" &&
+        (entry as { id: string }).id.length > 0
+      ) {
+        sanitized.push({
+          id: (entry as { id: string }).id,
+          hidden: Boolean((entry as { hidden?: unknown }).hidden),
+        });
+      }
+    }
+    base[category] = sanitized;
+  }
+
+  return base;
 };
 
 const save = (map: CollectionOrderMap) => {

@@ -1,6 +1,7 @@
-import { Header } from "@/components/Header";
+﻿import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { BackToTop } from "@/components/BackToTop";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { Button } from "@/components/ui/button";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -310,7 +311,7 @@ export default function OurCollection() {
 
   return (
 
-    <div className="min-h-screen flex flex-col overflow-x-hidden bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-slate-50">
       <Header />
       <main className="flex-1 pt-14 sm:pt-16 lg:pt-20">
         <div className="container mx-auto px-4 lg:px-6 max-w-7xl">
@@ -337,7 +338,7 @@ export default function OurCollection() {
                         className="group text-left w-full sm:flex-1 sm:min-w-0"
                         onClick={() => setSelectedCategory(category)}
                       >
-                        <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm hover:shadow-2xl transition-all duration-300" style={{ contentVisibility: "auto", containIntrinsicSize: "400px 500px" }}>
+                        <div className="relative overflow-hidden rounded-2xl border border-white/50 bg-white shadow-sm hover:shadow-2xl transition-all duration-300 ring-1 ring-black/5">
                           <div className="bg-slate-100 min-h-[220px] sm:min-h-[350px]">
                             <img
                               src={cover.url}
@@ -351,9 +352,9 @@ export default function OurCollection() {
                               width={1200}
                               height={1500}
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10" />
                             <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
-                              <h3 className="text-white text-xl sm:text-2xl font-bold">
+                              <h3 className="text-white text-xl sm:text-2xl font-bold tracking-tight">
                                 {categoryTitleMap[category]}
                               </h3>
                             </div>
@@ -366,7 +367,8 @@ export default function OurCollection() {
               </div>
             ) : (
               <div>
-                <div className="sticky top-[70px] sm:top-[92px] z-20 mb-4 sm:mb-6 rounded-xl sm:rounded-2xl border border-slate-200/80 bg-white/95 backdrop-blur p-2 sm:p-4 shadow-sm">
+                <div className="sticky top-[70px] sm:top-[92px] z-20 mb-4 sm:mb-6">
+                  <div className="relative rounded-xl sm:rounded-2xl border border-slate-200/80 bg-white/95 backdrop-blur p-2 sm:p-4 shadow-sm">
                   <div className="flex items-center justify-between gap-3">
                     <Button
                       variant="ghost"
@@ -402,6 +404,7 @@ export default function OurCollection() {
                     </div>
                   </div>
                 </div>
+                </div>
 
                 <div className="py-1 sm:py-2">
                   {renderImageGrid(visibleCategoryImages || undefined)}
@@ -429,7 +432,7 @@ export default function OurCollection() {
       {/* Image Viewer Modal */}
       <Dialog open={currentImageIndex !== null} onOpenChange={(open) => !open && closeViewer()}>
         <DialogContent
-          className="max-w-7xl w-full h-[92dvh] p-0 bg-black/95 border-none overflow-hidden"
+          className="max-w-7xl w-full vh-92 h-[92dvh] p-0 bg-black/95 border-none overflow-hidden"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
@@ -490,6 +493,7 @@ export default function OurCollection() {
         </DialogContent>
       </Dialog>
 
+      <WhatsAppButton phoneNumber="+233279689522" />
       <BackToTop />
       <Footer />
     </div>

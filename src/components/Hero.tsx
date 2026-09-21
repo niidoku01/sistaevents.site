@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+﻿import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -80,7 +80,7 @@ const HeroContent = () => {
   };
 
   return (
-    <section className="relative min-h-svh flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-screen vh-fallback-min-h flex items-center justify-center overflow-hidden">
       <div className="absolute inset-0">
         <img
           src={heroImage.src}
@@ -102,7 +102,7 @@ const HeroContent = () => {
            WE PLAN EVENTS  
           <br />
           <span className="text-[11px] sm:text-xs md:text-sm lg:text-base bg-gradient-accent bg-clip-text text-transparent mt-2 sm:mt-4 block max-w-3xl mx-auto text-center text-balance">
-          • Weddings • Funerals • Parties • Graduation • Corporate Events  
+          Weddings, Funerals, Parties, Graduation & Corporate Events  
           </span>
         </h1>
         

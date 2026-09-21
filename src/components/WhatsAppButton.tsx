@@ -16,6 +16,13 @@ interface WhatsAppButtonProps {
   message?: string;
 }
 
+const getScrollTop = () =>
+  window.scrollY ||
+  window.pageYOffset ||
+  document.documentElement.scrollTop ||
+  document.body.scrollTop ||
+  0;
+
 export const WhatsAppButton = ({
   phoneNumber,
   message = "Hi! I'm interested in your event services."
@@ -23,16 +30,13 @@ export const WhatsAppButton = ({
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const toggleVisibility = () => {
-      if (window.pageYOffset > 300) {
-        setIsVisible(true);
-      } else {
-        setIsVisible(false);
-      }
+    let raf = 0;
+    const update = () => {
+      setIsVisible(getScrollTop() > 200);
+      raf = window.requestAnimationFrame(update);
     };
-
-    window.addEventListener("scroll", toggleVisibility);
-    return () => window.removeEventListener("scroll", toggleVisibility);
+    raf = window.requestAnimationFrame(update);
+    return () => window.cancelAnimationFrame(raf);
   }, []);
 
   const handleClick = () => {
@@ -43,19 +47,18 @@ export const WhatsAppButton = ({
   };
 
   return (
-    <>
-      {isVisible && (
-        <button
-          onClick={handleClick}
-          className="fixed bottom-20 right-4 z-40 sm:bottom-6 sm:right-6 bg-green-500 hover:bg-green-600 text-white rounded-full p-3.5 sm:p-4 shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 animate-fade-in group whatsapp-pulse"
-          aria-label="Chat on WhatsApp"
-        >
-          <WhatsAppIcon className="w-6 h-6" />
-          <span className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none hidden sm:block">
-            Chat with us on WhatsApp
-          </span>
-        </button>
-      )}
-    </>
+    <button
+      onClick={handleClick}
+      aria-label="Chat on WhatsApp"
+      className={`floating-icon-whatsapp fixed right-4 sm:right-6 z-[70] bg-green-500 hover:bg-green-600 text-white rounded-full p-3.5 sm:p-4 shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 group whatsapp-pulse floating-icon-pop opacity-100 translate-y-0 pointer-events-auto ${
+        isVisible ? "" : "sm:opacity-0 sm:translate-y-4 sm:pointer-events-none"
+      }`}
+      tabIndex={0}
+    >
+      <WhatsAppIcon className="w-6 h-6" />
+      <span className="absolute right-full mr-3 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none hidden sm:block">
+        Chat with us on WhatsApp
+      </span>
+    </button>
   );
 };

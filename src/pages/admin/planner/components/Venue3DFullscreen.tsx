@@ -96,10 +96,6 @@ export default function Venue3DFullscreen({ elements, eventName, totalGuests, on
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/70 via-black/30 to-transparent pointer-events-none">
         <div className="flex items-center gap-3 pointer-events-auto">
           <div className="flex items-center gap-2 bg-black/60 backdrop-blur-md rounded-xl px-4 py-2 border border-white/10">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
             <span className="text-xs font-bold text-white/90 tracking-wide">{eventName}</span>
           </div>
           <div className="hidden sm:flex items-center gap-3 text-[10px] text-white/50 bg-black/40 backdrop-blur-md rounded-xl px-3 py-1.5 border border-white/5">

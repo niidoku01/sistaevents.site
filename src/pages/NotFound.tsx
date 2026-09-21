@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { BackToTop } from "@/components/BackToTop";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 
 const DIGITS = ["4", "0", "4"];
 const BALLOONS = [
@@ -70,7 +72,7 @@ export default function NotFound() {
               visible ? "opacity-100" : "opacity-0"
             }`}
           >
-            The page you're looking for doesn't exist or has been moved.
+            The page you're looking for doesn't exist.
           </p>
           <Link
             to="/"
@@ -83,6 +85,8 @@ export default function NotFound() {
         </div>
       </main>
       <Footer />
+      <BackToTop />
+      <WhatsAppButton phoneNumber="+233279689522" />
     </div>
   );
 }

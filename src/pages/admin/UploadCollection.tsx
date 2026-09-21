@@ -6,7 +6,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { collectionAPI, type UploadProgressState } from "@/lib/api";
-import { staticCollectionImagesByCategory } from "@/lib/staticCollections";
 
 type Category = "weddings" | "funerals" | "corporate";
 
@@ -97,10 +96,6 @@ const UploadCollection = () => {
     }
   };
 
-  const categoryCount =
-    staticCollectionImagesByCategory[category].length +
-    (uploadedImages?.filter((img) => img.category === category).length ?? 0);
-
   return (
     <div className="space-y-6">
       <Card>
@@ -109,11 +104,6 @@ const UploadCollection = () => {
           <CardDescription>Upload new images to the collection.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Total count for selected category */}
-          <div className="flex items-center justify-center rounded-lg border border-blue-100/40 bg-blue-50 p-3 text-sm text-blue-800">
-            <strong className="text-lg font-bold tabular-nums">{categoryCount}</strong>
-          </div>
-
           {/* Category selector */}
           <div className="max-w-xs">
             <Label className="mb-1.5 block text-sm font-medium">Category</Label>
@@ -190,14 +180,9 @@ const UploadCollection = () => {
                     </span>
                     <span className="block truncate text-xs text-muted-foreground">
                       {progress.completedFiles} of {progress.totalFiles} uploaded
-                      {progress.failedFiles > 0 && <span className="text-red-600"> · {progress.failedFiles} failed</span>}
+                      {progress.failedFiles > 0 && <span className="text-red-600">, {progress.failedFiles} failed</span>}
                     </span>
                   </div>
-                </div>
-                <div className="flex items-center gap-1.5" aria-hidden="true">
-                  <span className={`h-1.5 w-1.5 rounded-full ${progress.percent < 50 ? "bg-red-500" : "bg-muted-foreground/25"}`} />
-                  <span className={`h-1.5 w-1.5 rounded-full ${progress.percent >= 50 && progress.percent < 100 ? "bg-yellow-400" : progress.percent >= 100 ? "bg-green-500" : "bg-muted-foreground/25"}`} />
-                  <span className={`h-1.5 w-1.5 rounded-full ${progress.percent >= 100 ? "bg-green-500" : "bg-muted-foreground/25"}`} />
                 </div>
               </div>
 
@@ -225,7 +210,6 @@ const UploadCollection = () => {
           {/* File previews */}
           {files.length > 0 && (
             <div>
-              <p className="mb-2 text-sm font-medium text-foreground/80">{files.length} file(s) selected</p>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                 {files.map((f, i) => {
                   const status = progress?.files.find((pf) => pf.name === f.name)?.status;

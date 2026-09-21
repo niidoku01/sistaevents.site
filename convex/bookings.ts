@@ -4,7 +4,7 @@ import { v } from "convex/values";
 import { adminSecretArg, validateAdminSecret } from "./admin";
 
 const ADMIN_BOOKINGS_URL = "https://sistaevents.site/admin";
-const BOOKINGS_ALERT_EMAIL = process.env.BOOKINGS_ALERT_EMAIL || "niidoku01@gmail.com";
+const BOOKINGS_ALERT_EMAIL = process.env.BOOKINGS_ALERT_EMAIL;
 const BOOKINGS_FROM_EMAIL = process.env.BOOKINGS_FROM_EMAIL || "onboarding@resend.dev";
 
 export const sendBookingAlert = action({
@@ -17,8 +17,8 @@ export const sendBookingAlert = action({
   },
   handler: async (_ctx) => {
     const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) {
-      console.error("RESEND_API_KEY not configured; skipping email alert.");
+    if (!apiKey || !BOOKINGS_ALERT_EMAIL) {
+      console.error("RESEND_API_KEY or BOOKINGS_ALERT_EMAIL not configured; skipping email alert.");
       return;
     }
 
@@ -75,8 +75,12 @@ export const createBooking = mutation({
     phone: v.string(),
     eventDate: v.string(),
     message: v.string(),
+    consent: v.boolean(),
   },
   handler: async (ctx, args) => {
+    if (args.consent !== true) {
+      throw new Error("Consent is required to submit a booking");
+    }
     if (args.name.trim().length < 2 || args.name.trim().length > 100) {
       throw new Error("Name must be between 2 and 100 characters");
     }
@@ -128,10 +132,17 @@ export const createBooking = mutation({
       phone: args.phone.trim(),
       eventDate: args.eventDate,
       message: args.message,
+      consentAt: Date.now(),
       createdAt: Date.now(),
     });
 
-    ctx.scheduler.runAfter(0, api.bookings.sendBookingAlert, args);
+    ctx.scheduler.runAfter(0, api.bookings.sendBookingAlert, {
+      name: args.name,
+      email: args.email,
+      phone: args.phone,
+      eventDate: args.eventDate,
+      message: args.message,
+    });
 
     return bookingId;
   },

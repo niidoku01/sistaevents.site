@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { Card, CardContent } from "@/components/ui/card";
-import { Star, Quote, TrendingUp, Loader, X } from "lucide-react";
+import { Star, Quote, TrendingUp, Loader, ChevronDown } from "lucide-react";
 import { ReviewForm } from "./ReviewForm";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
@@ -20,35 +19,17 @@ const TestimonialsLoader = () => (
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
       }
-      @keyframes dotBounce {
-        0%, 80%, 100% { transform: translateY(0); opacity: 0.6; }
-        40% { transform: translateY(-10px); opacity: 1; }
-      }
-      .loader-spin {
-        animation: rotateSpin 2.5s linear infinite;
-      }
       .pulse-scale {
         animation: pulseScale 2s ease-in-out infinite;
       }
-      .dot-bounce {
-        animation: dotBounce 1.4s ease-in-out infinite;
-      }
     `}</style>
     
-    <div className="relative mb-6">
-      <div className="absolute inset-0 bg-accent/20 rounded-full blur-xl" />
-      <div className="relative w-16 h-16 flex items-center justify-center">
-        <Loader className="w-8 h-8 text-accent loader-spin" />
-      </div>
-    </div>
+    
 
-    <div className="flex gap-1 mb-6 h-2">
-      <div className="w-2 h-2 rounded-full bg-accent dot-bounce" style={{ animationDelay: "0s" }} />
-      <div className="w-2 h-2 rounded-full bg-accent dot-bounce" style={{ animationDelay: "0.3s" }} />
-      <div className="w-2 h-2 rounded-full bg-accent dot-bounce" style={{ animationDelay: "0.6s" }} />
+    <div className="flex items-center gap-2 mb-6 text-accent">
+      <Loader className="h-4 w-4 animate-spin" />
+      <p className="text-sm text-muted-foreground font-medium">Loading</p>
     </div>
-
-    <p className="text-sm text-muted-foreground font-medium">Loading amazing testimonials...</p>
   </div>
 );
 
@@ -76,21 +57,32 @@ const SkeletonCard = ({ delay }: { delay: number }) => (
   </Card>
 );
 
-const TestimonialsHeading = () => (
+const TestimonialsHeading = ({ average }: { average?: number }) => (
   <div className="text-center mb-12 sm:mb-20">
-    <div className="inline-flex items-center gap-2 mb-4 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <TrendingUp className="w-4 h-4 text-accent" />
-      <span className="text-xs sm:text-sm font-semibold text-accent">Trusted by Events Across Ghana</span>
-    </div>
     <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4 bg-clip-text animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
-      What clients say about us
+     Testimonials
     </h2>
     <p className="hidden sm:block text-lg text-muted-foreground max-w-3xl mx-auto mb-2 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
-      Real experiences from real events. See how we've transformed celebrations
+     Read what clients say about us
     </p>
-    <p className="sm:hidden text-sm text-muted-foreground max-w-2xl mx-auto mb-2 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
-      Real experiences from real events.
-    </p>
+
+    {average !== undefined && (
+      <div className="inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-full border border-border/60 bg-background/70 px-5 py-2 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
+        <div className="flex gap-0.5" aria-label={`Average rating ${average.toFixed(1)} out of 5`}>
+          {[...Array(5)].map((_, i) => (
+            <Star
+              key={i}
+              className={`w-4 h-4 ${
+                i < Math.round(average) ? "fill-accent text-accent" : "text-muted-foreground/25"
+              }`}
+            />
+          ))}
+        </div>
+        <span className="text-sm font-semibold text-foreground">
+          {average.toFixed(1)}
+        </span>
+      </div>
+    )}
   </div>
 );
 
@@ -117,16 +109,24 @@ const TestimonialsContent = () => {
   const loading = reviews === undefined;
   const showEmpty = !loading && sortedTestimonials.length === 0;
 
+  const average = useMemo(() => {
+    if (sortedTestimonials.length === 0) return undefined;
+    return (
+      sortedTestimonials.reduce((sum, t) => sum + t.rating, 0) /
+      sortedTestimonials.length
+    );
+  }, [sortedTestimonials]);
+
   return (
     <div className="container mx-auto px-4 lg:px-6">
-      <TestimonialsHeading />
+      <TestimonialsHeading average={average} />
 
       {loading && <SkeletonGrid />}
 
       {showEmpty && (
         <div className="text-center py-16 animate-in fade-in duration-500">
           <Quote className="w-12 h-12 text-accent/20 mx-auto mb-4" />
-          <p className="text-muted-foreground text-lg">No reviews yet. Be the first to share your experience!</p>
+          <p className="text-muted-foreground text-lg">No reviews yet </p>
         </div>
       )}
 
@@ -157,64 +157,44 @@ const TestimonialsContent = () => {
               <Card className="relative overflow-hidden border-border h-full hover:border-accent/50 transition-all duration-300 hover:shadow-2xl hover:shadow-accent/20 bg-gradient-to-br from-muted/30 to-background">
                 {/* Animated gradient background */}
                 <div className="absolute inset-0 bg-gradient-to-br from-accent/[0.02] via-transparent to-accent/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                
-                {/* Corner accent */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-accent/10 to-transparent rounded-bl-[100px] opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-                
-                {/* Quote icon */}
-                <div className="absolute top-4 right-6 opacity-10 group-hover:opacity-20 transition-opacity duration-300">
-                  <Quote className="w-16 h-16 text-accent" />
-                </div>
 
-                <CardContent className="relative p-6 sm:p-7 lg:p-8 flex flex-col h-full">
-                  {/* Rating stars */}
-                  <div className="flex gap-1.5 mb-5 z-10">
-                    {[...Array(5)].map((_, i) => (
-                      <div key={i} className="relative">
-                        <Star
-                          className={`w-5 h-5 transition-all duration-300 ${
-                            i < testimonial.rating
-                              ? 'fill-accent text-accent scale-110'
-                              : 'text-muted-foreground/30'
-                          }`}
-                        />
+                <CardContent className="relative p-5 sm:p-6 lg:p-7 flex flex-col h-full">
+                  {/* Top row: Avatar + Name (left), Event type (center), Rating tile (right) */}
+                  <div className="flex items-center justify-between gap-3 mb-4 z-10">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent/30 to-accent/10 flex items-center justify-center flex-shrink-0 ring-2 ring-accent/20 group-hover:ring-accent/40 transition-all duration-300">
+                        <span className="text-xs font-bold text-accent">
+                          {testimonial.name.charAt(0).toUpperCase()}
+                        </span>
                       </div>
-                    ))}
-                  </div>
-
-                  {/* Testimonial text */}
-                  <div className="relative mb-6 sm:mb-8 flex-grow">
-                    <p className="text-sm sm:text-base text-foreground leading-relaxed whitespace-pre-line break-words line-clamp-5">
-                      &quot;{testimonial.content}&quot;
-                    </p>
-                  </div>
-
-                  {/* Divider */}
-                  <div className="h-px bg-gradient-to-r from-accent/0 via-accent/20 to-accent/0 mb-4 sm:mb-5" />
-
-                  {/* Author info */}
-                  <div className="flex items-center gap-3 z-10">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent/30 to-accent/10 flex items-center justify-center flex-shrink-0 ring-2 ring-accent/20 group-hover:ring-accent/40 transition-all duration-300">
-                      <span className="text-sm font-bold text-accent">
-                        {testimonial.name.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="flex-grow min-w-0">
                       <p className="font-semibold text-foreground text-sm truncate group-hover:text-accent transition-colors duration-300">
                         {testimonial.name}
                       </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {testimonial.event} • {new Date(testimonial.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                      </p>
                     </div>
-                    {testimonial.rating === 5 && (
-                      <div className="flex-shrink-0">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/30">
-                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                          <span className="text-xs font-semibold text-amber-600">Perfect</span>
-                        </span>
-                      </div>
-                    )}
+
+                    <span className="text-[11px] font-medium text-muted-foreground/70 text-center flex-shrink-0">
+                      {testimonial.event}
+                    </span>
+
+                    <div className="inline-flex items-center gap-0.5 flex-shrink-0 rounded-full bg-accent/10 px-2.5 py-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-3 h-3 ${
+                            i < testimonial.rating
+                              ? "fill-accent text-accent"
+                              : "text-muted-foreground/25"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Rounded review span */}
+                  <div className="flex-grow rounded-2xl border border-border/40 bg-background/60 p-4 sm:p-5 shadow-sm group-hover:shadow-accent/10 transition-shadow duration-300">
+                    <p className="text-sm sm:text-base text-foreground leading-relaxed whitespace-pre-line break-words line-clamp-5">
+                      &quot;{testimonial.content}&quot;
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -223,64 +203,55 @@ const TestimonialsContent = () => {
         </div>
       )}
 
-      <div className="flex flex-col items-center gap-6">
-        <div className="text-center">
-          <p className="text-muted-foreground mb-4 text-sm sm:text-base">
-            Had a wonderful experience with us?
-          </p>
+      <div className="flex flex-col items-center gap-8 pt-4">
+        {/* White glass "Submit a review" tab toggles the pull-down form */}
+        <div className="flex flex-col items-center gap-3">
           <button
-            onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-accent to-amber-500 px-8 py-3 text-white font-semibold hover:shadow-lg hover:shadow-accent/40 active:scale-95 transition-all duration-300 text-sm sm:text-base"
+            onClick={() => setShowForm((prev) => !prev)}
+            className={`group relative inline-flex items-center gap-3 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/40 px-8 sm:px-10 py-4 text-foreground font-semibold shadow-xl shadow-black/10 hover:shadow-2xl hover:shadow-black/15 hover:bg-white active:scale-[0.97] transition-all duration-300 text-sm sm:text-base ${
+              showForm ? "bg-white shadow-none" : ""
+            }`}
+            aria-label="Submit a review"
+            aria-expanded={showForm}
           >
-            <Star className="w-4 h-4" />
-            Share Your Experience
+            Submit a review
+
+            {/* Pull-down chevron */}
+            <ChevronDown
+              className={`w-5 h-5 text-accent transition-all duration-300 ${
+                showForm ? "rotate-180" : "group-hover:translate-y-0.5"
+              }`}
+            />
           </button>
+
+          <span className="text-xs text-muted-foreground/70">
+            {showForm ? "Click to hide the form" : "Click to open the review form"}
+          </span>
         </div>
 
-      </div>
-
-      {/* Glass Effect Modal */}
-      {showForm &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4 animate-in fade-in duration-300"
-            onClick={() => setShowForm(false)}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Share your experience form"
-          >
-          <div
-            className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-white/30 bg-gradient-to-br from-white/20 to-white/10 backdrop-blur-md shadow-2xl shadow-black/20 p-6 sm:p-8 lg:p-10 animate-in zoom-in-95 duration-300"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close Button */}
-            <button
-              type="button"
-              onClick={() => setShowForm(false)}
-              className="absolute right-4 top-4 sm:right-6 sm:top-6 rounded-full p-2 text-muted-foreground hover:bg-white/20 hover:text-foreground transition-all duration-300 z-10"
-              aria-label="Close form"
-            >
-              <X className="w-5 h-5 sm:w-6 sm:h-6" />
-            </button>
-
-            {/* Header */}
-            <div className="mb-6 sm:mb-8 pr-8">
-              <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
-                Share Your Experience
+        {/* Pull-down review form */}
+        <div
+          className={`w-full max-w-2xl transition-all duration-500 ease-in-out overflow-hidden ${
+            showForm ? "max-h-[1200px] opacity-100 translate-y-0" : "max-h-0 opacity-0 -translate-y-4"
+          }`}
+        >
+          <div className="relative rounded-3xl border border-white/30 bg-white/60 backdrop-blur-2xl shadow-2xl shadow-black/10 p-6 sm:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-1 rounded-b-full bg-gradient-to-r from-accent to-amber-500" />
+            <div className="mb-6 sm:mb-8">
+              <h3 className="text-2xl sm:text-3xl font-bold text-foreground">
+                Share your experience
               </h3>
               <p className="text-sm sm:text-base text-muted-foreground">
-                We'd love to hear about your event! Your feedback helps us improve.
+                We'd love to hear your feedback to help us improve.
               </p>
             </div>
 
-            {/* Form Container */}
             <div className="w-full">
               <ReviewForm onSuccess={() => setShowForm(false)} />
             </div>
           </div>
-          </div>,
-          document.body,
-        )}
+        </div>
+      </div>
     </div>
   );
 };

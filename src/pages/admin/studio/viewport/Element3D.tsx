@@ -291,7 +291,7 @@ function TallObject({ width, height, color, aspectRatio = 0.6 }: { width: number
   );
 }
 
-export default function Element3D({ type, x, y, width, height, rotation, color, guests, label }: Element3DProps) {
+export default function Element3D({ type, x, y, width, height, rotation, color, guests, label, selected = false }: Element3DProps) {
   const px = x * S;
   const pz = y * S;
   const ry = (rotation * Math.PI) / 180;
@@ -422,6 +422,18 @@ export default function Element3D({ type, x, y, width, height, rotation, color, 
 
   return (
     <group position={[px, 0, pz]} rotation={[0, ry, 0]}>
+      {selected && (
+        <group>
+          <mesh position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[Math.max(width, height) * S * 0.45, Math.max(width, height) * S * 0.5, 48]} />
+            <meshBasicMaterial color="#f59e0b" transparent opacity={0.9} depthWrite={false} />
+          </mesh>
+          <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[Math.max(width, height) * S * 0.62, Math.max(width, height) * S * 0.68, 48]} />
+            <meshBasicMaterial color="#f59e0b" transparent opacity={0.25} depthWrite={false} />
+          </mesh>
+        </group>
+      )}
       {child}
     </group>
   );

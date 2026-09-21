@@ -14,7 +14,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Calendar as CalendarIcon, CalendarClock } from "lucide-react";
+import { Calendar as CalendarIcon, CalendarClock, Info, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useConvexAdminSecret } from "@/hooks/useConvexAdminSecret";
 import { bookingAPI, getConvexAdminSecret } from "@/lib/api";
@@ -194,10 +194,27 @@ const Bookings: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {adminSecretStatus === "error" && (
+        <Card className="border-amber-200/60 bg-gradient-to-r from-amber-50/60 to-orange-50/60 shadow-sm">
+          <CardContent className="p-4 text-sm text-amber-900 font-medium">
+            <span className="flex items-center gap-2">
+              <Info className="w-4 h-4 shrink-0" />
+              <span>
+                Could not connect to the backend server.
+                Make sure it is running: <code className="px-1.5 py-0.5 rounded bg-amber-100/80 font-mono text-xs">npm run dev:server</code> in a second terminal.
+              </span>
+            </span>
+          </CardContent>
+        </Card>
+      )}
+
       {isUsingFallback && (
         <Card className="border-amber-200/60 bg-gradient-to-r from-amber-50/60 to-orange-50/60 shadow-sm">
           <CardContent className="p-4 text-sm text-amber-900 font-medium">
-            ℹ️ Showing bookings from backend as Convex has no records yet
+            <span className="flex items-center gap-2">
+              <Info className="w-4 h-4 shrink-0" />
+              Showing bookings from the server API as Convex has no records yet
+            </span>
           </CardContent>
         </Card>
       )}
@@ -371,7 +388,7 @@ const Bookings: React.FC = () => {
                     </div>
                     <div className="space-y-2 text-sm">
                       <div className="flex items-center gap-2 text-slate-700">
-                        <span className="text-slate-500">📱</span>
+                        <Phone className="w-4 h-4 text-slate-500 shrink-0" />
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <button className="text-blue-600 hover:underline break-all text-left">

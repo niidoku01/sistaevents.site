@@ -11,7 +11,7 @@ import { useBreakpoint } from "./planner/hooks/useBreakpoint";
 import PlannerToolbar from "./planner/components/PlannerToolbar";
 import ElementSidebar from "./planner/components/ElementSidebar";
 import PlannerCanvas from "./planner/components/PlannerCanvas";
-import type { PlacedElement, ElementType } from "./planner/types";
+import type { PlacedElement, ElementType, ViewMode } from "./planner/types";
 import { useAdminConfirm } from "@/components/admin/AdminConfirmProvider";
 
 const Venue3DView = lazy(() => import("./studio/viewport/Venue3D"));
@@ -37,7 +37,7 @@ const EventPlanner: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const [sidebarTab, setSidebarTab] = useState<"elements" | "layers">("elements");
   const [elementSearch, setElementSearch] = useState("");
-  const [show3D, setShow3D] = useState(() => !isMobile);
+  const [viewMode, setViewMode] = useState<ViewMode>(() => (!isMobile ? "split" : "2d"));
   const [showFullscreen3D, setShowFullscreen3D] = useState(false);
   const [perspective3D, setPerspective3D] = useState({ rotateX: 45, rotateZ: -30 });
   const [venueBg, setVenueBg] = useState("default");
@@ -352,7 +352,7 @@ const EventPlanner: React.FC = () => {
           <PlannerToolbar
             eventName={eventName} setEventName={setEventName} totalGuests={totalGuests}
             scale={scale} setScale={setScale} showGrid={showGrid} setShowGrid={setShowGrid}
-            show3D={show3D} setShow3D={setShow3D} venueBg={venueBg} setVenueBg={setVenueBg}
+            viewMode={viewMode} setViewMode={setViewMode} venueBg={venueBg} setVenueBg={setVenueBg}
             showBgPicker={showBgPicker} setShowBgPicker={setShowBgPicker}
             undo={undo} redo={redo} canUndo={canUndo} canRedo={canRedo}
             handleAutoArrange={handleAutoArrange} savePlan={savePlan} exportPNG={exportPNG} clearAll={clearAll}
@@ -375,37 +375,35 @@ const EventPlanner: React.FC = () => {
         />
 
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-          <PlannerCanvas
-            canvasRef={canvasRef} showGrid={showGrid}
-            elements={elements} sortedElements={sortedElements}
-            selectedIds={selectedIds} selectedEl={selectedEl} selectedDef={selectedDef}
-            isTable={isTable} scale={scale} guides={guides}
-            dragFromPalette={dragFromPalette}
-            snapEnabled={snapEnabled} guidesEnabled={guidesEnabled}
-            setSelectedIds={setSelectedIds} handleDragStart={handleDragStart} handleResizeStart={handleResizeStart}
-            onElementDoubleClick={onElementDoubleClick}
-            handleCanvasClick={handleCanvasClick} handleCanvasDrop={handleCanvasDrop} handleCanvasDragOver={handleCanvasDragOver}
-            labelInput={labelInput} setLabelInput={setLabelInput} commitLabel={commitLabel}
-            rotateBy={rotateBy} rotateTo={rotateTo} flipElement={flipElement}
-            setElementSize={setElementSize} scaleElement={scaleElement}
-            lockAspect={lockAspect} setLockAspect={setLockAspect}
-            undo={undo} redo={redo} canUndo={canUndo} canRedo={canRedo}
-            sendBackward={sendBackward} bringForward={bringForward}
-            sendToBack={sendToBack} bringToFront={bringToFront}
-            duplicateSelected={duplicateSelected} startEditLabel={startEditLabel}
-            deleteSelected={deleteSelected} updateGuests={updateGuests}
-            onToggleLock={onToggleLock} onGroup={onGroup} onUngroup={onUngroup}
-            onToggleSnap={onToggleSnap} onToggleGuides={onToggleGuides}
-            setScale={setScale}
-          />
+          <div className={viewMode === "3d" ? "hidden" : "flex-1 min-w-0 min-h-0 flex flex-col"}>
+            <PlannerCanvas
+              canvasRef={canvasRef} showGrid={showGrid}
+              elements={elements} sortedElements={sortedElements}
+              selectedIds={selectedIds} selectedEl={selectedEl} selectedDef={selectedDef}
+              isTable={isTable} scale={scale} guides={guides}
+              dragFromPalette={dragFromPalette}
+              snapEnabled={snapEnabled} guidesEnabled={guidesEnabled}
+              setSelectedIds={setSelectedIds} handleDragStart={handleDragStart} handleResizeStart={handleResizeStart}
+              onElementDoubleClick={onElementDoubleClick}
+              handleCanvasClick={handleCanvasClick} handleCanvasDrop={handleCanvasDrop} handleCanvasDragOver={handleCanvasDragOver}
+              labelInput={labelInput} setLabelInput={setLabelInput} commitLabel={commitLabel}
+              rotateBy={rotateBy} rotateTo={rotateTo} flipElement={flipElement}
+              setElementSize={setElementSize} scaleElement={scaleElement}
+              lockAspect={lockAspect} setLockAspect={setLockAspect}
+              undo={undo} redo={redo} canUndo={canUndo} canRedo={canRedo}
+              sendBackward={sendBackward} bringForward={bringForward}
+              sendToBack={sendToBack} bringToFront={bringToFront}
+              duplicateSelected={duplicateSelected} startEditLabel={startEditLabel}
+              deleteSelected={deleteSelected} updateGuests={updateGuests}
+              onToggleLock={onToggleLock} onGroup={onGroup} onUngroup={onUngroup}
+              onToggleSnap={onToggleSnap} onToggleGuides={onToggleGuides}
+              setScale={setScale}
+            />
+          </div>
 
-          {show3D && !isMobile && (
-            <div className="w-full md:w-1/2 flex-shrink-0 rounded-2xl overflow-hidden relative border border-white/10 shadow-[0_0_40px_rgba(139,92,246,0.08)]" style={{ minHeight: 200 }}>
+          {viewMode !== "2d" && (
+            <div className={viewMode === "3d" ? "flex-1 min-w-0 min-h-0 flex flex-col rounded-2xl overflow-hidden relative border border-white/10 shadow-[0_0_40px_rgba(139,92,246,0.08)]" : "w-full md:w-1/2 flex-shrink-0 min-h-0 flex flex-col rounded-2xl overflow-hidden relative border border-white/10 shadow-[0_0_40px_rgba(139,92,246,0.08)]"} style={viewMode === "3d" ? undefined : { minHeight: 200 }}>
               <div className="absolute top-3 left-3 z-10 flex items-center gap-2 bg-black/60 backdrop-blur-md rounded-full px-3 py-1.5 shadow-lg border border-white/10">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
                 <span className="text-[10px] font-bold text-white/80 uppercase tracking-widest">3D Live</span>
               </div>
               <Suspense fallback={
@@ -416,6 +414,8 @@ const EventPlanner: React.FC = () => {
               }>
                 <Venue3DView
                   elements={elements}
+                  selectedIds={selectedIds}
+                  onSelect={setSelectedId}
                   rotateX={perspective3D.rotateX}
                   rotateZ={perspective3D.rotateZ}
                   showStudioControls={false}
@@ -428,7 +428,7 @@ const EventPlanner: React.FC = () => {
       </div>
 
       {/* ─── 3D Controls (below canvas) ──────────────────── */}
-      {show3D && !isMobile && (
+      {viewMode !== "2d" && (
         <div className="flex-shrink-0 border-t border-slate-200/40 bg-gradient-to-r from-slate-50 via-white to-slate-50 px-2 py-2 sm:px-6 sm:py-3 overflow-x-auto">
           <div className="flex items-center gap-2 sm:gap-5 flex-nowrap min-w-0">
             <div className="flex items-center gap-2 flex-shrink-0">

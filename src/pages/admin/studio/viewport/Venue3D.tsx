@@ -20,6 +20,8 @@ interface PlacedElement {
 
 interface Venue3DProps {
   elements: PlacedElement[];
+  selectedIds?: string[];
+  onSelect?: (id: string | null) => void;
   rotateX?: number;
   rotateZ?: number;
   showStudioControls?: boolean;
@@ -49,16 +51,21 @@ function ScreenshotCapture({ onReady }: { onReady: (fn: () => string) => void })
   return null;
 }
 
-export default function Venue3D({ elements, rotateX, rotateZ, showStudioControls = true, onScreenshotReady }: Venue3DProps) {
+export default function Venue3D({ elements, selectedIds = [], onSelect, rotateX, rotateZ, showStudioControls = true, onScreenshotReady }: Venue3DProps) {
   const { showShadows, showGrid3D } = useStudioStore();
   const sw = VENUE_W * 0.05;
   const sh = VENUE_H * 0.05;
+
+  const handlePointerMissed = onSelect
+    ? () => onSelect(null)
+    : undefined;
 
   return (
     <div className="w-full h-full relative">
       {showStudioControls && <CameraToolbar />}
       <Canvas
         shadows
+        onPointerMissed={handlePointerMissed}
         gl={{
           antialias: true,
           toneMapping: 3,
@@ -99,18 +106,25 @@ export default function Venue3D({ elements, rotateX, rotateZ, showStudioControls
 
         {/* Elements */}
         {elements.map((el) => (
-          <Element3D
+          <group
             key={el.id}
-            type={el.type}
-            x={el.x}
-            y={el.y}
-            width={el.width}
-            height={el.height}
-            rotation={el.rotation}
-            color={el.color}
-            guests={el.guests}
-            label={el.label}
-          />
+            onClick={onSelect ? (e) => { e.stopPropagation(); onSelect(el.id); } : undefined}
+            onPointerOver={onSelect ? (e) => { e.stopPropagation(); document.body.style.cursor = "pointer"; } : undefined}
+            onPointerOut={onSelect ? () => { document.body.style.cursor = ""; } : undefined}
+          >
+            <Element3D
+              type={el.type}
+              x={el.x}
+              y={el.y}
+              width={el.width}
+              height={el.height}
+              rotation={el.rotation}
+              color={el.color}
+              guests={el.guests}
+              label={el.label}
+              selected={selectedIds.includes(el.id)}
+            />
+          </group>
         ))}
 
         {/* Contact shadows */}

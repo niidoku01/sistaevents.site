@@ -8,6 +8,7 @@ export default defineSchema({
     phone: v.string(),
     eventDate: v.string(),
     message: v.string(),
+    consentAt: v.optional(v.number()),
     createdAt: v.number(),
   })
     .index("by_created_at", ["createdAt"])
@@ -26,6 +27,7 @@ export default defineSchema({
     content: v.string(),
     rating: v.number(),
     approved: v.boolean(),
+    consentAt: v.optional(v.number()),
     createdAt: v.number(),
   })
     .index("by_approved", ["approved"])

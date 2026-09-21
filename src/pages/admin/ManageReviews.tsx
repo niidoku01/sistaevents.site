@@ -145,7 +145,10 @@ const ManageReviews = () => {
   if (failed) {
     return (
       <div className="text-center py-12">
-        <p className="text-red-500 font-medium">Could not load reviews — admin session unavailable.</p>
+        <p className="text-amber-700 font-medium">Could not connect to the backend server.</p>
+        <p className="text-sm text-slate-500 mt-2">
+          Make sure it is running: <code className="px-1.5 py-0.5 rounded bg-amber-100/80 font-mono text-xs">npm run dev:server</code> in a second terminal.
+        </p>
       </div>
     );
   }

@@ -40,15 +40,18 @@ export const Contact = () => {
     phone: "",
     eventDate: "",
     message: "",
+    consent: false,
   });
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const hasRequiredFields = Boolean(formData.name.trim() && formData.email.trim() && formData.message.trim());
+  const hasRequiredFields = Boolean(formData.name.trim() && formData.email.trim() && formData.message.trim() && formData.consent);
+  const wordCount = formData.message.trim() ? formData.message.trim().split(/\s+/).filter(Boolean).length : 0;
 
   const getMissingFieldMessage = () => {
     if (!formData.name.trim()) return "Please enter your name.";
     if (!formData.email.trim()) return "Please enter your email address.";
     if (!formData.message.trim()) return "Please tell us about your event.";
+    if (!formData.consent) return "Please accept the data protection notice to continue.";
     return "";
   };
 
@@ -228,7 +231,7 @@ export const Contact = () => {
     setIsLoading(true);
 
     try {
-      await createBooking(formData);
+      await createBooking({ ...formData, consent: formData.consent });
       
       // Play success sound only after successful booking
       await primeSuccessSound();
@@ -244,6 +247,7 @@ export const Contact = () => {
         phone: "",
         eventDate: "",
         message: "",
+        consent: false,
       });
       
       // Clear success message after 5 seconds
@@ -264,7 +268,7 @@ export const Contact = () => {
       <div className="container mx-auto px-4 lg:px-6">
         <div className="text-center mb-10 sm:mb-16">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-            Bookings
+            Booking
           </h2>
           <p className="hidden sm:block text-lg text-muted-foreground max-w-2xl mx-auto">
             Let's discuss how we can make your event extraordinary
@@ -371,23 +375,48 @@ export const Contact = () => {
                   </div>
 
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label htmlFor="message" className="block text-sm font-medium text-foreground">
-                        Tell us about your event 
-                      </label>
-                      <span className={`text-xs ${formData.message.length > 900 ? "text-red-500" : "text-muted-foreground"}`}>
-                        {formData.message.length}/1000
+                    <label htmlFor="message" className="block text-sm font-medium text-foreground mb-2">
+                      Tell us about your event
+                    </label>
+                    <div className="relative">
+                      <Textarea
+                        id="message"
+                        aria-required="true"
+                        maxLength={1000}
+                        value={formData.message}
+                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                        placeholder="Describe your event needs, logistics, guest count, venue, etc."
+                        className="min-h-[150px] pb-8 pr-16"
+                      />
+                      <span
+                        className={`pointer-events-none absolute right-3 bottom-2.5 rounded-md px-1.5 py-0.5 text-[10px] font-semibold tabular-nums ${
+                          wordCount > 160
+                            ? "text-red-600"
+                            : "text-slate-500"
+                        }`}
+                      >
+                        {wordCount}/1000
                       </span>
                     </div>
-                    <Textarea
-                      id="message"
-                      aria-required="true"
-                      maxLength={1000}
-                      value={formData.message}
-                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      placeholder="Describe your event needs, logistics, guest count, venue, etc."
-                      className="min-h-[150px]"
+                  </div>
+
+                  <div className="flex items-start gap-3 rounded-xl border border-border/80 bg-muted/40 p-3.5 sm:p-4">
+                    <input
+                      id="consent"
+                      type="checkbox"
+                      required
+                      checked={formData.consent}
+                      onChange={(e) => setFormData({ ...formData, consent: e.target.checked })}
+                      className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-[hsl(var(--accent))]"
                     />
+                    <label htmlFor="consent" className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                      I agree to the{" "}
+                      <a href="/privacy-policy" className="text-accent underline underline-offset-2 hover:opacity-80 transition-opacity">
+                        Privacy Policy
+                      </a>{" "}
+                      and consent to Sista Events &amp; Rentals storing and processing my name, contact details, and
+                      event information in order to respond to my enquiry.
+                    </label>
                   </div>
 
                   <Button
@@ -406,7 +435,7 @@ export const Contact = () => {
                     ) : "Send Booking"}
                   </Button>
                   {!hasRequiredFields && !isLoading && (
-                    <p className="text-xs text-muted-foreground text-center">
+                    <p className="text-xs text-red-600 dark:text-red-400 text-center">
                       {getMissingFieldMessage() || "Please fill in your name, email, and message to continue."}
                     </p>
                   )}
@@ -415,58 +444,58 @@ export const Contact = () => {
             </Card>
           </div>
 
-          <div className="space-y-4 sm:space-y-6">
+          <div className="grid gap-3 sm:gap-4 lg:gap-6">
             <Card className="border-border group hover:shadow-lg transition-shadow duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-green-500/20 to-green-500/5 flex items-center justify-center flex-shrink-0 group-hover:from-green-500/30 group-hover:to-green-500/10 transition-colors duration-300">
-                    <Phone className="w-5 h-5 text-green-600" />
+              <CardContent className="p-3.5 sm:p-6">
+                <div className="flex items-center gap-3 sm:items-start sm:gap-4">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-green-500/20 to-green-500/5 flex items-center justify-center flex-shrink-0 group-hover:from-green-500/30 group-hover:to-green-500/10 transition-colors duration-300">
+                    <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-1">Call Us</h3>
-                    <p className="text-muted-foreground">(+233) 555-182969</p>
+                  <div className="min-w-0">
+                    <h3 className="text-xs sm:text-base font-semibold text-foreground mb-0.5 sm:mb-1">Call Us</h3>
+                    <p className="text-sm sm:text-base text-muted-foreground truncate">(+233) 555-182969</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="border-border group hover:shadow-lg transition-shadow duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-red-600/15 to-red-600/5 flex items-center justify-center flex-shrink-0 group-hover:from-red-600/25 group-hover:to-red-600/10 transition-colors duration-300">
-                    <Mail className="w-5 h-5" fill="white" stroke="#dc2626" />
+              <CardContent className="p-3.5 sm:p-6">
+                <div className="flex items-center gap-3 sm:items-start sm:gap-4">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-red-600/15 to-red-600/5 flex items-center justify-center flex-shrink-0 group-hover:from-red-600/25 group-hover:to-red-600/10 transition-colors duration-300">
+                    <Mail className="w-4 h-4 sm:w-5 sm:h-5" fill="white" stroke="#dc2626" />
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-1">Email Us</h3>
-                    <p className="text-muted-foreground">info@sistaevents.com</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-border hidden sm:block group hover:shadow-lg transition-shadow duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-green-500/20 to-green-500/5 flex items-center justify-center flex-shrink-0">
-                    <WhatsAppIcon className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-1">WhatsApp</h3>
-                    <p className="text-muted-foreground">(+233) 279-689522</p>
+                  <div className="min-w-0">
+                    <h3 className="text-xs sm:text-base font-semibold text-foreground mb-0.5 sm:mb-1">Email Us</h3>
+                    <p className="text-sm sm:text-base text-muted-foreground truncate">info@sistaevents.com</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-border hidden sm:block group hover:shadow-lg transition-shadow duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-red-600/15 to-red-600/5 flex items-center justify-center flex-shrink-0 group-hover:from-red-600/25 group-hover:to-red-600/10 transition-colors duration-300">
-                    <MapPin className="w-5 h-5 text-red-600" />
+            <Card className="border-border group hover:shadow-lg transition-shadow duration-300">
+              <CardContent className="p-3.5 sm:p-6">
+                <div className="flex items-center gap-3 sm:items-start sm:gap-4">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-green-500/20 to-green-500/5 flex items-center justify-center flex-shrink-0">
+                    <WhatsAppIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-1">Locate Us</h3>
-                    <p className="text-muted-foreground">Amanfro , kingstown <br /> Kasoa</p>
+                  <div className="min-w-0">
+                    <h3 className="text-xs sm:text-base font-semibold text-foreground mb-0.5 sm:mb-1">WhatsApp</h3>
+                    <p className="text-sm sm:text-base text-muted-foreground truncate">(+233) 279-689522</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border group hover:shadow-lg transition-shadow duration-300">
+              <CardContent className="p-3.5 sm:p-6">
+                <div className="flex items-center gap-3 sm:items-start sm:gap-4">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-red-600/15 to-red-600/5 flex items-center justify-center flex-shrink-0 group-hover:from-red-600/25 group-hover:to-red-600/10 transition-colors duration-300">
+                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-xs sm:text-base font-semibold text-foreground mb-0.5 sm:mb-1">Locate Us</h3>
+                    <p className="text-sm sm:text-base text-muted-foreground truncate">Amanfro, Kingstown, Kasoa</p>
                   </div>
                 </div>
               </CardContent>

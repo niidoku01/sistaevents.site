@@ -1,10 +1,9 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { images } from "@/lib/imageImports";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { images } from "@/lib/imageImports";
+import { cn } from "@/lib/utils";
+import { ChevronDown, Eye, EyeOff, LayoutGrid, RotateCcw } from "lucide-react";
 import {
   getLogisticsAvailability,
   LOGISTICS_AVAILABILITY_EVENT,
@@ -86,9 +85,7 @@ const ManageFeaturedAvailability = () => {
   }, []);
 
   const availabilityMap = new Map(Object.entries(availabilityState.items));
-  const imageAvailabilityMap = new Map(
-    Object.entries(availabilityState.images)
-  );
+  const imageAvailabilityMap = new Map(Object.entries(availabilityState.images));
 
   const toggleExpanded = (itemKey: string) => {
     setExpandedItems((prev) => ({
@@ -97,12 +94,16 @@ const ManageFeaturedAvailability = () => {
     }));
   };
 
+  const isPhotoVisible = (itemKey: string, imageIndex: number) =>
+    imageAvailabilityMap.get(`${itemKey}:${imageIndex}`) ?? true;
+
   const handleToggle = (key: string, nextValue: boolean) => {
     setLogisticsItemAvailability(key, nextValue);
     setAvailabilityState(getLogisticsAvailability());
+    const item = featuredItems.find((entry) => entry.key === key);
     toast({
-      title: "Updated",
-      description: `Item is now ${nextValue ? "available" : "unavailable"}.`,
+      title: nextValue ? "Open for bookings" : "Bookings paused",
+      description: nextValue ? `${item?.title} is open for bookings again.` : `${item?.title} is paused for now.`,
     });
   };
 
@@ -110,8 +111,19 @@ const ManageFeaturedAvailability = () => {
     setLogisticsImageAvailability(itemKey, imageIndex, nextValue);
     setAvailabilityState(getLogisticsAvailability());
     toast({
-      title: "Updated",
-      description: `Image ${imageIndex + 1} is now ${nextValue ? "available" : "unavailable"}.`,
+      title: nextValue ? "Photo on display" : "Photo hidden",
+      description: nextValue ? "This photo is on display again." : "This photo is now hidden from the showcase.",
+    });
+  };
+
+  const setAllImages = (itemKey: string, nextValue: boolean) => {
+    const item = featuredItems.find((entry) => entry.key === itemKey);
+    if (!item) return;
+    item.imageUrls.forEach((_, imageIndex) => setLogisticsImageAvailability(itemKey, imageIndex, nextValue));
+    setAvailabilityState(getLogisticsAvailability());
+    toast({
+      title: nextValue ? "All photos on display" : "All photos hidden",
+      description: nextValue ? `${item.title} is back on the showcase.` : `${item.title} photos are now hidden.`,
     });
   };
 
@@ -119,137 +131,200 @@ const ManageFeaturedAvailability = () => {
     resetLogisticsAvailability();
     setAvailabilityState(getLogisticsAvailability());
     toast({
-      title: "Reset complete",
-      description: "Logistics availability restored to default values.",
+      title: "All set",
+      description: "Showcase restored to its default setup.",
     });
   };
 
+  const openCount = featuredItems.filter((item) => availabilityMap.get(item.key) ?? true).length;
+
+  const summary = [
+    { icon: LayoutGrid, label: "Collections", value: String(featuredItems.length) },
+    { icon: Eye, label: "Open for bookings", value: `${openCount} of ${featuredItems.length}` },
+  ];
+
   return (
-    <Card className="border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300 bg-white/50 backdrop-blur-sm">
-      <CardHeader className="pb-4 border-b border-slate-200/60">
-        <div className="space-y-1">
-          <CardTitle className="text-lg sm:text-xl font-bold text-slate-900">Logistics Availability</CardTitle>
-          <p className="text-sm text-slate-600">Control which items are available for booking</p>
+    <div className="space-y-6">
+      {/* Page heading */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div className="max-w-2xl">
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mt-1">
+            Logistics
+          </h2>
+          <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+            Manage logistics availability
+          </p>
         </div>
-        <div className="pt-4">
-          <Button 
-            type="button" 
-            variant="outline" 
-            size="sm" 
-            onClick={handleReset}
-            className="rounded-lg border-slate-200/60 hover:bg-slate-50 text-slate-700 font-medium transition-colors"
-          >
-            Reset to Defaults
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="p-6 space-y-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {featuredItems.map((item) => {
-            const isAvailable = availabilityMap.get(item.key) ?? true;
-            const unavailableCount = item.imageUrls.filter((_, imageIndex) => {
-              const imageKey = `${item.key}:${imageIndex}`;
-              return !(imageAvailabilityMap.get(imageKey) ?? true);
-            }).length;
-            const isExpanded = !!expandedItems[item.key];
-            const primaryImage = item.imageUrls[0];
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleReset}
+          className="rounded-xl border-white/60 bg-white/60 text-slate-600 hover:text-amber-700 hover:bg-amber-50/70 hover:border-amber-200/70 font-medium transition-all duration-200 self-start sm:self-auto"
+        >
+          <RotateCcw className="w-3.5 h-3.5 mr-2" />
+          Restore defaults
+        </Button>
+      </div>
 
-            return (
-              <div key={item.key} className="rounded-lg border border-slate-200/60 bg-gradient-to-br from-white to-slate-50/50 hover:shadow-md transition-all duration-200 overflow-hidden group">
-                {/* Item Header */}
-                <div className="p-4 space-y-3">
-                  <div className="flex items-start gap-3">
-                    <img
-                      src={primaryImage.src}
-                      srcSet={primaryImage.srcset}
-                      alt={item.title}
-                      className="w-16 h-16 rounded-lg object-cover border border-slate-200/60 flex-none shadow-sm"
-                      loading="lazy"
-                      decoding="sync"
-                      width={64}
-                      height={64}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-slate-900 text-sm">{item.title}</p>
-                      <div className="flex items-center flex-wrap gap-2 mt-2">
-                        <Badge variant="secondary" className="text-xs bg-slate-100 text-slate-700 border-slate-200">
-                          {item.category}
-                        </Badge>
-                        <Badge 
-                          className={`text-xs font-medium ${isAvailable ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}
-                        >
-                          {isAvailable ? '● Available' : '○ Unavailable'}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-slate-500 mt-2">
-                        {item.imageUrls.length} images {unavailableCount > 0 && `• ${unavailableCount} hidden`}
-                      </p>
-                    </div>
-                    <Switch
-                      checked={isAvailable}
-                      onCheckedChange={(checked) => handleToggle(item.key, checked)}
-                      aria-label={`Toggle availability for ${item.title}`}
-                      className="flex-none mt-1"
-                    />
+
+      {/* Collections */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {featuredItems.map((item) => {
+          const isAvailable = availabilityMap.get(item.key) ?? true;
+          const isExpanded = !!expandedItems[item.key];
+          const primaryImage = item.imageUrls[0];
+
+          return (
+            <div
+              key={item.key}
+              className={cn(
+                "overflow-hidden rounded-2xl border border-white/40 bg-white/60 backdrop-blur-md shadow-sm hover:shadow-md transition-all duration-300",
+                isExpanded && "border-amber-200/60"
+              )}
+            >
+              {/* Collection row */}
+              <div className="flex items-center gap-3 sm:gap-4 p-4 sm:p-5">
+                <img
+                  src={primaryImage.src}
+                  srcSet={primaryImage.srcset}
+                  alt={item.title}
+                  className="h-14 w-14 sm:h-16 sm:w-16 rounded-xl object-cover border border-white/60 shadow-sm flex-none"
+                  loading="lazy"
+                  decoding="async"
+                  width={64}
+                  height={64}
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-bold text-slate-900 text-sm sm:text-base">{item.title}</h3>
                   </div>
-
-                  {/* Expand Button */}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => toggleExpanded(item.key)}
-                    className="w-full rounded-lg border-slate-200/60 hover:bg-slate-50 text-slate-700 font-medium transition-colors text-sm h-8"
-                  >
-                    {isExpanded ? 'Hide Image Controls' : 'Show Image Controls'}
-                  </Button>
+                  <div className="mt-1.5 flex items-center gap-x-3 gap-y-1 flex-wrap text-xs text-slate-600">
+                    <span className="flex items-center gap-1.5">
+                      {isAvailable ? "Open for bookings" : "Bookings paused"}
+                    </span>
+                  </div>
                 </div>
+                <div className="flex items-center gap-1 flex-none">
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={isAvailable}
+                    onClick={() => handleToggle(item.key, !isAvailable)}
+                    aria-label={`${item.title}: open for bookings`}
+                    className={cn(
+                      "relative inline-flex h-7 min-w-[5.5rem] cursor-pointer items-center rounded-full px-1 text-[10px] sm:text-[11px] font-semibold text-white shadow-sm transition-colors duration-200",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                      isAvailable
+                        ? "bg-emerald-500 hover:bg-emerald-600"
+                        : "bg-red-400 hover:bg-red-500"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "relative z-10 transition-all duration-300 ease-in-out",
+                        isAvailable ? "mr-6 pl-2" : "ml-6 pr-2"
+                      )}
+                    >
+                      {item.category}
+                    </span>
+                    <span
+                      className={cn(
+                        "pointer-events-none absolute top-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-md transition-all duration-300 ease-in-out",
+                        isAvailable ? "right-0.5" : "left-0.5"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "h-1.5 w-1.5 rounded-full transition-colors duration-300",
+                          isAvailable ? "bg-emerald-500" : "bg-red-400"
+                        )}
+                      />
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleExpanded(item.key)}
+                    aria-expanded={isExpanded}
+                    aria-label={`${item.title} photo settings`}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+                  >
+                    <ChevronDown className={cn("h-4 w-4 transition-transform duration-300", isExpanded && "rotate-180")} />
+                  </button>
+                </div>
+              </div>
 
-                {/* Image Controls */}
-                {isExpanded && (
-                  <div className="border-t border-slate-200/60 bg-slate-50/50 p-4">
-                    <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-3">Image Availability</p>
-                    <div className="space-y-2">
-                      {item.imageUrls.map((imageUrl, imageIndex) => {
-                        const imageKey = `${item.key}:${imageIndex}`;
-                        const imageIsAvailable = imageAvailabilityMap.get(imageKey) ?? true;
-                        return (
-                          <div key={imageKey} className="rounded-lg border border-slate-200/60 bg-white px-3 py-2.5 flex items-center justify-between gap-3 hover:shadow-sm transition-all">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <img
-                                src={imageUrl.src}
-                                srcSet={imageUrl.srcset}
-                                alt={`${item.title} ${imageIndex + 1}`}
-                                className="w-11 h-11 rounded-lg object-cover border border-slate-200/60 flex-none shadow-sm"
-                                loading="lazy"
-                                decoding="sync"
-                                width={44}
-                                height={44}
-                              />
-                              <div className="min-w-0">
-                                <p className="text-xs font-semibold text-slate-800">Image {imageIndex + 1}</p>
-                                <p className={`text-[11px] font-medium ${imageIsAvailable ? 'text-green-600' : 'text-red-600'}`}>
-                                  {imageIsAvailable ? '✓ Available' : '✕ Hidden'}
-                                </p>
-                              </div>
-                            </div>
-                            <Switch
-                              checked={imageIsAvailable}
-                              onCheckedChange={(checked) => handleImageToggle(item.key, imageIndex, checked)}
-                              aria-label={`Toggle image ${imageIndex + 1} for ${item.title}`}
-                            />
-                          </div>
-                        );
-                      })}
+              {/* Photo grid */}
+              {isExpanded && (
+                <div className="border-t border-white/60 bg-slate-50/60 p-4 sm:p-5 animate-[fadeInUp_0.3s_ease]">
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Photos on showcase</p>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setAllImages(item.key, true)}
+                        className="rounded-lg px-2 py-1 text-xs font-semibold text-slate-500 hover:text-amber-700 hover:bg-amber-50 transition-colors"
+                      >
+                        Show all
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAllImages(item.key, false)}
+                        className="rounded-lg px-2 py-1 text-xs font-semibold text-slate-500 hover:text-amber-700 hover:bg-amber-50 transition-colors"
+                      >
+                        Hide all
+                      </button>
                     </div>
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </CardContent>
-    </Card>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3">
+                    {item.imageUrls.map((imageUrl, imageIndex) => {
+                      const imageKey = `${item.key}:${imageIndex}`;
+                      const photoVisible = isPhotoVisible(item.key, imageIndex);
+                      return (
+                        <button
+                          key={imageKey}
+                          type="button"
+                          onClick={() => handleImageToggle(item.key, imageIndex, !photoVisible)}
+                          aria-pressed={photoVisible}
+                          aria-label={`${item.title} photo ${imageIndex + 1}: ${photoVisible ? "on display" : "hidden"}`}
+                          className={cn(
+                            "group relative aspect-square overflow-hidden rounded-lg border shadow-sm transition-all duration-200",
+                            photoVisible ? "border-white/60 hover:border-amber-300/70" : "border-slate-200/70"
+                          )}
+                        >
+                          <img
+                            src={imageUrl.src}
+                            srcSet={imageUrl.srcset}
+                            alt={`${item.title} — photo ${imageIndex + 1}`}
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                          {!photoVisible && <span className="absolute inset-0 bg-slate-900/50" />}
+                          <span
+                            className={cn(
+                              "absolute left-1.5 bottom-1.5 flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold shadow-sm",
+                              photoVisible ? "bg-emerald-600/90 text-white" : "bg-slate-800/80 text-white"
+                            )}
+                          >
+                            {photoVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                            {photoVisible ? "On display" : "Hidden"}
+                          </span>
+                          <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="rounded-lg bg-slate-900/70 px-2 py-1 text-[10px] font-semibold text-white shadow-sm">
+                              {photoVisible ? "Tap to hide" : "Tap to show"}
+                            </span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 };
 

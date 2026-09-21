@@ -29,99 +29,99 @@ export const Footer = () => {
     <footer className="bg-black text-primary-foreground py-12 lg:py-16 relative">
       <div className="footer-gradient-border absolute top-0 left-0 right-0" />
       <div className="container mx-auto px-4 lg:px-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-8">
-          <div>
-            <h3 className="text-xl font-bold mb-4 bg-gradient-accent bg-clip-text text-transparent">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-8 md:gap-8 lg:gap-12 mb-8">
+          <div className="col-span-2 md:col-span-3 lg:col-span-1">
+            <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 bg-gradient-accent bg-clip-text text-transparent">
               Sista Events And Rentals
             </h3>
-            <p className="text-primary-foreground/80 text-sm">
+            <p className="text-primary-foreground/80 text-xs sm:text-sm">
               Creating unforgettable moments with a sizeable budget. <span className="text-primary-foreground/60">since 2018</span>            
             </p>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4">Quick Links</h4>
-            <ul className="space-y-2.5 text-sm">
+            <h4 className="font-semibold mb-3 text-sm sm:text-base">Quick Links</h4>
+            <ul className="space-y-2 text-xs sm:text-sm">
               <li>
                 <a href="#services" className="text-primary-foreground/80 hover:text-accent transition-colors duration-200 inline-flex items-center gap-1.5 group">
-                  <span className="w-1 h-1 rounded-full bg-accent/40 group-hover:bg-accent transition-colors duration-200" />
+                  
                   Services
                 </a>
               </li>
               <li>
                 <a href="#featured" className="text-primary-foreground/80 hover:text-accent transition-colors duration-200 inline-flex items-center gap-1.5 group">
-                  <span className="w-1 h-1 rounded-full bg-accent/40 group-hover:bg-accent transition-colors duration-200" />
+                  
                   logistics
                 </a>
               </li>
               <li>
                 <a href="#about" className="text-primary-foreground/80 hover:text-accent transition-colors duration-200 inline-flex items-center gap-1.5 group">
-                  <span className="w-1 h-1 rounded-full bg-accent/40 group-hover:bg-accent transition-colors duration-200" />
+                  
                   About Us
                 </a>
               </li>
               <li>
                 <a href="#contact" className="text-primary-foreground/80 hover:text-accent transition-colors duration-200 inline-flex items-center gap-1.5 group">
-                  <span className="w-1 h-1 rounded-full bg-accent/40 group-hover:bg-accent transition-colors duration-200" />
-                  Bookings
+                  
+                  Booking
                 </a>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-semibold mb-4">Services</h4>
-            <ul className="space-y-2.5 text-sm text-primary-foreground/80">
+            <h4 className="font-semibold mb-3 text-sm sm:text-base">Services</h4>
+            <ul className="space-y-2 text-xs sm:text-sm text-primary-foreground/80">
               <li className="flex items-center gap-1.5">
-                <span className="w-1 h-1 rounded-full bg-primary-foreground/20" />
+                
                 Furniture Rentals
               </li>
               <li className="flex items-center gap-1.5">
-                <span className="w-1 h-1 rounded-full bg-primary-foreground/20" />
+                
                 Tents & Canopies
               </li>
               <li className="flex items-center gap-1.5">
-                <span className="w-1 h-1 rounded-full bg-primary-foreground/20" />
-                Decor & Accessories
+                
+                Decorative Accessories
               </li>
               <li className="flex items-center gap-1.5">
-                <span className="w-1 h-1 rounded-full bg-primary-foreground/20" />
+                
                 Backdrops
               </li>
               <li className="flex items-center gap-1.5">
-                <span className="w-1 h-1 rounded-full bg-primary-foreground/20" />
+                
                 Event Lighting
               </li>
               <li className="flex items-center gap-1.5">
-                <span className="w-1 h-1 rounded-full bg-primary-foreground/20" />
+                
                 Event Consultation
               </li>
             </ul>
           </div>
 
-          <div>
-            <h4 className="font-semibold mb-4">Follow Us</h4>
-            <div className="flex gap-3 mb-5">
+          <div className="col-span-2 md:col-span-3 lg:col-span-1">
+            <h4 className="font-semibold mb-3 text-sm sm:text-base">Follow Us</h4>
+            <div className="flex gap-3 mb-4">
               <a
                 href="https://instagram.com/sistaevents.rentals"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-xl bg-primary-foreground/10 hover:bg-accent/20 flex items-center justify-center transition-all duration-200 group hover:scale-110"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary-foreground/10 hover:bg-accent/20 flex items-center justify-center transition-all duration-200 group hover:scale-110"
                 aria-label="Instagram"
               >
-                <InstagramIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <InstagramIcon className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
               </a>
               <a
                 href="https://tiktok.com/@sistaevents.rentals"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-xl bg-primary-foreground/10 hover:bg-accent/20 flex items-center justify-center transition-all duration-200 group hover:scale-110"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary-foreground/10 hover:bg-accent/20 flex items-center justify-center transition-all duration-200 group hover:scale-110"
                 aria-label="TikTok"
               >
-                <TikTokIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <TikTokIcon className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
               </a>
             </div>
-            <div className="space-y-2.5 text-sm text-primary-foreground/80">
+            <div className="space-y-2 text-xs sm:text-sm text-primary-foreground/80">
               <a href="mailto:info@sistaevents.com" className="flex items-center gap-2 hover:text-accent transition-colors duration-200">
                 <Mail className="w-4 h-4" />
                 <span>info@sistaevents.com</span>
@@ -145,7 +145,15 @@ export const Footer = () => {
 
         <div className="pt-8 border-t border-primary-foreground/20 text-center text-sm text-primary-foreground/60">
           <p>&copy; {new Date().getFullYear()} Sista Events And Rentals. All rights reserved.</p>
-          <p>
+          <p className="mt-1">
+            <a
+              href="/privacy-policy"
+              className="text-primary-foreground/80 hover:text-accent transition-colors duration-200 inline-flex items-center gap-1.5 group"
+            >
+              Privacy Policy
+            </a>
+          </p>
+          <p className="mt-1">
             Bxcoda - powered by <span className="text-sky-300 font-medium">BX GAMING AND MORE </span>
           </p>
         </div>

@@ -53,3 +53,9 @@ public/res/
 server/serviceAccountKey.json
 server/uploads/
 server/uploads/**
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Local SQLite databases under server/data contain personal data (reviews/bookings)
+server/data/

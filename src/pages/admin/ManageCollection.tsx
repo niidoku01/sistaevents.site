@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
-import { Trash2, Image as ImageIcon, RefreshCw, ExternalLink, Loader2, X, ArrowUp, ArrowDown, ArrowLeftRight, EyeOff, Eye, RotateCcw, FolderOpen, Upload, Sparkles } from "lucide-react";
+import { Trash2, Image as ImageIcon, RefreshCw, ExternalLink, Loader2, X, ArrowUp, ArrowDown, ArrowLeftRight, EyeOff, Eye, RotateCcw, FolderOpen, Upload } from "lucide-react";
 import { collectionAPI } from "@/lib/api";
 import { staticCollectionImagesByCategory, type CollectionCategory, type StaticCollectionImage } from "@/lib/staticCollections";
 import { useAdminConfirm } from "@/components/admin/AdminConfirmProvider";
@@ -305,7 +305,6 @@ const ManageCollection = () => {
           {!cat ? (
             <div>
               <h3 className="mb-4 text-sm font-semibold text-foreground/70 flex items-center gap-2">
-                <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(245,158,11,0.6)]" />
                 All Collection Images
               </h3>
               <div className="grid grid-cols-2 gap-3 overflow-hidden sm:grid-cols-3 sm:gap-4 md:grid-cols-4" data-reveal-stagger>
@@ -328,7 +327,8 @@ const ManageCollection = () => {
                           className="h-full w-full object-cover transition-all duration-500 group-hover:scale-110 group-hover:opacity-90"
                           loading="lazy"
                           decoding="async"
-                          fetchPriority="low"
+             
+                          fetchpriority="low"
                           sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
                           width={400}
                           height={300}
@@ -372,11 +372,6 @@ const ManageCollection = () => {
             <div>
               <div className="mb-3 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-foreground/70 flex items-center gap-2">
-                  <span className={`inline-block h-1.5 w-1.5 rounded-full shadow-[0_0_6px_rgba(245,158,11,0.6)] ${
-                    cat === "weddings" ? "bg-pink-400 shadow-[0_0_6px_rgba(244,114,182,0.6)]" :
-                    cat === "funerals" ? "bg-slate-400 shadow-[0_0_6px_rgba(148,163,184,0.6)]" :
-                    "bg-blue-400 shadow-[0_0_6px_rgba(96,165,250,0.6)]"
-                  }`} />
                   {getCategoryLabel(cat)}
                   <span className="text-muted-foreground font-normal">({orderedImages.length} visible)</span>
                 </h3>

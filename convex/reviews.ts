@@ -9,8 +9,12 @@ export const submitReview = mutation({
     event: v.string(),
     content: v.string(),
     rating: v.number(),
+    consent: v.boolean(),
   },
   handler: async (ctx, args) => {
+    if (args.consent !== true) {
+      throw new Error("Consent is required to submit a review");
+    }
     if (args.name.length < 2 || args.name.length > 100) {
       throw new Error("Name must be between 2 and 100 characters");
     }
@@ -34,6 +38,7 @@ export const submitReview = mutation({
       content: args.content,
       rating: args.rating,
       approved: false,
+      consentAt: Date.now(),
       createdAt: Date.now(),
     });
   },

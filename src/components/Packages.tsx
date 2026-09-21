@@ -162,9 +162,9 @@ export const Packages = () => {
               key={index} 
               className={`relative overflow-hidden flex flex-col h-full ${
                 pkg.popular 
-                  ? "border-accent shadow-[0_8px_40px_-12px_hsl(var(--accent)/0.25)] md:scale-100 z-10" 
-                  : "border-border hover:shadow-lg"
-              } transition-shadow duration-300`}
+                  ? "border-accent shadow-[0_20px_60px_-12px_hsl(var(--accent)/0.5),0_8px_24px_rgba(0,0,0,0.1)] md:scale-100 z-10" 
+                  : "border-border shadow-[0_8px_30px_-8px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_16px_48px_-12px_hsl(var(--accent)/0.3),0_6px_20px_rgba(0,0,0,0.1)]"
+              } transition-all duration-300`}
               data-reveal
               data-reveal-item
             >
@@ -172,7 +172,7 @@ export const Packages = () => {
                 <>
                   <div className="absolute inset-0 bg-gradient-to-b from-accent/[0.04] via-transparent to-accent/[0.06] pointer-events-none" />
                   <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10">
-                    <span className="inline-flex items-center bg-gradient-to-r from-accent to-amber-500 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg shadow-accent/30">
+                    <span className="inline-flex items-center bg-gradient-to-r from-accent to-amber-500 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-[0_8px_24px_-2px_hsl(var(--accent)/0.7),0_4px_10px_rgba(0,0,0,0.2),0_0_20px_hsl(var(--accent)/0.3)]">
                       Most Popular
                     </span>
                   </div>
@@ -253,21 +253,23 @@ export const Packages = () => {
         </div>
 
         <div className="mt-8 sm:mt-12 text-center">
-          <p className="hidden sm:block text-muted-foreground mb-4">
-            Need a custom package? We'll create something perfect for your event.
-          </p>
-          <Button variant="link" onClick={scrollToContact} className="text-accent hover:text-accent/80 active:text-accent transition-colors">
-            Request a custom package quote
+          <Button
+            onClick={scrollToContact}
+            className="inline-flex items-center gap-2 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/40 text-foreground font-semibold shadow-xl shadow-black/10 hover:bg-white hover:shadow-2xl hover:shadow-black/15 active:scale-[0.97] transition-all duration-300 h-12 px-8 py-3 text-sm sm:text-base"
+          >
+            Custom package
           </Button>
+          <p className="mt-3 text-xs text-muted-foreground/60">
+            Click for a custom package
+          </p>
         </div>
       </div>
 
       {activePackage?.terms &&
         createPortal(
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            className="vh-fallback-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
             style={{
-              minHeight: "100dvh",
               padding: "max(1rem, env(safe-area-inset-top, 1rem)) max(1rem, env(safe-area-inset-right, 1rem)) max(1rem, env(safe-area-inset-bottom, 1rem)) max(1rem, env(safe-area-inset-left, 1rem))",
             }}
             onClick={closeTerms}
@@ -276,8 +278,7 @@ export const Packages = () => {
             aria-label={`${activePackage.name} package terms and conditions`}
           >
             <div
-              className="relative w-full max-w-md overflow-y-auto rounded-2xl border border-white/50 glass-popup text-foreground p-4 sm:p-6 md:p-8 animate-in zoom-in-95"
-              style={{ maxHeight: "85dvh" }}
+              className="vh-85 relative w-full max-w-md overflow-y-auto rounded-2xl border border-white/50 glass-popup text-foreground p-4 sm:p-6 md:p-8 animate-in zoom-in-95"
               onClick={(e) => e.stopPropagation()}
             >
               <button

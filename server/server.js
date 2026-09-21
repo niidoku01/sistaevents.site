@@ -22,6 +22,11 @@ const isServerlessRuntime = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA
 
 app.disable("x-powered-by");
 
+// Trust the first proxy hop (Vercel / NGINX) so express-rate-limit and req.ip
+// see the real client IP instead of the shared edge server. In serverless mode
+// the last proxy is Vercel's edge; locally only loopback is trusted.
+app.set("trust proxy", isServerlessRuntime ? 1 : "loopback");
+
 // Initialize Firebase Admin SDK
 let firebaseAdminReady = false;
 try {
@@ -155,6 +160,8 @@ app.use("/api/", limiter);
 
 // CORS - Configure allowed origins (update with your production domain)
 const defaultAllowedOrigins = [
+  "https://sistaevents.site",
+  "https://www.sistaevents.site",
   "http://localhost:8080",
   "http://127.0.0.1:8080",
   "http://localhost:5173",

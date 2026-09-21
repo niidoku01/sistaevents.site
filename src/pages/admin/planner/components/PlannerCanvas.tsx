@@ -207,7 +207,7 @@ export default function PlannerCanvas({
       <div ref={canvasRef} className="relative min-w-full sm:min-w-[min(100%,1200px)] min-h-full sm:min-h-[min(100%,800px)]"
         style={{
           backgroundImage: showGrid
-            ? `radial-gradient(circle, #d4d8e0 0.8px, transparent 0.8px)`
+            ? `linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px)`
             : "none",
           backgroundSize: `${GRID_SIZE * scale}px ${GRID_SIZE * scale}px`,
           backgroundColor: "#f9fafb",

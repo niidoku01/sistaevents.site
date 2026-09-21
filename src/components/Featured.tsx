@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card";
+﻿import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -254,8 +254,7 @@ export const Featured = () => {
                     <Badge variant="secondary" className="text-xs">
                       {item.category}
                     </Badge>
-                    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${item.available ? "text-emerald-600" : "text-red-600"}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${item.available ? "bg-emerald-500" : "bg-red-500"}`} />
+                    <span className={`text-xs font-semibold ${item.available ? "text-emerald-600" : "text-red-600"}`}>
                       {item.available ? "Available" : "Rented Out"}
                     </span>
                   </div>
@@ -274,7 +273,7 @@ export const Featured = () => {
 
       {/* Image Gallery Dialog */}
       <Dialog open={!!selectedItem} onOpenChange={closeGallery}>
-        <DialogContent className="p-0 bg-black/95 overflow-y-auto w-[96vw] sm:w-[94vw] md:w-[90vw] max-w-4xl max-h-[92dvh] rounded-lg sm:rounded-2xl">
+        <DialogContent className="vh-92max p-0 bg-black/95 overflow-y-auto w-[96vw] sm:w-[94vw] md:w-[90vw] max-w-4xl max-h-[92dvh] rounded-lg sm:rounded-2xl">
           {selectedItem && (
             <div className="relative w-full h-full min-h-0 flex flex-col">
               <button
@@ -285,7 +284,7 @@ export const Featured = () => {
                 <X className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
 
-              <div className="relative w-full flex items-center justify-center h-[44dvh] sm:h-[58dvh] md:h-[62dvh] p-2 sm:p-4 md:p-5">
+              <div className="vh-44 relative w-full flex items-center justify-center h-[44dvh] sm:h-[58dvh] md:h-[62dvh] p-2 sm:p-4 md:p-5">
                 <img
                   src={selectedItem.images[currentImageIndex].src}
                   srcSet={selectedItem.images[currentImageIndex].srcset}

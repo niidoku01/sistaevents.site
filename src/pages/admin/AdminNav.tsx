@@ -1,8 +1,11 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import { useConvexAdminSecret } from "@/hooks/useConvexAdminSecret";
 import {
   CalendarClock, MessageSquareQuote, ListChecks,
-  Megaphone, Upload, Images, LayoutGrid,
+  Megaphone, Upload, Images, LayoutGrid, ReceiptText,
 } from "lucide-react";
 
 const navItems = [
@@ -12,6 +15,7 @@ const navItems = [
   { to: "/admin/upload", label: "Upload", icon: Upload },
   { to: "/admin/manage", label: "Manage", icon: Images },
   { to: "/admin/popup-ads", label: "Ads", icon: Megaphone },
+  { to: "/admin/billing", label: "Billing", icon: ReceiptText },
   { to: "/admin/planner", label: "Planner", icon: LayoutGrid },
 ];
 
@@ -51,7 +55,7 @@ const AdminNav: React.FC = () => {
 
       <div
         ref={containerRef}
-        className="relative flex sm:grid sm:grid-cols-7 gap-1 overflow-x-auto scrollbar-none snap-x snap-mandatory -mx-1 px-1 sm:mx-0 sm:px-0"
+        className="relative flex sm:grid sm:grid-cols-8 gap-1 overflow-x-auto scrollbar-none snap-x snap-mandatory -mx-1 px-1 sm:mx-0 sm:px-0"
       >
         {activeRect && (
           <div
@@ -84,10 +88,6 @@ const AdminNav: React.FC = () => {
                   }`} />
                   <span className="hidden sm:inline">{item.label}</span>
                   <span className="sm:hidden text-[10px] leading-tight">{item.label}</span>
-
-                  {isActive && (
-                    <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)] sm:hidden" />
-                  )}
                 </>
               )}
             </NavLink>

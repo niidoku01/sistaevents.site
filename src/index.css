@@ -1,4 +1,4 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -109,6 +109,11 @@
   body {
     @apply bg-background text-foreground;
     overflow-x: hidden;
+    overflow-x: clip;
+  }
+
+  html {
+    overflow-x: clip;
   }
 
   img {
@@ -125,13 +130,20 @@
     @apply py-14 sm:py-20 lg:py-32;
   }
 
-  .deferred-sections > section {
-    content-visibility: auto;
-    contain-intrinsic-size: 780px;
-  }
-
   section[id] {
     scroll-margin-top: 5.5rem;
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
   }
 }
 
@@ -205,20 +217,6 @@
     transform: scale(1, 1);
     opacity: 1;
     filter: blur(0);
-  }
-}
-
-@keyframes sparkle {
-  0% {
-    transform: translate(0, 0) scale(0) rotate(0deg);
-    opacity: 0;
-  }
-  20% {
-    opacity: 1;
-  }
-  100% {
-    transform: translate(var(--dx, 60px), var(--dy, -80px)) scale(0) rotate(180deg);
-    opacity: 0;
   }
 }
 
@@ -342,7 +340,7 @@
   display: none;
 }
 
-/* ── Slick UX: Mobile menu slide-in ─────────────────────── */
+/* â”€â”€ Slick UX: Mobile menu slide-in â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @keyframes menuSlideDown {
   from {
     opacity: 0;
@@ -369,12 +367,27 @@
   animation: menuSlideDown 0.25s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
+@keyframes drawerSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.mobile-drawer-enter {
+  animation: drawerSlideIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
 .mobile-menu-item {
   opacity: 0;
   animation: menuStaggerIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-/* ── Slick UX: Nav underline hover ─────────────────────── */
+/* â”€â”€ Slick UX: Nav underline hover â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .nav-link {
   position: relative;
 }
@@ -395,7 +408,7 @@
   width: 100%;
 }
 
-/* ── Slick UX: Focus-visible ring ─────────────────────── */
+/* â”€â”€ Slick UX: Focus-visible ring â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 *:focus-visible {
   outline: 2px solid hsl(var(--accent));
   outline-offset: 2px;
@@ -408,12 +421,12 @@ a:focus-visible {
   outline-offset: 2px;
 }
 
-/* ── Slick UX: Image crossfade in lightbox ─────────────── */
+/* â”€â”€ Slick UX: Image crossfade in lightbox â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .lightbox-img {
   transition: opacity 0.35s ease-in-out;
 }
 
-/* ── Slick UX: WhatsApp pulse ring ─────────────────────── */
+/* â”€â”€ Slick UX: WhatsApp pulse ring â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @keyframes whatsappPulse {
   0% {
     box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
@@ -430,7 +443,27 @@ a:focus-visible {
   animation: whatsappPulse 2.5s ease-in-out infinite;
 }
 
-/* ── Slick UX: Card glow on hover ──────────────────────── */
+/* ── Slick UX: Live indicator dot ── */
+.live-dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: #22c55e;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.8);
+}
+
+.live-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: #22c55e;
+  animation: whatsappPulse 2s ease-in-out infinite;
+  z-index: -1;
+}
+
+/* â”€â”€ Slick UX: Card glow on hover â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .card-glow {
   position: relative;
 }
@@ -450,13 +483,13 @@ a:focus-visible {
   opacity: 1;
 }
 
-/* ── Slick UX: Smooth gradient top for footer ──────────── */
+/* â”€â”€ Slick UX: Smooth gradient top for footer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .footer-gradient-border {
   background: linear-gradient(to right, hsl(var(--accent) / 0.3), hsl(var(--accent)), hsl(var(--accent) / 0.3));
   height: 1px;
 }
 
-/* ── Slick UX: Stagger reveal for data-reveal-stagger ──── */
+/* â”€â”€ Slick UX: Stagger reveal for data-reveal-stagger â”€â”€â”€â”€ */
 [data-reveal-stagger] > *:nth-child(1) { --reveal-delay: 0ms; }
 [data-reveal-stagger] > *:nth-child(2) { --reveal-delay: 80ms; }
 [data-reveal-stagger] > *:nth-child(3) { --reveal-delay: 160ms; }
@@ -486,7 +519,7 @@ a:focus-visible {
   }
 }
 
-/* ── Logo: responsive, retina-sharp SVG rendering ─────── */
+/* â”€â”€ Logo: responsive, retina-sharp SVG rendering â”€â”€â”€â”€â”€â”€â”€ */
 .logo-icon {
   height: clamp(48px, 9vw, 68px);
   width: auto;
@@ -500,7 +533,7 @@ a:focus-visible {
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.1));
 }
 
-/* ── Glass Popup ─────────────────────────────────────── */
+/* â”€â”€ Glass Popup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 body.modal-open {
   overflow: hidden;
 }
@@ -521,7 +554,25 @@ body.modal-open {
   overscroll-behavior: contain;
 }
 
-/* ── Glass Navbar ──────────────────────────────────────── */
+/* Solid frosted-glass panel for the admin login card */
+.glass-login {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.78) 0%,
+    rgba(255, 255, 255, 0.6) 45%,
+    rgba(255, 255, 255, 0.52) 100%
+  );
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow:
+    0 20px 60px -12px rgba(15, 23, 42, 0.25),
+    0 8px 24px rgba(15, 23, 42, 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 -1px 0 rgba(255, 255, 255, 0.25) inset;
+}
+
+/* â”€â”€ Glass Navbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .glass-nav {
   position: relative;
   overflow: hidden;
@@ -543,6 +594,26 @@ body.modal-open {
     0 4px 30px rgba(0, 0, 0, 0.06),
     0 1px 0 rgba(255, 255, 255, 0.6) inset,
     0 -1px 0 rgba(0, 0, 0, 0.04) inset;
+  transition:
+    background 0.35s ease,
+    box-shadow 0.35s ease,
+    border-color 0.35s ease;
+}
+
+.glass-nav-scrolled .glass-nav-inner {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.88) 0%,
+    rgba(255, 255, 255, 0.76) 40%,
+    rgba(255, 255, 255, 0.66) 100%
+  );
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border-bottom-color: rgba(255, 255, 255, 0.65);
+  box-shadow:
+    0 8px 40px rgba(15, 23, 42, 0.1),
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.06) inset;
 }
 
 .glass-nav-link {
@@ -618,3 +689,118 @@ body.modal-open {
   background: rgba(255, 255, 255, 0.6);
   transform: scale(0.98);
 }
+
+/* â”€â”€ Slick UX: slim accent scrollbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--accent) / 0.55) transparent;
+}
+
+html::-webkit-scrollbar {
+  width: 10px;
+}
+
+html::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    hsl(var(--accent) / 0.65),
+    hsl(var(--accent) / 0.4)
+  );
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+html::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    hsl(var(--accent) / 0.9),
+    hsl(var(--accent) / 0.6)
+  );
+  background-clip: content-box;
+}
+
+/* â”€â”€ Slick UX: floating icon pop-in â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+@keyframes iconPop {
+  0% {
+    transform: translateY(10px) scale(0.7);
+    opacity: 0;
+  }
+  70% {
+    transform: translateY(-2px) scale(1.06);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+.floating-icon-pop {
+  animation: iconPop 0.4s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+/* â”€â”€ Slick UX: report card hover lift â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.fade-soft {
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* â”€â”€ Cross-device safety: safe-area + viewport-height fallbacks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+   Older phones may not support env()/dvh/svh, which would otherwise make
+   the declaration invalid and drop the element (or its positioning). â”€*/
+.floating-icon-backtotop {
+  bottom: 1.5rem;
+  bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+.floating-icon-whatsapp {
+  bottom: 5rem;
+  bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Keep the pulse running on mobile even while the pop-in plays (the
+   animation shorthand on floating-icon-pop would otherwise override it). */
+.whatsapp-pulse.floating-icon-pop {
+  animation:
+    iconPop 0.4s cubic-bezier(0.22, 1, 0.36, 1) backwards,
+    whatsappPulse 2.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-icon-pop {
+    animation: none !important;
+  }
+}
+
+.vh-fallback-min-h {
+  min-height: 100vh;
+  min-height: 100svh;
+}
+
+.vh-fallback-overlay {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.vh-85 {
+  max-height: 85vh;
+  max-height: 85dvh;
+}
+
+.vh-92 {
+  height: 92vh;
+  height: 92dvh;
+}
+
+.vh-92max {
+  max-height: 92vh;
+  max-height: 92dvh;
+}
+
+.vh-44 {
+  height: 44vh;
+  height: 44dvh;
+}
+

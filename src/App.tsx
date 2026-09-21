@@ -9,6 +9,7 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 
 const Index = lazy(() => import("./pages/Index"));
 const OurCollection = lazy(() => import("./pages/Gallery"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AdminShell = lazy(() => import("./pages/admin/AdminShell"));
 
@@ -69,6 +70,7 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/our-collection" element={<OurCollection />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/admin/*" element={<AdminShell />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

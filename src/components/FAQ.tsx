@@ -6,18 +6,6 @@ import {
 } from "@/components/ui/accordion";
 import { MessageCircle } from "lucide-react";
 
-// Custom ChatBot AI icon component
-const ChatBotIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    className={className}
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path d="M12 2C6.48 2 2 6.48 2 12c0 1.54.36 3 .97 4.29L2 22l6.29-.97C9.95 21.63 10.97 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.41 0-2.73-.36-3.88-.99l-.28-.15-2.89.45.45-2.89-.15-.28C4.36 14.73 4 13.41 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8zm3.5-9c-.83 0-1.5-.67-1.5-1.5S14.67 8 15.5 8 17 8.67 17 9.5 16.33 11 15.5 11zm-7 0c-.83 0-1.5-.67-1.5-1.5S6.67 8 7.5 8 9 8.67 9 9.5 8.33 11 7.5 11z"/>
-  </svg>
-);
-
 const faqs = [
   {
     question: "How far in advance should I book your services?",
@@ -66,15 +54,13 @@ export const FAQ = () => {
     <section className="section-mobile-padding bg-muted/30">
       <div className="container mx-auto px-4 lg:px-6">
         <div className="text-center mb-10 sm:mb-16" data-reveal>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+          <h2 className="text-2xl md:text-2xl lg:text-5xl font-bold text-foreground mb-4">
             Frequently Asked Questions
           </h2>
           <p className="hidden sm:block text-lg text-muted-foreground max-w-2xl mx-auto">
-            Got questions? We've got answers! Find quick answers to common questions about our services.
+            Got questions? We've got quick answers to common questions about our services.
           </p>
-          <p className="sm:hidden text-sm text-muted-foreground max-w-2xl mx-auto">
-            Quick answers to common questions.
-          </p>
+         
         </div>
 
         <div className="max-w-4xl mx-auto">
@@ -104,20 +90,16 @@ export const FAQ = () => {
               href="https://wa.me/233279689522?text=Hi%2C%20I%20have%20a%20question%20about%20your%20event%20rental%20services"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-3 p-6 rounded-lg bg-gradient-to-br from-accent/10 to-accent/5 hover:from-accent/20 hover:to-accent/10 transition-all duration-300 hover:shadow-lg hover:shadow-accent/20 active:scale-95"
+              className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/40 shadow-xl shadow-black/10 hover:shadow-2xl hover:shadow-black/15 hover:bg-white active:scale-[0.97] transition-all duration-300"
             >
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent/30 to-accent/10 flex items-center justify-center">
-                <ChatBotIcon className="w-6 h-6 text-accent" />
-              </div>
-              <div className="text-left">
-                <p className="text-muted-foreground text-lg font-medium">
-                  Still have questions?
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Chat with our customer service
-                </p>
-              </div>
+              <MessageCircle className="w-5 h-5 text-accent" />
+              <span className="text-sm font-medium text-foreground">
+                Still have questions?
+              </span>
             </a>
+            <p className="mt-3 text-xs text-muted-foreground/60">
+              Chat with our customer service
+            </p>
           </div>
         </div>
       </div>

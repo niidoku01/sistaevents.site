@@ -15,6 +15,7 @@ import { BackToTop } from "@/components/BackToTop";
 import { ScrollProgress } from "@/components/ScrollProgress";
 import { PopupAd } from "@/components/PopupAd";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
+import { scrollToId } from "@/lib/scrollTo";
 
 const Index = () => {
   useScrollReveal();
@@ -26,10 +27,11 @@ const Index = () => {
 
     window.history.replaceState({}, "");
 
-    const frame = window.requestAnimationFrame(() => {
-      document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-    return () => window.cancelAnimationFrame(frame);
+    const signal = { cancelled: false };
+    scrollToId(target, signal);
+    return () => {
+      signal.cancelled = true;
+    };
   }, [location.state]);
 
   return (

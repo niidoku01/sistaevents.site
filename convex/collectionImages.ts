@@ -16,6 +16,9 @@ export const saveImage = mutation({
   args: {
     r2Key: v.string(),
     url: v.string(),
+    srcset: v.optional(v.string()),
+    width: v.optional(v.number()),
+    height: v.optional(v.number()),
     originalName: v.string(),
     size: v.number(),
     contentType: v.string(),
@@ -44,6 +47,9 @@ export const saveImage = mutation({
     return await ctx.db.insert("collectionImages", {
       r2Key: args.r2Key,
       url: args.url,
+      srcset: args.srcset,
+      width: args.width,
+      height: args.height,
       originalName: args.originalName,
       size: args.size,
       contentType: args.contentType,
@@ -71,6 +77,9 @@ export const listImages = query({
         _id: img._id,
         storageId: img.storageId ?? null,
         r2Key: img.r2Key ?? null,
+        srcset: img.srcset ?? null,
+        width: img.width ?? null,
+        height: img.height ?? null,
         originalName: img.originalName,
         size: img.size,
         contentType: img.contentType,
@@ -110,6 +119,26 @@ export const markMigrated = mutation({
     const doc = await ctx.db.get(args.id);
     if (!doc) throw new Error("Image not found");
     await ctx.db.patch(args.id, { r2Key: args.r2Key, url: args.url });
+  },
+});
+
+export const updateImageVariants = mutation({
+  args: {
+    id: v.id("collectionImages"),
+    srcset: v.optional(v.string()),
+    width: v.optional(v.number()),
+    height: v.optional(v.number()),
+    ...adminSecretArg,
+  },
+  handler: async (ctx, args) => {
+    validateAdminSecret(args.secret);
+    const doc = await ctx.db.get(args.id);
+    if (!doc) throw new Error("Image not found");
+    await ctx.db.patch(args.id, {
+      srcset: args.srcset,
+      width: args.width,
+      height: args.height,
+    });
   },
 });
 

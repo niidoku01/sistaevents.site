@@ -12,9 +12,13 @@ import {
   INVALID_DATE,
 } from "./_validation";
 
-const ADMIN_BOOKINGS_URL = "https://sistaevents.site/admin";
-const BOOKINGS_ALERT_EMAIL = process.env.BOOKINGS_ALERT_EMAIL;
-const BOOKINGS_FROM_EMAIL = process.env.BOOKINGS_FROM_EMAIL || "onboarding@resend.dev";
+const ADMIN_BOOKINGS_URL_FALLBACK = "https://sistaevents.site/admin";
+
+function getAdminBookingsUrl(): string {
+  const frontendUrl = process.env.FRONTEND_URL;
+  if (frontendUrl) return `${frontendUrl.replace(/\/+$/, "")}/admin`;
+  return ADMIN_BOOKINGS_URL_FALLBACK;
+}
 
 export const sendBookingAlert = action({
   args: {
@@ -26,7 +30,10 @@ export const sendBookingAlert = action({
   },
   handler: async (_ctx) => {
     const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey || !BOOKINGS_ALERT_EMAIL) {
+    const bookingsAlertEmail = process.env.BOOKINGS_ALERT_EMAIL;
+    const bookingsFromEmail = process.env.BOOKINGS_FROM_EMAIL || "onboarding@resend.dev";
+    const adminBookingsUrl = getAdminBookingsUrl();
+    if (!apiKey || !bookingsAlertEmail) {
       console.error("RESEND_API_KEY or BOOKINGS_ALERT_EMAIL not configured; skipping email alert.");
       return;
     }
@@ -35,7 +42,7 @@ export const sendBookingAlert = action({
       const htmlBody = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h2 style="color: #1f2937; margin-bottom: 20px;">A new booking has just been submitted.</h2>
-          <a href="${ADMIN_BOOKINGS_URL}" style="display: inline-block; background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+          <a href="${adminBookingsUrl}" style="display: inline-block; background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
             View Booking
           </a>
           <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">
@@ -51,11 +58,11 @@ export const sendBookingAlert = action({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: BOOKINGS_FROM_EMAIL,
-          to: [BOOKINGS_ALERT_EMAIL],
+          from: bookingsFromEmail,
+          to: [bookingsAlertEmail],
           subject: "Sistaevents.site",
           html: htmlBody,
-          text: ["A new booking has just been submitted.", "", `View booking: ${ADMIN_BOOKINGS_URL}`].join("\n"),
+          text: ["A new booking has just been submitted.", "", `View booking: ${adminBookingsUrl}`].join("\n"),
         }),
       });
 
@@ -67,7 +74,7 @@ export const sendBookingAlert = action({
           body: responseText,
         });
       } else {
-        console.log(`Booking alert email sent to ${BOOKINGS_ALERT_EMAIL}`);
+        console.log(`Booking alert email sent to ${bookingsAlertEmail}`);
       }
     } catch (err) {
       console.error("Error sending booking alert:", {
@@ -220,6 +227,29 @@ export const unblockDate = mutation({
   handler: async (ctx, args) => {
     validateAdminSecret(args.secret);
     await ctx.db.delete(args.id);
+  },
+});
+
+export const migrateImport = mutation({
+  args: {
+    name: v.string(),
+    email: v.string(),
+    phone: v.string(),
+    eventDate: v.string(),
+    message: v.string(),
+    createdAt: v.number(),
+    ...adminSecretArg,
+  },
+  handler: async (ctx, args) => {
+    validateAdminSecret(args.secret);
+    return await ctx.db.insert("bookings", {
+      name: args.name,
+      email: args.email,
+      phone: args.phone,
+      eventDate: args.eventDate,
+      message: args.message,
+      createdAt: args.createdAt,
+    });
   },
 });
 

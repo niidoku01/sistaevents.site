@@ -12,6 +12,7 @@ import type * as _validation from "../_validation.js";
 import type * as admin from "../admin.js";
 import type * as bookings from "../bookings.js";
 import type * as collectionImages from "../collectionImages.js";
+import type * as collectionLayout from "../collectionLayout.js";
 import type * as popupAds from "../popupAds.js";
 import type * as reviews from "../reviews.js";
 
@@ -26,6 +27,7 @@ declare const fullApi: ApiFromModules<{
   admin: typeof admin;
   bookings: typeof bookings;
   collectionImages: typeof collectionImages;
+  collectionLayout: typeof collectionLayout;
   popupAds: typeof popupAds;
   reviews: typeof reviews;
 }>;

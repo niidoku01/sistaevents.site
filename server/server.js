@@ -15,6 +15,7 @@ const { getAuth } = require("firebase-admin/auth");
 const { initDb } = require("./db");
 const reviewRoutes = require("./routes/reviews");
 const r2 = require("./r2");
+const sharp = require("sharp");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
@@ -651,10 +652,65 @@ app.post("/api/collections/upload-file", adminLimiter, verifyAdmin, express.raw(
     }
 
     await r2.putObject({ key, body, contentType });
-    return res.status(201).json({ success: true, key, publicUrl: r2.getPublicUrl(key) });
+
+    // Generate responsive WebP variants (best-effort) so the gallery can send
+    // the right size to each screen instead of always downloading the original.
+    const VARIANT_WIDTHS = [480, 800, 1280];
+    const variants = [];
+    const keyWithoutExt = key.replace(/\.[^.]+$/, "");
+    try {
+      const image = sharp(body, { failOn: "none" });
+      const metadata = await image.metadata();
+      const originalWidth = metadata.width || 0;
+      const originalHeight = metadata.height || 0;
+      for (const width of VARIANT_WIDTHS) {
+        if (originalWidth && width >= originalWidth) continue;
+        const variantBody = await sharp(body, { failOn: "none" })
+          .rotate()
+          .resize({ width, withoutEnlargement: true })
+          .webp({ quality: 82 })
+          .toBuffer();
+        const variantKey = `${keyWithoutExt}-${width}.webp`;
+        await r2.putObject({ key: variantKey, body: variantBody, contentType: "image/webp" });
+        variants.push({ width, key: variantKey, url: r2.getPublicUrl(variantKey) });
+      }
+      return res.status(201).json({
+        success: true,
+        key,
+        publicUrl: r2.getPublicUrl(key),
+        width: originalWidth,
+        height: originalHeight,
+        variants,
+      });
+    } catch (variantError) {
+      console.error("Variant generation failed (original kept):", variantError.message);
+      return res.status(201).json({
+        success: true,
+        key,
+        publicUrl: r2.getPublicUrl(key),
+        width: 0,
+        height: 0,
+        variants,
+      });
+    }
   } catch (error) {
-    console.error("Failed to store collection image:", error.message);
-    return res.status(500).json({ error: "Internal server error" });
+    // Log enough context to diagnose without leaking credentials: the S3 SDK
+    // surfaces things like `Invalid character in header content ["authorization"]`
+    // which points straight at a corrupted R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY
+    // (e.g. stray CR/LF stripped by r2.js) or a misconfigured R2_PUBLIC_URL.
+    console.error(
+      "Failed to store collection image:",
+      error.message,
+      "| key:",
+      String(req.query.key || "").slice(0, 120),
+      "| contentType:",
+      (req.get("content-type") || "").slice(0, 60),
+      "| bytes:",
+      Buffer.isBuffer(req.body) ? req.body.length : 0
+    );
+    return res.status(500).json({
+      error: "Upload failed on the server. Check the server logs for details.",
+    });
   }
 });
 
@@ -676,17 +732,33 @@ app.delete("/api/collections/r2/:key(.*)", adminLimiter, verifyAdmin, async (req
     if (!r2.isConfigured()) {
       return res.status(500).json({ error: "R2 storage is not configured on the server" });
     }
-    try {
-      await r2.deleteObject(key);
-      return res.json({ success: true, message: "Collection image removed from storage" });
-    } catch (deleteErr) {
-      console.warn(`R2 object not deleted (${key}) — kept by bucket policy:`, deleteErr.message);
-      return res.json({
-        success: true,
-        message: "Image metadata removed; R2 object kept by bucket policy",
-        warning: true,
-      });
+    const results = [];
+    // Always attempt to remove responsive variants derived from the source key
+    // (`<base>-480.webp`, `<base>-800.webp`, ...) as well as the original.
+    const keyWithoutExt = key.replace(/\.[^.]+$/, "");
+    const keysToDelete = [key];
+    for (const width of [480, 800, 1280]) {
+      keysToDelete.push(`${keyWithoutExt}-${width}.webp`);
     }
+    for (const deleteKey of keysToDelete) {
+      try {
+        await r2.deleteObject(deleteKey);
+        results.push({ key: deleteKey, deleted: true });
+      } catch (deleteErr) {
+        results.push({ key: deleteKey, deleted: false });
+      }
+    }
+    const allDeleted = results.every((r) => r.deleted);
+    if (allDeleted) {
+      return res.json({ success: true, message: "Collection image removed from storage" });
+    }
+    const deletedCount = results.filter((r) => r.deleted).length;
+    return res.json({
+      success: true,
+      message: `Removed ${deletedCount} of ${results.length} object(s); remainder kept by bucket policy`,
+      warning: true,
+      kept: results.filter((r) => !r.deleted).map((r) => r.key),
+    });
   } catch (error) {
     console.error("Failed to delete collection object:", error.message);
     return res.status(500).json({ error: "Internal server error" });

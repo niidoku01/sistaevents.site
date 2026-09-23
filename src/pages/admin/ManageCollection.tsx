@@ -9,18 +9,21 @@ import { Trash2, Image as ImageIcon, RefreshCw, ExternalLink, Loader2, X, ArrowU
 import { collectionAPI } from "@/lib/api";
 import { staticCollectionImagesByCategory, type CollectionCategory, type StaticCollectionImage } from "@/lib/staticCollections";
 import { useAdminConfirm } from "@/components/admin/AdminConfirmProvider";
-import { getOrderedImages, getOrderRaw, ensureImagesInOrder, moveImage, swapImages, toggleHidden, isHidden, removeFromOrder, resetOrder } from "@/lib/collectionOrder";
+import { getOrderedImages, getOrderRaw, ensureImagesInOrder, moveImage, swapImages, toggleHidden, isHidden, removeFromOrder, resetOrder, syncOrderFromServer, pushOrderToServer } from "@/lib/collectionOrder";
 
 interface UploadedImage {
   _id: string;
   storageId?: string | null;
   r2Key?: string | null;
+  srcset?: string | null;
   originalName: string;
   size: number;
   contentType: string;
   category: string;
   uploadedAt: number;
   url: string | null;
+  width?: number;
+  height?: number;
 }
 
 type DisplayImage = (StaticCollectionImage | UploadedImage) & {
@@ -59,7 +62,8 @@ const ManageCollection = () => {
   const fetchUploaded = useCallback(async () => {
     try {
       setFetchError(null);
-      const data = await collectionAPI.getAllImages();
+      await syncOrderFromServer();
+      const data = await collectionAPI.getAllImages({ refresh: true });
       const images = Array.isArray(data) ? data : [];
       setUploadedImages(images);
       for (const cat of CATEGORY_ORDER) {
@@ -97,6 +101,7 @@ const ManageCollection = () => {
         .map((img) => ({
           ...img,
           url: img.url,
+          srcset: img.srcset ?? undefined,
           isUploaded: true,
         }));
       result[category] = [...staticImages, ...uploaded];
@@ -125,6 +130,7 @@ const ManageCollection = () => {
       await collectionAPI.deleteImage(id);
       removeFromOrder(category as CollectionCategory, id);
       setUploadedImages((prev) => prev.filter((img) => img._id !== id));
+      await pushOrderToServer(category as CollectionCategory);
       toast({ title: "Image deleted", description: "The image was removed from the collection." });
     } catch (err: unknown) {
       toast({
@@ -137,19 +143,21 @@ const ManageCollection = () => {
     }
   };
 
-  const handleMoveUp = (idx: number) => {
+  const handleMoveUp = async (idx: number) => {
     if (!cat || idx <= 0) return;
     moveImage(cat, idx, idx - 1);
     rerender();
+    await pushOrderToServer(cat);
   };
 
-  const handleMoveDown = (idx: number) => {
+  const handleMoveDown = async (idx: number) => {
     if (!cat || idx >= rawOrder.length - 1) return;
     moveImage(cat, idx, idx + 1);
     rerender();
+    await pushOrderToServer(cat);
   };
 
-  const handleSwapClick = (id: string) => {
+  const handleSwapClick = async (id: string) => {
     if (swapMode === id) {
       setSwapMode(null);
       return;
@@ -163,15 +171,17 @@ const ManageCollection = () => {
       }
       setSwapMode(null);
       rerender();
+      await pushOrderToServer(cat);
     } else {
       setSwapMode(id);
     }
   };
 
-  const handleToggleHide = (id: string) => {
+  const handleToggleHide = async (id: string) => {
     if (!cat) return;
     toggleHidden(cat, id);
     rerender();
+    await pushOrderToServer(cat);
   };
 
   const handleReset = async () => {
@@ -183,6 +193,9 @@ const ManageCollection = () => {
     if (!approved) return;
     resetOrder();
     rerender();
+    for (const category of CATEGORY_ORDER) {
+      await pushOrderToServer(category);
+    }
   };
 
   const getCategoryLabel = (cat: string) => {
@@ -391,11 +404,12 @@ const ManageCollection = () => {
                       onDragStart={() => setDragIdx(idx)}
                       onDragOver={(e) => { e.preventDefault(); setDropTarget(idx); }}
                       onDragLeave={() => setDropTarget(null)}
-                      onDrop={(e) => {
+                      onDrop={async (e) => {
                         e.preventDefault();
                         if (dragIdx !== null && dragIdx !== idx && cat) {
                           moveImage(cat, dragIdx, idx);
                           rerender();
+                          await pushOrderToServer(cat);
                         }
                         setDragIdx(null);
                         setDropTarget(null);

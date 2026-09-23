@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,18 +17,7 @@ import {
 import { Calendar as CalendarIcon, CalendarClock, Info, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useConvexAdminSecret } from "@/hooks/useConvexAdminSecret";
-import { bookingAPI, getConvexAdminSecret } from "@/lib/api";
-
-type BookingRow = {
-  _id: string;
-  name: string;
-  email: string;
-  phone: string;
-  eventDate: string;
-  message: string;
-  createdAt: number;
-  source: "convex" | "server";
-};
+import { getConvexAdminSecret } from "@/lib/api";
 
 const Bookings: React.FC = () => {
   const { toast } = useToast();
@@ -41,59 +30,14 @@ const Bookings: React.FC = () => {
     useQuery(api.bookings.getBlockedDates, adminSecret ? { secret: adminSecret } : "skip") || [];
   const blockDate = useMutation(api.bookings.blockDate);
   const unblockDate = useMutation(api.bookings.unblockDate);
-  const [serverBookings, setServerBookings] = useState<BookingRow[]>([]);
-  const [isUsingFallback, setIsUsingFallback] = useState(false);
   const [eventDate, setEventDate] = useState("");
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [reason, setReason] = useState("");
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadLegacyBookings = async () => {
-      if (convexBookings !== undefined && convexBookings.length > 0) {
-        setServerBookings([]);
-        setIsUsingFallback(false);
-        return;
-      }
-
-      try {
-        const response = await bookingAPI.getAllBookings();
-        const legacyBookings = Array.isArray(response?.bookings)
-          ? response.bookings.map((booking: Record<string, unknown>) => ({
-              _id: String(booking.id ?? booking._id ?? crypto.randomUUID()),
-              name: String(booking.name ?? ""),
-              email: String(booking.email ?? ""),
-              phone: String(booking.phone ?? ""),
-              eventDate: String(booking.eventDate ?? ""),
-              message: String(booking.message ?? ""),
-              createdAt: Number(new Date(String(booking.createdAt ?? Date.now())).getTime()),
-              source: "server" as const,
-            }))
-          : [];
-
-        if (cancelled) return;
-
-        setServerBookings(legacyBookings);
-        setIsUsingFallback(legacyBookings.length > 0);
-      } catch {
-        if (cancelled) return;
-        setServerBookings([]);
-        setIsUsingFallback(false);
-      }
-    };
-
-    void loadLegacyBookings();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [convexBookings]);
-
   const bookings = useMemo(() => {
-    const source = convexBookings && convexBookings.length > 0 ? convexBookings : serverBookings;
+    const source = convexBookings && convexBookings.length > 0 ? convexBookings : [];
     return [...source].sort((a, b) => a.eventDate.localeCompare(b.eventDate));
-  }, [convexBookings, serverBookings]);
+  }, [convexBookings]);
 
   const formatIsoDate = (isoDate: string) => {
     const [year, month, day] = isoDate.split("-").map(Number);
@@ -206,18 +150,6 @@ const Bookings: React.FC = () => {
         </Card>
       )}
 
-      {isUsingFallback && (
-        <Card className="border-amber-200/60 bg-gradient-to-r from-amber-50/60 to-orange-50/60 shadow-sm">
-          <CardContent className="p-4 text-sm text-amber-900 font-medium">
-            <span className="flex items-center gap-2">
-              <Info className="w-4 h-4 shrink-0" />
-              Showing bookings from the server API as Convex has no records yet
-            </span>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Block Dates Card */}
       <Card className="border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300 bg-white/50 backdrop-blur-sm">
         <CardHeader className="pb-4">
           <div className="space-y-1">

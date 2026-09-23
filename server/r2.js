@@ -4,11 +4,23 @@
 const { S3Client, PutObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
-const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID || "";
-const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID || "";
-const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY || "";
-const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || "";
-const R2_PUBLIC_URL = (process.env.R2_PUBLIC_URL || "").replace(/\/+$/, "");
+// Env values are stored as exact strings; pasting a value with trailing CR/LF
+// (common when copying on Windows) silently corrupts both the public URL and the
+// S3 Authorization signature. Strip control chars, quotes, and surrounding
+// whitespace from every R2 value so a bad paste can never 500 uploads again.
+const cleanEnvValue = (value) =>
+  String(value || "")
+    // Remove any Windows/Mac/Unix line endings wherever they appear.
+    .replace(/[\r\n]+/g, "")
+    // Strip wrapping quotes (single, double) that some env-file editors add.
+    .replace(/^["']|["']$/g, "")
+    .trim();
+
+const R2_ACCOUNT_ID = cleanEnvValue(process.env.R2_ACCOUNT_ID);
+const R2_ACCESS_KEY_ID = cleanEnvValue(process.env.R2_ACCESS_KEY_ID);
+const R2_SECRET_ACCESS_KEY = cleanEnvValue(process.env.R2_SECRET_ACCESS_KEY);
+const R2_BUCKET_NAME = cleanEnvValue(process.env.R2_BUCKET_NAME);
+const R2_PUBLIC_URL = cleanEnvValue(process.env.R2_PUBLIC_URL).replace(/\/+$/, "");
 
 const r2Configured = Boolean(
   R2_ACCOUNT_ID && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY && R2_BUCKET_NAME

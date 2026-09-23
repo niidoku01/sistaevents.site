@@ -142,6 +142,7 @@ type CollectionImageResult = {
   _id: string;
   storageId?: string | null;
   r2Key?: string | null;
+  srcset?: string | null;
   originalName: string;
   size: number;
   contentType: string;
@@ -150,6 +151,13 @@ type CollectionImageResult = {
   url: string | null;
   width?: number;
   height?: number;
+  variants?: UploadVariant[];
+};
+
+type UploadVariant = {
+  width: number;
+  key: string;
+  url: string;
 };
 
 type UploadFileResult = {
@@ -157,6 +165,8 @@ type UploadFileResult = {
   url: string | null;
   width: number;
   height: number;
+  srcset?: string | null;
+  variants?: UploadVariant[];
 };
 
 export type UploadFileStatus = "queued" | "uploading" | "done" | "failed";
@@ -203,7 +213,7 @@ function uploadBlobToServerWithProgress(
   key: string,
   file: File,
   onProgress: (transferred: number) => void
-): Promise<void> {
+): Promise<{ variants?: UploadVariant[]; width?: number; height?: number }> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", `${getNextApiBase()}/collections/upload-file?key=${encodeURIComponent(key)}`);
@@ -215,7 +225,13 @@ function uploadBlobToServerWithProgress(
     };
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
-        resolve();
+        let payload: { variants?: UploadVariant[]; width?: number; height?: number } = {};
+        try {
+          payload = JSON.parse(xhr.responseText);
+        } catch {
+          /* empty body; variants optional */
+        }
+        resolve(payload);
       } else {
         let detail = "";
         try {
@@ -244,8 +260,20 @@ async function uploadFileToR2(
   onProgress?: (transferred: number) => void
 ): Promise<UploadFileResult> {
   const { key, publicUrl } = await getCollectionUploadUrl(file, category);
-  await uploadBlobToServerWithProgress(key, file, onProgress ?? (() => {}));
-  return { r2Key: key, url: publicUrl, width: 0, height: 0 };
+  const payload = await uploadBlobToServerWithProgress(key, file, onProgress ?? (() => {}));
+  const variants = payload.variants ?? [];
+  let srcset: string | undefined;
+  if (variants.length > 0) {
+    srcset = variants.map((v) => `${v.url} ${v.width}w`).join(", ");
+  }
+  return {
+    r2Key: key,
+    url: publicUrl,
+    width: payload.width ?? 0,
+    height: payload.height ?? 0,
+    srcset,
+    variants,
+  };
 }
 
 async function runWithConcurrency<T>(
@@ -299,7 +327,7 @@ export const collectionAPI = {
       let contributed = 0;
       statuses.set(file.name, "uploading");
       try {
-        const { r2Key, url } = await uploadFileToR2(file, category, (transferred) => {
+        const { r2Key, url, width, height, srcset } = await uploadFileToR2(file, category, (transferred) => {
           transferredBytes += transferred - contributed;
           contributed = transferred;
           notify(file.name);
@@ -307,12 +335,16 @@ export const collectionAPI = {
         const id = await convexClient.mutation(api.collectionImages.saveImage, {
           r2Key,
           url,
+          srcset: srcset ?? undefined,
+          width: width || undefined,
+          height: height || undefined,
           originalName: file.name,
           size: file.size,
           contentType: file.type,
           category,
           secret,
         });
+        imagesCache = null;
         results.push({
           _id: id,
           r2Key,
@@ -322,6 +354,9 @@ export const collectionAPI = {
           category,
           uploadedAt: Date.now(),
           url: url ?? null,
+          srcset: srcset ?? null,
+          width: width || undefined,
+          height: height || undefined,
         });
         transferredBytes += file.size - contributed;
         contributed = file.size;
@@ -332,7 +367,9 @@ export const collectionAPI = {
         transferredBytes -= contributed;
         contributed = 0;
         statuses.set(file.name, "failed");
-        failures.push({ name: file.name, error: err instanceof Error ? err : new Error("Upload failed") });
+        const error = err instanceof Error ? err : new Error("Upload failed");
+        console.error(`Collection upload failed for "${file.name}":`, error.message);
+        failures.push({ name: file.name, error });
         notify(null);
       }
     });
@@ -382,30 +419,49 @@ export const collectionAPI = {
     const images = await this.getAllImages();
     const img = images.find((row) => row._id === id);
     if (img?.r2Key) {
-      const response = await fetch(`${getNextApiBase()}/collections/r2/${encodeURIComponent(img.r2Key)}`, {
-        method: "DELETE",
-        headers: authHeaders(),
-      });
-      if (!response.ok) {
-        let message = `Failed to delete image from storage (${response.status})`;
-        try {
-          const body = await response.json();
-          if (body && typeof body.error === "string") message = body.error;
-        } catch {
-          // keep the fallback message
+      const keysToDelete = [img.r2Key];
+      if (img.variants && img.variants.length > 0) {
+        keysToDelete.push(...img.variants.map((v) => v.key));
+      }
+      for (const r2Key of keysToDelete) {
+        const response = await fetch(`${getNextApiBase()}/collections/r2/${encodeURIComponent(r2Key)}`, {
+          method: "DELETE",
+          headers: authHeaders(),
+        });
+        if (!response.ok) {
+          let message = `Failed to delete image from storage (${response.status})`;
+          try {
+            const body = await response.json();
+            if (body && typeof body.error === "string") message = body.error;
+          } catch {
+            // keep the fallback message
+          }
+          throw new Error(message);
         }
-        throw new Error(message);
       }
     }
     if (!convexClient) throw new Error("Convex client not available — check VITE_CONVEX_URL");
     const secret = await getConvexAdminSecret();
     await convexClient.mutation(api.collectionImages.deleteImage, { id: id as Id<"collectionImages">, secret });
+    imagesCache = null;
   },
 
   async updateImageCategory(id: string, category: string) {
     if (!convexClient) throw new Error("Convex client not available — check VITE_CONVEX_URL");
     const secret = await getConvexAdminSecret();
     await convexClient.mutation(api.collectionImages.updateCategory, { id: id as Id<"collectionImages">, category, secret });
+  },
+
+  async getLayout(): Promise<Record<string, { orderedIds: string[]; hiddenIds: string[]; updatedAt: number }>> {
+    if (!convexClient) return {};
+    const layout = await convexClient.query(api.collectionLayout.getLayout);
+    return (layout ?? {}) as Record<string, { orderedIds: string[]; hiddenIds: string[]; updatedAt: number }>;
+  },
+
+  async setLayout(category: string, orderedIds: string[], hiddenIds: string[]) {
+    if (!convexClient) throw new Error("Convex client not available — check VITE_CONVEX_URL");
+    const secret = await getConvexAdminSecret();
+    await convexClient.mutation(api.collectionLayout.setLayout, { category, orderedIds, hiddenIds, secret });
   },
 };
 

@@ -35,6 +35,9 @@ export default defineSchema({
     storageId: v.optional(v.id("_storage")),
     r2Key: v.optional(v.string()),
     url: v.optional(v.string()),
+    srcset: v.optional(v.string()),
+    width: v.optional(v.number()),
+    height: v.optional(v.number()),
     originalName: v.string(),
     size: v.number(),
     contentType: v.string(),
@@ -43,6 +46,12 @@ export default defineSchema({
   })
     .index("by_category", ["category"])
     .index("by_uploaded_at", ["uploadedAt"]),
+  collectionLayout: defineTable({
+    category: v.string(),
+    orderedIds: v.array(v.string()),
+    hiddenIds: v.array(v.string()),
+    updatedAt: v.number(),
+  }).index("by_category", ["category"]),
   popupAds: defineTable({
     title: v.string(),
     message: v.string(),

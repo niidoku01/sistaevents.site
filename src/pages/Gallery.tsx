@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { X, ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
-import { getOrderedImages, ensureImagesInOrder } from "../lib/collectionOrder";
+import { getOrderedImages, ensureImagesInOrder, syncOrderFromServer } from "../lib/collectionOrder";
 import { staticCollectionImagesByCategory } from "@/lib/staticCollections";
 import { collectionAPI } from "@/lib/api";
 
@@ -30,12 +30,15 @@ type UploadedImage = {
   _id: string;
   storageId?: string | null;
   r2Key?: string | null;
+  srcset?: string | null;
   originalName: string;
   size: number;
   contentType: string;
   category: string;
   uploadedAt: number;
   url: string | null;
+  width?: number;
+  height?: number;
 };
 
 type CollectionImage = {
@@ -59,6 +62,7 @@ export default function OurCollection() {
   const [isSwiping, setIsSwiping] = useState(false);
   const [visibleCount, setVisibleCount] = useState<number>(INITIAL_VISIBLE_IMAGES);
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+  const [layoutVersion, setLayoutVersion] = useState(0);
   const [barMinimized, setBarMinimized] = useState(false);
   const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({});
   const [currentImageLoaded, setCurrentImageLoaded] = useState(false);
@@ -71,6 +75,17 @@ export default function OurCollection() {
   useEffect(() => {
     setCurrentImageLoaded(false);
   }, [currentImageIndex]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await syncOrderFromServer();
+      } catch (err) {
+        console.error("Failed to sync collection layout:", err);
+      }
+      setLayoutVersion((v) => v + 1);
+    })();
+  }, []);
 
   useEffect(() => {
     collectionAPI.getAllImages()
@@ -104,6 +119,7 @@ export default function OurCollection() {
         .map((img) => ({
           _id: img._id,
           url: img.url,
+          srcset: img.srcset ?? undefined,
           originalName: img.originalName,
           category: img.category,
         }));
@@ -122,7 +138,8 @@ export default function OurCollection() {
       result[category] = getOrderedImages(category, combinedByCategory[category]);
     }
     return result;
-  }, [combinedByCategory]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [combinedByCategory, layoutVersion]);
 
   const categoryImages = selectedCategory ? imagesByCategory[selectedCategory] : null;
   const visibleCategoryImages = useMemo(() => {

@@ -62,7 +62,7 @@ export default function SelectionToolbar({
       {labelInput && (
         <div className={`${isMobile ? "px-3 py-2" : "absolute -top-12 left-0 pointer-events-auto"} flex items-center gap-2 bg-white/95 backdrop-blur-xl rounded-xl shadow-xl border border-slate-200/60 px-3 py-2`}>
           <span className="text-[10px] font-medium text-slate-500">Label:</span>
-          <Input autoFocus value={labelInput.value} onChange={(e) => setLabelInput({ ...labelInput, value: e.target.value })}
+          <Input autoFocus aria-label="Element label" value={labelInput.value} onChange={(e) => setLabelInput({ ...labelInput, value: e.target.value })}
             onKeyDown={(e) => { if (e.key === "Enter") commitLabel(); if (e.key === "Escape") setLabelInput(null); }}
             onBlur={commitLabel} className="h-7 text-xs w-40 rounded-lg border-slate-200/80 focus:border-indigo-400" />
         </div>
@@ -90,6 +90,7 @@ export default function SelectionToolbar({
           <SbBtn onClick={() => rotateBy(selectedEl.id, -45)} title="Rotate -45"><ChevronLeft className="w-3.5 h-3.5" /></SbBtn>
           <input type="range" min={0} max={359} value={selectedEl.rotation}
             onChange={(e) => rotateTo(selectedEl.id, +e.target.value)}
+            aria-label="Rotation"
             className="w-16 h-1 accent-indigo-500 rounded-full" />
           <SbBtn onClick={() => rotateBy(selectedEl.id, 45)} title="Rotate +45"><ChevronRight className="w-3.5 h-3.5" /></SbBtn>
           <SbBtn onClick={() => rotateBy(selectedEl.id, 90)} title="Rotate +90"><RotateCw className="w-3.5 h-3.5" /></SbBtn>
@@ -105,11 +106,13 @@ export default function SelectionToolbar({
           <MoveHorizontal className="w-3 h-3 text-slate-400" />
           <input type="number" value={selectedEl.width} min={16} max={800} step={GRID_SIZE}
             onChange={(e) => setElementSize(selectedEl.id, +e.target.value, selectedEl.height)}
+            aria-label="Width"
             className="w-14 h-6 text-[10px] text-center font-mono border border-slate-200/80 rounded-lg bg-white focus:border-indigo-400 focus:outline-none transition-colors" />
           <span className="text-[9px] text-slate-300">&times;</span>
           <MoveVertical className="w-3 h-3 text-slate-400" />
           <input type="number" value={selectedEl.height} min={16} max={600} step={GRID_SIZE}
             onChange={(e) => setElementSize(selectedEl.id, selectedEl.width, +e.target.value)}
+            aria-label="Height"
             className="w-14 h-6 text-[10px] text-center font-mono border border-slate-200/80 rounded-lg bg-white focus:border-indigo-400 focus:outline-none transition-colors" />
           <SbBtn onClick={() => setLockAspect(!lockAspect)} title={lockAspect ? "Unlock aspect" : "Lock aspect"}
             active={lockAspect}>

@@ -194,8 +194,9 @@ const ManagePopupAds = () => {
           <form onSubmit={handleCreate} className="space-y-6">
             {/* Image */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-900">Upload Image</label>
+              <label htmlFor="popup-ad-image" className="text-sm font-semibold text-slate-900">Upload Image</label>
               <Input
+                id="popup-ad-image"
                 type="file"
                 accept="image/*"
                 onChange={handleImageUpload}
@@ -219,8 +220,9 @@ const ManagePopupAds = () => {
             {/* CTA */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-900">Button Text</label>
+                <label htmlFor="popup-ad-cta-text" className="text-sm font-semibold text-slate-900">Button Text</label>
                 <Input
+                  id="popup-ad-cta-text"
                   value={form.ctaText}
                   onChange={(e) => setForm((prev) => ({ ...prev, ctaText: e.target.value }))}
                   placeholder="Shop Now"
@@ -228,8 +230,9 @@ const ManagePopupAds = () => {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-900">Button Link (URL)</label>
+                <label htmlFor="popup-ad-cta-url" className="text-sm font-semibold text-slate-900">Button Link (URL)</label>
                 <Input
+                  id="popup-ad-cta-url"
                   value={form.ctaUrl}
                   onChange={(e) => setForm((prev) => ({ ...prev, ctaUrl: e.target.value }))}
                   placeholder="https://example.com/offer"

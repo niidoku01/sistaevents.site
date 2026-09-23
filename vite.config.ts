@@ -9,7 +9,10 @@ import { visualizer } from "rollup-plugin-visualizer";
  * Build-time responsive images.
  *
  * 1. `?responsive` query imports generate WebP variants (480w / 800w / 1280w /
- *    1920w) for a single image and export `{ src, srcset }`.
+ *    1920w / native-width) for a single image and export `{ src, srcset }`.
+ *    The final srcset tier is the source's native resolution so large/retina
+ *    screens and the full-screen viewer can fetch the highest quality possible;
+ *    `src` stays capped at 1920w so old browsers/lossy paths stay lean.
  * 2. `virtual:responsive-collection-manifest` is populated at build start by
  *    scanning `src/assets/collections`, so the collection gallery can build
  *    per-image `srcset` values without relying on glob query imports (which
@@ -34,10 +37,11 @@ function responsiveImages(): Plugin {
     const meta = await sharp(filePath, { failOn: "none" }).metadata();
     const srcWidth = meta.width || MAX_GENERATED_WIDTH;
 
+    // Always include a native-resolution top tier so large/retina screens and
+    // the full-screen viewer can request the source's full resolution instead
+    // of being capped at MAX_GENERATED_WIDTH.
     let widths = RESPONSIVE_WIDTHS.filter((w) => w < srcWidth);
-    if (srcWidth <= MAX_GENERATED_WIDTH) {
-      widths.push(srcWidth);
-    }
+    widths.push(srcWidth);
     if (widths.length === 0) {
       widths = [Math.min(srcWidth, MAX_GENERATED_WIDTH)];
     }
@@ -55,7 +59,7 @@ function responsiveImages(): Plugin {
         await sharp(filePath, { failOn: "none" })
           .rotate()
           .resize({ width })
-          .webp({ quality: 90, effort: 3 })
+          .webp({ quality: width === srcWidth ? 95 : 90, effort: 3 })
           .toFile(outFile);
       }
       variants.push({ width, url: toUrl(fileName) });
@@ -113,7 +117,7 @@ function responsiveImages(): Plugin {
       if (cached) return cached;
 
       const variants = await generateVariants(filePath);
-      const src = variants[variants.length - 1].url;
+      const src = (variants.findLast((v) => v.width <= MAX_GENERATED_WIDTH) ?? variants[variants.length - 1]).url;
       const srcset = variants.map((v) => `${v.url} ${v.width}w`).join(", ");
       const code = [
         `export const src = ${JSON.stringify(src)};`,

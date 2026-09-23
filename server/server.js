@@ -14,6 +14,7 @@ const { getFirestore } = require("firebase-admin/firestore");
 const { getAuth } = require("firebase-admin/auth");
 const { initDb } = require("./db");
 const reviewRoutes = require("./routes/reviews");
+const r2 = require("./r2");
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
@@ -565,6 +566,132 @@ const readMeta = () => {
 const writeMeta = (meta) => {
   fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2));
 };
+
+/**
+ * POST /api/collections/upload-url
+ * Issue a unique R2 object key for a Collection image (admin). The browser
+ * uploads the file bytes through the server (`POST /api/collections/upload-file`)
+ * and records metadata in Convex via the `collectionImages.saveImage` mutation.
+ */
+app.post("/api/collections/upload-url", adminLimiter, verifyAdmin, async (req, res) => {
+  try {
+    const { fileName, contentType, size, category } = req.body || {};
+
+    const allowedMimes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    const allowedExts = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
+    // Must match the category allowlist enforced by convex/collectionImages.ts.
+    const allowedCategories = ["weddings", "funerals", "birthdays", "corporate", "social", "decor", "other"];
+
+    if (typeof fileName !== "string" || fileName.length === 0 || fileName.length > 260) {
+      return res.status(400).json({ error: "Invalid file name" });
+    }
+    const ext = path.extname(fileName).toLowerCase();
+    if (!allowedExts.includes(ext)) {
+      return res.status(400).json({ error: "File extension not allowed" });
+    }
+    if (!allowedMimes.includes(contentType)) {
+      return res.status(400).json({ error: "Invalid content type; only image files are allowed" });
+    }
+    if (typeof size !== "number" || size <= 0 || size > 20 * 1024 * 1024) {
+      return res.status(400).json({ error: "Invalid file size (max 20 MB)" });
+    }
+    if (typeof category !== "string" || !allowedCategories.includes(category)) {
+      return res.status(400).json({ error: "Invalid category" });
+    }
+    if (!r2.isConfigured()) {
+      return res.status(500).json({ error: "R2 storage is not configured on the server" });
+    }
+    if (!r2.hasPublicUrl()) {
+      return res.status(500).json({ error: "R2_PUBLIC_URL is not configured on the server" });
+    }
+
+    // Predictable structure: collections/{category}/{uniqueId}-{ext}
+    const key = `collections/${category}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}${ext}`;
+
+    return res.status(201).json({
+      success: true,
+      key,
+      publicUrl: r2.getPublicUrl(key),
+    });
+  } catch (error) {
+    console.error("Failed to create collection upload URL:", error.message);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * POST /api/collections/upload-file?key=<key>
+ * Store a Collection image in R2 by proxying the bytes from the browser through
+ * this server (admin). The server-to-server PUT avoids requiring CORS PUT
+ * access on the bucket (only configurable in the Cloudflare dashboard). The
+ * matching Convex row is created afterwards via `collectionImages.saveImage`.
+ */
+app.post("/api/collections/upload-file", adminLimiter, verifyAdmin, express.raw({ type: () => true, limit: "20mb" }), async (req, res) => {
+  try {
+    const key = typeof req.query.key === "string" ? req.query.key : "";
+    const contentType = (req.get("content-type") || "").toLowerCase();
+    const body = req.body;
+
+    const allowedMimes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+
+    if (!r2.isValidCollectionKey(key)) {
+      return res.status(400).json({ error: "Invalid object key" });
+    }
+    if (!allowedMimes.includes(contentType)) {
+      return res.status(400).json({ error: "Invalid content type; only image files are allowed" });
+    }
+    if (!Buffer.isBuffer(body) || body.length === 0) {
+      return res.status(400).json({ error: "Empty upload body" });
+    }
+    if (body.length > 20 * 1024 * 1024) {
+      return res.status(413).json({ error: "File too large (max 20 MB)" });
+    }
+    if (!r2.isConfigured()) {
+      return res.status(500).json({ error: "R2 storage is not configured on the server" });
+    }
+
+    await r2.putObject({ key, body, contentType });
+    return res.status(201).json({ success: true, key, publicUrl: r2.getPublicUrl(key) });
+  } catch (error) {
+    console.error("Failed to store collection image:", error.message);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * DELETE /api/collections/r2/:key
+ * Delete a Collection image object from R2 (admin). Best-effort: the R2 bucket
+ * policy may protect the `collections/` prefix (object lock). Failing to remove
+ * the object never blocks the Convex metadata row from being deleted — R2 keeps
+ * the file as a backup in that case. The matching Convex row is removed by the
+ * `collectionImages.deleteImage` mutation. Legacy Convex storage blobs are
+ * intentionally left untouched as a backup.
+ */
+app.delete("/api/collections/r2/:key(.*)", adminLimiter, verifyAdmin, async (req, res) => {
+  try {
+    const key = req.params.key;
+    if (!r2.isValidCollectionKey(key)) {
+      return res.status(400).json({ error: "Invalid object key" });
+    }
+    if (!r2.isConfigured()) {
+      return res.status(500).json({ error: "R2 storage is not configured on the server" });
+    }
+    try {
+      await r2.deleteObject(key);
+      return res.json({ success: true, message: "Collection image removed from storage" });
+    } catch (deleteErr) {
+      console.warn(`R2 object not deleted (${key}) — kept by bucket policy:`, deleteErr.message);
+      return res.json({
+        success: true,
+        message: "Image metadata removed; R2 object kept by bucket policy",
+        warning: true,
+      });
+    }
+  } catch (error) {
+    console.error("Failed to delete collection object:", error.message);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 /**
  * POST /api/uploads/collections

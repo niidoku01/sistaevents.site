@@ -7,13 +7,22 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "convex/react";
 import { cn } from "@/lib/utils";
 import { api } from "../../convex/_generated/api";
+import {
+  sanitizeInput,
+  sanitizeProse,
+  isValidName,
+  isValidEmail,
+  isValidEventType,
+  NAME_MESSAGE,
+  EMAIL_MESSAGE,
+  EVENT_MESSAGE,
+} from "@/lib/inputValidation";
 
 type FieldErrors = {
   name?: string;
   email?: string;
   event?: string;
   content?: string;
-  consent?: string;
 };
 
 export const ReviewForm = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
@@ -28,18 +37,17 @@ export const ReviewForm = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
   });
   const [errors, setErrors] = useState<FieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [consent, setConsent] = useState(false);
   const submitReview = useMutation(api.reviews.submitReview);
 
   const validate = (): boolean => {
     const next: FieldErrors = {};
-    if (!formData.name.trim()) next.name = "Please enter your name";
-    if (!formData.email.trim()) next.email = "Please enter your email";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
-      next.email = "Please enter a valid email";
-    if (!formData.event.trim()) next.event = "Please enter the event type";
+    const name = sanitizeInput(formData.name, "name");
+    const email = sanitizeInput(formData.email, "email");
+    const event = sanitizeInput(formData.event, "event");
+    if (!name.trim() || !isValidName(name)) next.name = NAME_MESSAGE;
+    if (!email.trim() || !isValidEmail(email)) next.email = EMAIL_MESSAGE;
+    if (!event.trim() || !isValidEventType(event)) next.event = EVENT_MESSAGE;
     if (!formData.content.trim()) next.content = "Please write your review";
-    if (!consent) next.consent = "Please accept the data protection notice to continue";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -55,12 +63,11 @@ export const ReviewForm = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
 
     try {
       await submitReview({
-        name: formData.name,
-        email: formData.email,
-        event: formData.event,
-        content: formData.content,
+        name: sanitizeInput(formData.name, "name"),
+        email: sanitizeInput(formData.email, "email"),
+        event: sanitizeInput(formData.event, "event"),
+        content: sanitizeProse(formData.content),
         rating,
-        consent,
       });
 
       toast({
@@ -70,7 +77,6 @@ export const ReviewForm = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
 
       setFormData({ name: "", email: "", event: "", content: "" });
       setRating(5);
-      setConsent(false);
       setErrors({});
 
       onSuccess?.();
@@ -87,14 +93,22 @@ export const ReviewForm = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const sanitized =
+      name === "name"
+        ? sanitizeInput(value, "name")
+        : name === "email"
+          ? sanitizeInput(value, "email")
+          : name === "event"
+            ? sanitizeInput(value, "event")
+            : sanitizeProse(value);
+    setFormData((prev) => ({ ...prev, [name]: sanitized }));
     clearError(name as keyof FieldErrors);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="space-y-2.5">
-        <label className="text-sm font-medium text-foreground/80">Rating</label>
+        <span className="text-sm font-medium text-foreground/80">Rating</span>
         <div className="flex gap-1.5">
           {[1, 2, 3, 4, 5].map((star) => (
             <button
@@ -127,6 +141,7 @@ export const ReviewForm = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
           <Input
             id="name"
             name="name"
+            autoComplete="name"
             value={formData.name}
             onChange={handleChange}
             placeholder="Your name or nickname"
@@ -146,6 +161,7 @@ export const ReviewForm = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
             id="email"
             name="email"
             type="email"
+            autoComplete="email"
             value={formData.email}
             onChange={handleChange}
             placeholder="example@mail.com"
@@ -202,27 +218,6 @@ export const ReviewForm = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
           {errors.content && <FieldError message={errors.content} />}
         </div>
       </div>
-
-      <div className="flex items-start gap-3 rounded-xl border border-border/80 bg-muted/40 p-3.5">
-        <input
-          id="review-consent"
-          type="checkbox"
-          checked={consent}
-          onChange={(e) => setConsent(e.target.checked)}
-          className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-[hsl(var(--accent))]"
-        />
-        <label htmlFor="review-consent" className="text-xs text-muted-foreground leading-relaxed">
-          I agree to the{" "}
-          <a href="/privacy-policy" className="text-accent underline underline-offset-2 hover:opacity-80 transition-opacity">
-            Privacy Policy
-          </a>{" "}
-          and consent to Sista Events &amp; Rentals publishing my name, event type, and review publicly, and storing
-          my email address for moderation purposes.
-        </label>
-      </div>
-      {errors.consent && (
-        <p className="text-[11px] font-medium text-red-600 dark:text-red-400">Please accept the data protection notice to continue.</p>
-      )}
 
       <Button
         type="submit"

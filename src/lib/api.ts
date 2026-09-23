@@ -140,7 +140,8 @@ export const bookingAPI = {
 
 type CollectionImageResult = {
   _id: string;
-  storageId: string;
+  storageId?: string | null;
+  r2Key?: string | null;
   originalName: string;
   size: number;
   contentType: string;
@@ -152,7 +153,7 @@ type CollectionImageResult = {
 };
 
 type UploadFileResult = {
-  storageId: Id<"_storage">;
+  r2Key: string;
   url: string | null;
   width: number;
   height: number;
@@ -171,47 +172,80 @@ export type UploadProgressState = {
 
 const UPLOAD_CONCURRENCY = 8;
 
-function uploadBlobToConvexWithProgress(
-  uploadUrl: string,
+async function getCollectionUploadUrl(file: File, category: string): Promise<{ key: string; publicUrl: string }> {
+  const response = await fetch(`${getNextApiBase()}/collections/upload-url`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ fileName: file.name, contentType: file.type, size: file.size, category }),
+  });
+
+  let body: unknown;
+  try {
+    body = await response.json();
+  } catch {
+    body = undefined;
+  }
+
+  if (!response.ok) {
+    const detail = typeof body === "object" && body !== null ? (body as { error?: unknown }) : null;
+    const message = typeof detail?.error === "string" ? detail.error : `Failed to get upload URL (${response.status})`;
+    throw new Error(message);
+  }
+
+  const data = body as { key?: unknown; publicUrl?: unknown };
+  if (typeof data?.key !== "string" || typeof data?.publicUrl !== "string") {
+    throw new Error("Upload URL response is malformed");
+  }
+  return { key: data.key, publicUrl: data.publicUrl };
+}
+
+function uploadBlobToServerWithProgress(
+  key: string,
   file: File,
   onProgress: (transferred: number) => void
-): Promise<{ storageId: Id<"_storage"> }> {
+): Promise<void> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", uploadUrl);
+    xhr.open("POST", `${getNextApiBase()}/collections/upload-file?key=${encodeURIComponent(key)}`);
+    const auth = authHeaders();
+    if (auth.Authorization) xhr.setRequestHeader("Authorization", auth.Authorization);
     xhr.setRequestHeader("Content-Type", file.type);
-    xhr.responseType = "json";
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) onProgress(e.loaded);
     };
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
-        const body = xhr.response as { storageId?: unknown } | null;
-        if (body && typeof body.storageId === "string") {
-          resolve({ storageId: body.storageId as Id<"_storage"> });
-        } else {
-          reject(new Error("Upload to storage failed — no storage ID returned"));
-        }
+        resolve();
       } else {
-        reject(new Error(`Upload to storage failed (${xhr.status} ${xhr.statusText})`));
+        let detail = "";
+        try {
+          const parsed = JSON.parse(xhr.responseText);
+          if (parsed?.error) detail = ` — ${parsed.error}`;
+        } catch {
+          /* not JSON; ignore */
+        }
+        const hint =
+          detail ||
+          (xhr.status === 403
+            ? " — the R2 API token needs 'Object Read & Write' permission in Cloudflare"
+            : "");
+        reject(new Error(`Upload failed (${xhr.status} ${xhr.statusText})${hint}`));
       }
     };
-    xhr.onerror = () => reject(new Error("Upload to storage failed — network error"));
-    xhr.onabort = () => reject(new Error("Upload to storage aborted"));
+    xhr.onerror = () => reject(new Error("Upload failed — network error"));
+    xhr.onabort = () => reject(new Error("Upload aborted"));
     xhr.send(file);
   });
 }
 
-async function uploadFileToConvex(
+async function uploadFileToR2(
   file: File,
+  category: string,
   onProgress?: (transferred: number) => void
 ): Promise<UploadFileResult> {
-  if (!convexClient) throw new Error("Convex client not available");
-  const secret = await getConvexAdminSecret();
-  const uploadUrl = await convexClient.mutation(api.collectionImages.generateUploadUrl, { secret });
-  const { storageId } = await uploadBlobToConvexWithProgress(uploadUrl, file, onProgress ?? (() => {}));
-  const url = await convexClient.query(api.collectionImages.getStorageUrl, { storageId });
-  return { storageId, url, width: 0, height: 0 };
+  const { key, publicUrl } = await getCollectionUploadUrl(file, category);
+  await uploadBlobToServerWithProgress(key, file, onProgress ?? (() => {}));
+  return { r2Key: key, url: publicUrl, width: 0, height: 0 };
 }
 
 async function runWithConcurrency<T>(
@@ -228,6 +262,10 @@ async function runWithConcurrency<T>(
   });
   await Promise.all(runners);
 }
+
+const IMAGES_CACHE_TTL_MS = 5 * 60 * 1000;
+let imagesCache: { data: CollectionImageResult[]; fetchedAt: number } | null = null;
+let imagesInFlight: Promise<CollectionImageResult[]> | null = null;
 
 export const collectionAPI = {
   async uploadImages(
@@ -261,13 +299,14 @@ export const collectionAPI = {
       let contributed = 0;
       statuses.set(file.name, "uploading");
       try {
-        const { storageId, url } = await uploadFileToConvex(file, (transferred) => {
+        const { r2Key, url } = await uploadFileToR2(file, category, (transferred) => {
           transferredBytes += transferred - contributed;
           contributed = transferred;
           notify(file.name);
         });
         const id = await convexClient.mutation(api.collectionImages.saveImage, {
-          storageId,
+          r2Key,
+          url,
           originalName: file.name,
           size: file.size,
           contentType: file.type,
@@ -276,13 +315,13 @@ export const collectionAPI = {
         });
         results.push({
           _id: id,
-          storageId,
+          r2Key,
           originalName: file.name,
           size: file.size,
           contentType: file.type,
           category,
           uploadedAt: Date.now(),
-          url,
+          url: url ?? null,
         });
         transferredBytes += file.size - contributed;
         contributed = file.size;
@@ -300,30 +339,64 @@ export const collectionAPI = {
 
     if (failures.length > 0) {
       const failedNames = failures.map((f) => f.name).slice(0, 5).join(", ");
+      const firstError = failures[0]?.error?.message ?? "unknown error";
       throw new Error(
         `${failures.length} file(s) failed to upload (${failedNames}). ` +
-          `${results.length} of ${files.length} uploaded successfully.`
+          `${results.length} of ${files.length} uploaded successfully. ` +
+          `First error: ${firstError}`
       );
     }
 
     return { images: results };
   },
 
-  async getAllImages() {
+  async getAllImages(options?: { refresh?: boolean }) {
     if (!convexClient) {
       console.error("getAllImages: Convex client not available — check VITE_CONVEX_URL");
       return [];
     }
-    try {
-      const images = await convexClient.query(api.collectionImages.listImages);
-      return images;
-    } catch (err) {
-      console.error("getAllImages: Convex query failed:", err);
-      throw err;
+
+    const now = Date.now();
+    if (!options?.refresh && imagesCache && now - imagesCache.fetchedAt < IMAGES_CACHE_TTL_MS) {
+      return imagesCache.data;
     }
+
+    if (!imagesInFlight) {
+      imagesInFlight = (async () => {
+        try {
+          const images = await convexClient.query(api.collectionImages.listImages);
+          imagesCache = { data: images as CollectionImageResult[], fetchedAt: Date.now() };
+          return images as CollectionImageResult[];
+        } finally {
+          imagesInFlight = null;
+        }
+      })();
+    }
+    return imagesInFlight;
   },
 
   async deleteImage(id: string) {
+    // Remove the R2 object first (server-side) so the Convex row is only
+    // removed once the file is actually gone. Convex storage blobs are left
+    // untouched as a backup until the migration is verified.
+    const images = await this.getAllImages();
+    const img = images.find((row) => row._id === id);
+    if (img?.r2Key) {
+      const response = await fetch(`${getNextApiBase()}/collections/r2/${encodeURIComponent(img.r2Key)}`, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+      if (!response.ok) {
+        let message = `Failed to delete image from storage (${response.status})`;
+        try {
+          const body = await response.json();
+          if (body && typeof body.error === "string") message = body.error;
+        } catch {
+          // keep the fallback message
+        }
+        throw new Error(message);
+      }
+    }
     if (!convexClient) throw new Error("Convex client not available — check VITE_CONVEX_URL");
     const secret = await getConvexAdminSecret();
     await convexClient.mutation(api.collectionImages.deleteImage, { id: id as Id<"collectionImages">, secret });

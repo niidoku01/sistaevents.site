@@ -1,6 +1,14 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { adminSecretArg, validateAdminSecret } from "./admin";
+import {
+  isValidName,
+  isValidEmail,
+  isValidEventType,
+  INVALID_NAME,
+  INVALID_EMAIL,
+  INVALID_EVENT,
+} from "./_validation";
 
 export const submitReview = mutation({
   args: {
@@ -9,36 +17,34 @@ export const submitReview = mutation({
     event: v.string(),
     content: v.string(),
     rating: v.number(),
-    consent: v.boolean(),
+    // Legacy client field from the old consent checkbox. Accepted but ignored so
+    // already-cached clients keep submitting without a "required" error.
+    consent: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    if (args.consent !== true) {
-      throw new Error("Consent is required to submit a review");
+    if (!isValidName(args.name)) {
+      throw new Error(INVALID_NAME);
     }
-    if (args.name.length < 2 || args.name.length > 100) {
-      throw new Error("Name must be between 2 and 100 characters");
+    if (!isValidEmail(args.email)) {
+      throw new Error(INVALID_EMAIL);
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(args.email)) {
-      throw new Error("Invalid email format");
-    }
-    if (args.event.length > 100) {
-      throw new Error("Event type too long (max 100 characters)");
+    if (!isValidEventType(args.event)) {
+      throw new Error(INVALID_EVENT);
     }
     if (args.content.length < 10 || args.content.length > 1000) {
-      throw new Error("Review content must be between 10 and 1000 characters");
+      throw new Error("Please write a review between 10 and 1000 characters");
     }
     if (args.rating < 1 || args.rating > 5 || !Number.isInteger(args.rating)) {
       throw new Error("Rating must be an integer between 1 and 5");
     }
 
     return await ctx.db.insert("reviews", {
-      name: args.name,
-      email: args.email,
-      event: args.event,
+      name: args.name.trim(),
+      email: args.email.trim().toLowerCase(),
+      event: args.event.trim(),
       content: args.content,
       rating: args.rating,
       approved: false,
-      consentAt: Date.now(),
       createdAt: Date.now(),
     });
   },

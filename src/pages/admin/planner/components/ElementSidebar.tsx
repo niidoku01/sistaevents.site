@@ -73,7 +73,7 @@ export default function ElementSidebar({
       {sidebarTab === "elements" && (<>
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
-          <Input value={elementSearch} onChange={(e) => setElementSearch(e.target.value)} placeholder="Search elements..."
+          <Input value={elementSearch} onChange={(e) => setElementSearch(e.target.value)} placeholder="Search elements..." aria-label="Search elements"
             className="h-8 text-xs pl-8 rounded-xl border-slate-200/80 focus:border-indigo-400 focus:ring-indigo-400/20 bg-slate-50/50" />
         </div>
 

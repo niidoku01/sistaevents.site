@@ -53,6 +53,7 @@ export default function ElementFloatingToolbar({
           <span className="text-[10px] font-medium text-slate-500">Label:</span>
           <Input
             autoFocus
+            aria-label="Element label"
             value={labelInput.value}
             onChange={(e) => setLabelInput({ ...labelInput, value: e.target.value })}
             onKeyDown={(e) => {

@@ -626,13 +626,13 @@ function PreviewDocument({ doc }: { doc: BillingDoc }) {
   return (
     <div className="bg-white text-slate-800 p-4 sm:p-7 text-[11px] leading-relaxed max-h-[640px] overflow-y-auto">
       {/* Header — Invoice left, logo + name right */}
-      <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:justify-between sm:gap-4 sm:items-start sm:text-left">
+      <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h4 className="text-2xl font-extrabold tracking-wide">{isInvoice ? "INVOICE" : "RECEIPT"}</h4>
         </div>
-        <div className="flex flex-col items-center gap-1">
-          <img src={sistalogoUrl} alt={`${company} logo`} className="h-20 w-20 object-contain drop-shadow-sm" />
-          <h4 className="text-[13px] font-extrabold tracking-tight leading-tight text-center">{company}</h4>
+        <div className="flex flex-col items-end gap-1 shrink-0 text-right">
+          <img src={sistalogoUrl} alt={`${company} logo`} className="h-16 w-16 sm:h-20 sm:w-20 object-contain drop-shadow-sm" />
+          <h4 className="text-[13px] font-extrabold tracking-tight leading-tight text-right">{company}</h4>
         </div>
       </div>
 

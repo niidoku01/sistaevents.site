@@ -11,6 +11,17 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import bookingSuccessSound from "@/sound/u_3bsnvt0dsu-successed-295058.mp3";
+import {
+  sanitizeInput,
+  sanitizeProse,
+  autocorrectPhone,
+  isValidName,
+  isValidEmail,
+  isValidPhone,
+  NAME_MESSAGE,
+  EMAIL_MESSAGE,
+  PHONE_MESSAGE,
+} from "@/lib/inputValidation";
 
 const BRANDED_SUCCESS_SOUND_URL = bookingSuccessSound;
 
@@ -40,18 +51,21 @@ export const Contact = () => {
     phone: "",
     eventDate: "",
     message: "",
-    consent: false,
   });
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const hasRequiredFields = Boolean(formData.name.trim() && formData.email.trim() && formData.message.trim() && formData.consent);
+  const [touched, setTouched] = useState<{ name?: boolean; email?: boolean; phone?: boolean }>({});
+  const hasRequiredFields = Boolean(formData.name.trim() && formData.email.trim() && formData.message.trim());
   const wordCount = formData.message.trim() ? formData.message.trim().split(/\s+/).filter(Boolean).length : 0;
+
+  const nameInvalid = touched.name && !isValidName(sanitizeInput(formData.name, "name"));
+  const emailInvalid = touched.email && !isValidEmail(sanitizeInput(formData.email, "email"));
+  const phoneInvalid = touched.phone && !isValidPhone(autocorrectPhone(formData.phone));
 
   const getMissingFieldMessage = () => {
     if (!formData.name.trim()) return "Please enter your name.";
     if (!formData.email.trim()) return "Please enter your email address.";
     if (!formData.message.trim()) return "Please tell us about your event.";
-    if (!formData.consent) return "Please accept the data protection notice to continue.";
     return "";
   };
 
@@ -228,10 +242,41 @@ export const Contact = () => {
       return;
     }
 
+    const name = sanitizeInput(formData.name, "name");
+    const email = sanitizeInput(formData.email, "email");
+    const phone = autocorrectPhone(formData.phone);
+
+    // Silence-safe gate: only generic alerts, never the validation rules.
+    const invalid: string[] = [];
+    if (!isValidName(name)) invalid.push("Name");
+    if (!isValidEmail(email)) invalid.push("Email");
+    if (!isValidPhone(phone)) invalid.push("Phone");
+
+    if (invalid.length > 0) {
+      setTouched({
+        name: !isValidName(name),
+        email: !isValidEmail(email),
+        phone: !isValidPhone(phone),
+      });
+      setFormData((prev) => ({ ...prev, name, email, phone }));
+      toast({
+        title: "Please review a few details",
+        description: `${invalid.join(", ")} ${invalid.length > 1 ? "need" : "needs"} your attention before we can send your request.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      await createBooking({ ...formData, consent: formData.consent });
+      await createBooking({
+        name,
+        email,
+        phone,
+        eventDate: formData.eventDate,
+        message: sanitizeProse(formData.message),
+      });
       
       // Play success sound only after successful booking
       await primeSuccessSound();
@@ -247,8 +292,8 @@ export const Contact = () => {
         phone: "",
         eventDate: "",
         message: "",
-        consent: false,
       });
+      setTouched({});
       
       // Clear success message after 5 seconds
       setTimeout(() => setSuccessMessage(""), 5000);
@@ -296,11 +341,19 @@ export const Contact = () => {
                       <Input
                         id="name"
                         aria-required="true"
+                        aria-invalid={nameInvalid || undefined}
                         autoComplete="name"
                         value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        onChange={(e) => {
+                          setTouched((prev) => ({ ...prev, name: false }));
+                          setFormData({ ...formData, name: sanitizeInput(e.target.value, "name") });
+                        }}
                         placeholder="Mr/Ms."
+                        className={nameInvalid ? "border-red-500/60 ring-red-500/20" : ""}
                       />
+                      {nameInvalid && (
+                        <p className="mt-1.5 text-xs font-medium text-red-600 dark:text-red-400">{NAME_MESSAGE}</p>
+                      )}
                     </div>
                     <div>
                       <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
@@ -310,11 +363,19 @@ export const Contact = () => {
                         id="email"
                         type="email"
                         aria-required="true"
+                        aria-invalid={emailInvalid || undefined}
                         autoComplete="email"
                         value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        placeholder="mail@example.com"
+                        onChange={(e) => {
+                          setTouched((prev) => ({ ...prev, email: false }));
+                          setFormData({ ...formData, email: sanitizeInput(e.target.value, "email") });
+                        }}
+                        placeholder="you@example.com"
+                        className={emailInvalid ? "border-red-500/60 ring-red-500/20" : ""}
                       />
+                      {emailInvalid && (
+                        <p className="mt-1.5 text-xs font-medium text-red-600 dark:text-red-400">{EMAIL_MESSAGE}</p>
+                      )}
                     </div>
                   </div>
 
@@ -328,10 +389,18 @@ export const Contact = () => {
                         type="tel"
                         autoComplete="tel"
                         inputMode="tel"
+                        aria-invalid={phoneInvalid || undefined}
                         value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        onChange={(e) => {
+                          setTouched((prev) => ({ ...prev, phone: false }));
+                          setFormData({ ...formData, phone: sanitizeInput(e.target.value, "phone") });
+                        }}
                         placeholder="(0) 123456789"
+                        className={phoneInvalid ? "border-red-500/60 ring-red-500/20" : ""}
                       />
+                      {phoneInvalid && (
+                        <p className="mt-1.5 text-xs font-medium text-red-600 dark:text-red-400">{PHONE_MESSAGE}</p>
+                      )}
                     </div>
                     <div>
                       <label htmlFor="eventDate" className="block text-sm font-medium text-foreground mb-2">
@@ -340,6 +409,7 @@ export const Contact = () => {
                       <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                         <PopoverTrigger asChild>
                           <Button
+                            id="eventDate"
                             type="button"
                             variant="outline"
                             className={`w-full justify-start text-left font-normal transition-all duration-300 ${
@@ -384,7 +454,7 @@ export const Contact = () => {
                         aria-required="true"
                         maxLength={1000}
                         value={formData.message}
-                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                        onChange={(e) => setFormData({ ...formData, message: sanitizeProse(e.target.value) })}
                         placeholder="Describe your event needs, logistics, guest count, venue, etc."
                         className="min-h-[150px] pb-8 pr-16"
                       />
@@ -398,25 +468,6 @@ export const Contact = () => {
                         {wordCount}/1000
                       </span>
                     </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 rounded-xl border border-border/80 bg-muted/40 p-3.5 sm:p-4">
-                    <input
-                      id="consent"
-                      type="checkbox"
-                      required
-                      checked={formData.consent}
-                      onChange={(e) => setFormData({ ...formData, consent: e.target.checked })}
-                      className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-[hsl(var(--accent))]"
-                    />
-                    <label htmlFor="consent" className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                      I agree to the{" "}
-                      <a href="/privacy-policy" className="text-accent underline underline-offset-2 hover:opacity-80 transition-opacity">
-                        Privacy Policy
-                      </a>{" "}
-                      and consent to Sista Events &amp; Rentals storing and processing my name, contact details, and
-                      event information in order to respond to my enquiry.
-                    </label>
                   </div>
 
                   <Button

@@ -128,10 +128,10 @@ export default function ElementEditPopup({
       <div className="px-4 py-3 space-y-3">
         {/* Label */}
         <div>
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+          <label htmlFor="element-label" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
             <Tag className="w-3 h-3" /> Label
           </label>
-          <Input value={localLabel} onChange={(e) => setLocalLabel(e.target.value)} onBlur={commitLabel}
+          <Input id="element-label" value={localLabel} onChange={(e) => setLocalLabel(e.target.value)} onBlur={commitLabel}
             onKeyDown={(e) => { if (e.key === "Enter") commitLabel(); }} placeholder={def.label}
             className="h-8 text-xs rounded-xl border-slate-200/80 focus:border-indigo-400 focus:ring-indigo-400/20 bg-slate-50/50" />
         </div>
@@ -139,16 +139,16 @@ export default function ElementEditPopup({
         {/* Seats */}
         {isTable && (
           <div>
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Seats</label>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Seats</span>
             <div className="flex items-center gap-2">
               <div className="flex items-center border border-slate-200/80 rounded-xl overflow-hidden bg-slate-50/30">
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-none hover:bg-slate-100"
-                  onClick={() => onSetGuests(element.id, -1)} disabled={guests <= 8}>
+                  onClick={() => onSetGuests(element.id, -1)} disabled={guests <= 8} aria-label="Decrease seats">
                   <Minus className="w-3.5 h-3.5" />
                 </Button>
                 <span className="w-10 h-8 flex items-center justify-center text-sm font-bold text-slate-800 tabular-nums">{guests}</span>
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-none hover:bg-slate-100"
-                  onClick={() => onSetGuests(element.id, 1)} disabled={guests >= 12}>
+                  onClick={() => onSetGuests(element.id, 1)} disabled={guests >= 12} aria-label="Increase seats">
                   <Plus className="w-3.5 h-3.5" />
                 </Button>
               </div>
@@ -172,15 +172,15 @@ export default function ElementEditPopup({
 
         {/* Rotation */}
         <div>
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Rotation</label>
+          <label htmlFor="element-rotation" className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 block">Rotation</label>
           <div className="flex items-center gap-1.5">
-            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-xl hover:bg-slate-100" onClick={() => onRotateBy(element.id, -45)} title="-45°">
+            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-xl hover:bg-slate-100" onClick={() => onRotateBy(element.id, -45)} title="-45°" aria-label="Rotate -45 degrees">
               <RotateCcw className="w-3.5 h-3.5" />
             </Button>
-            <input type="range" min={0} max={359} value={element.rotation}
+            <input id="element-rotation" type="range" min={0} max={359} value={element.rotation}
               onChange={(e) => onRotateTo(element.id, +e.target.value)}
               className="flex-1 h-1 accent-indigo-500 rounded-full" />
-            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-xl hover:bg-slate-100" onClick={() => onRotateBy(element.id, 45)} title="+45°">
+            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-xl hover:bg-slate-100" onClick={() => onRotateBy(element.id, 45)} title="+45°" aria-label="Rotate 45 degrees">
               <RotateCw className="w-3.5 h-3.5" />
             </Button>
             <span className="text-[10px] font-mono text-slate-500 w-8 text-center tabular-nums">{element.rotation}°</span>

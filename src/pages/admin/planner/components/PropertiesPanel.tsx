@@ -116,6 +116,7 @@ export default function PropertiesPanel({
         {/* Label */}
         <SectionLabel>Label</SectionLabel>
         <Input
+          aria-label="Label"
           value={localLabel}
           onChange={(e) => setLocalLabel(e.target.value)}
           onBlur={commitLabel}
@@ -131,14 +132,14 @@ export default function PropertiesPanel({
             <div className="flex items-center gap-2">
               <div className="flex items-center border border-slate-200/80 rounded-xl overflow-hidden bg-slate-50/30">
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-none hover:bg-slate-100"
-                  onClick={() => onSetGuests(selectedEl.id, -1)} disabled={guests <= 8}>
+                  onClick={() => onSetGuests(selectedEl.id, -1)} disabled={guests <= 8} aria-label="Decrease seats">
                   <Minus className="w-3.5 h-3.5" />
                 </Button>
                 <div className="w-12 h-8 flex items-center justify-center">
                   <span className="text-base font-bold text-slate-800 tabular-nums">{guests}</span>
                 </div>
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-none hover:bg-slate-100"
-                  onClick={() => onSetGuests(selectedEl.id, 1)} disabled={guests >= 12}>
+                  onClick={() => onSetGuests(selectedEl.id, 1)} disabled={guests >= 12} aria-label="Increase seats">
                   <Plus className="w-3.5 h-3.5" />
                 </Button>
               </div>
@@ -165,14 +166,14 @@ export default function PropertiesPanel({
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 flex-1">
               <span className="text-[10px] text-slate-400 font-mono w-3 font-bold">X</span>
-              <Input type="number" value={localX} step={GRID_SIZE}
+              <Input type="number" aria-label="Position X" value={localX} step={GRID_SIZE}
                 onChange={(e) => setLocalX(+e.target.value)}
                 onBlur={commitPosition}
                 className="h-7 text-[10px] font-mono text-center rounded-lg border-slate-200/80 focus:border-indigo-400" />
             </div>
             <div className="flex items-center gap-1 flex-1">
               <span className="text-[10px] text-slate-400 font-mono w-3 font-bold">Y</span>
-              <Input type="number" value={localY} step={GRID_SIZE}
+              <Input type="number" aria-label="Position Y" value={localY} step={GRID_SIZE}
                 onChange={(e) => setLocalY(+e.target.value)}
                 onBlur={commitPosition}
                 className="h-7 text-[10px] font-mono text-center rounded-lg border-slate-200/80 focus:border-indigo-400" />
@@ -186,7 +187,7 @@ export default function PropertiesPanel({
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 flex-1">
               <span className="text-[10px] text-slate-400 font-mono w-3 font-bold">W</span>
-              <Input type="number" value={localW} min={16} max={800} step={GRID_SIZE}
+              <Input type="number" aria-label="Width" value={localW} min={16} max={800} step={GRID_SIZE}
                 onChange={(e) => setLocalW(+e.target.value)}
                 onBlur={commitSize}
                 className="h-7 text-[10px] font-mono text-center rounded-lg border-slate-200/80 focus:border-indigo-400" />
@@ -194,7 +195,7 @@ export default function PropertiesPanel({
             <span className="text-[10px] text-slate-300">&times;</span>
             <div className="flex items-center gap-1 flex-1">
               <span className="text-[10px] text-slate-400 font-mono w-3 font-bold">H</span>
-              <Input type="number" value={localH} min={16} max={600} step={GRID_SIZE}
+              <Input type="number" aria-label="Height" value={localH} min={16} max={600} step={GRID_SIZE}
                 onChange={(e) => setLocalH(+e.target.value)}
                 onBlur={commitSize}
                 className="h-7 text-[10px] font-mono text-center rounded-lg border-slate-200/80 focus:border-indigo-400" />
@@ -215,15 +216,16 @@ export default function PropertiesPanel({
         <>
           <SectionLabel>Rotation</SectionLabel>
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-xl hover:bg-slate-100" onClick={() => onRotateBy(selectedEl.id, -90)}><RotateCcw className="w-3.5 h-3.5" /></Button>
+            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-xl hover:bg-slate-100" onClick={() => onRotateBy(selectedEl.id, -90)} aria-label="Rotate -90 degrees"><RotateCcw className="w-3.5 h-3.5" /></Button>
             <Button variant="ghost" size="sm" className="h-7 text-[9px] font-mono rounded-lg" onClick={() => onRotateBy(selectedEl.id, -45)}>-45</Button>
             <div className="flex-1 relative">
               <input type="range" min={0} max={359} value={selectedEl.rotation}
                 onChange={(e) => onRotateTo(selectedEl.id, +e.target.value)}
+                aria-label="Rotation"
                 className="w-full h-1 accent-indigo-500 rounded-full" />
             </div>
             <Button variant="ghost" size="sm" className="h-7 text-[9px] font-mono rounded-lg" onClick={() => onRotateBy(selectedEl.id, 45)}>+45</Button>
-            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-xl hover:bg-slate-100" onClick={() => onRotateBy(selectedEl.id, 90)}><RotateCw className="w-3.5 h-3.5" /></Button>
+            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-xl hover:bg-slate-100" onClick={() => onRotateBy(selectedEl.id, 90)} aria-label="Rotate 90 degrees"><RotateCw className="w-3.5 h-3.5" /></Button>
             <span className="text-[10px] font-mono text-slate-600 w-8 text-center tabular-nums">{selectedEl.rotation}&deg;</span>
           </div>
           <div className="flex gap-1 mt-1.5">
@@ -262,9 +264,9 @@ export default function PropertiesPanel({
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
       {children}
-    </label>
+    </span>
   );
 }
 

@@ -14,7 +14,8 @@ export const generateUploadUrl = mutation({
 
 export const saveImage = mutation({
   args: {
-    storageId: v.id("_storage"),
+    r2Key: v.string(),
+    url: v.string(),
     originalName: v.string(),
     size: v.number(),
     contentType: v.string(),
@@ -41,7 +42,8 @@ export const saveImage = mutation({
     }
 
     return await ctx.db.insert("collectionImages", {
-      storageId: args.storageId,
+      r2Key: args.r2Key,
+      url: args.url,
       originalName: args.originalName,
       size: args.size,
       contentType: args.contentType,
@@ -67,13 +69,14 @@ export const listImages = query({
     return Promise.all(
       images.map(async (img) => ({
         _id: img._id,
-        storageId: img.storageId,
+        storageId: img.storageId ?? null,
+        r2Key: img.r2Key ?? null,
         originalName: img.originalName,
         size: img.size,
         contentType: img.contentType,
         category: img.category,
         uploadedAt: img.uploadedAt,
-        url: await ctx.storage.getUrl(img.storageId),
+        url: img.url ?? (img.storageId ? await ctx.storage.getUrl(img.storageId) : null),
       }))
     );
   },
@@ -88,8 +91,25 @@ export const deleteImage = mutation({
     validateAdminSecret(args.secret);
     const doc = await ctx.db.get(args.id);
     if (!doc) throw new Error("Image not found");
-    await ctx.storage.delete(doc.storageId);
+    // The R2 object is removed by the backend (server-side), not here. The
+    // original Convex storage blob is intentionally kept as a backup until the
+    // migration is verified.
     await ctx.db.delete(args.id);
+  },
+});
+
+export const markMigrated = mutation({
+  args: {
+    id: v.id("collectionImages"),
+    r2Key: v.string(),
+    url: v.string(),
+    ...adminSecretArg,
+  },
+  handler: async (ctx, args) => {
+    validateAdminSecret(args.secret);
+    const doc = await ctx.db.get(args.id);
+    if (!doc) throw new Error("Image not found");
+    await ctx.db.patch(args.id, { r2Key: args.r2Key, url: args.url });
   },
 });
 

@@ -113,6 +113,7 @@ export default function CameraToolbar() {
       <div className="bg-black/80 backdrop-blur-sm rounded-lg p-1.5 shadow-xl border border-white/10">
         <p className="text-[8px] text-white/50 uppercase font-bold px-1 mb-1 tracking-wider">Floor</p>
         <select
+          aria-label="Floor material"
           value={floorMaterial}
           onChange={(e) => setFloorMaterial(e.target.value)}
           className="w-full bg-white/10 text-white text-[10px] rounded px-1.5 py-0.5 border border-white/20 focus:outline-none focus:border-amber-400"
@@ -128,6 +129,7 @@ export default function CameraToolbar() {
             type="range" min={0} max={2} step={0.1} value={envIntensity}
             onChange={(e) => setEnvIntensity(+e.target.value)}
             className="w-full h-1 accent-amber-500"
+            aria-label="Reflection intensity"
             title={`Reflections: ${envIntensity}`}
           />
         </div>

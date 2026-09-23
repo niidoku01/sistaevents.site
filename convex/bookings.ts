@@ -2,6 +2,15 @@ import { action, mutation, query } from "./_generated/server";
 import { api } from "./_generated/api";
 import { v } from "convex/values";
 import { adminSecretArg, validateAdminSecret } from "./admin";
+import {
+  isValidName,
+  isValidEmail,
+  isValidPhone,
+  INVALID_NAME,
+  INVALID_EMAIL,
+  INVALID_PHONE,
+  INVALID_DATE,
+} from "./_validation";
 
 const ADMIN_BOOKINGS_URL = "https://sistaevents.site/admin";
 const BOOKINGS_ALERT_EMAIL = process.env.BOOKINGS_ALERT_EMAIL;
@@ -75,26 +84,26 @@ export const createBooking = mutation({
     phone: v.string(),
     eventDate: v.string(),
     message: v.string(),
-    consent: v.boolean(),
   },
   handler: async (ctx, args) => {
-    if (args.consent !== true) {
-      throw new Error("Consent is required to submit a booking");
+    const name = args.name.trim();
+    const email = args.email.trim().toLowerCase();
+    const phone = args.phone.trim();
+
+    if (!isValidName(name)) {
+      throw new Error(INVALID_NAME);
     }
-    if (args.name.trim().length < 2 || args.name.trim().length > 100) {
-      throw new Error("Name must be between 2 and 100 characters");
+    if (!isValidEmail(email)) {
+      throw new Error(INVALID_EMAIL);
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(args.email)) {
-      throw new Error("Invalid email format");
-    }
-    if (!/^[\d\s()+-]{10,20}$/.test(args.phone)) {
-      throw new Error("Invalid phone format");
+    if (!isValidPhone(phone)) {
+      throw new Error(INVALID_PHONE);
     }
     if (isNaN(Date.parse(args.eventDate))) {
-      throw new Error("Invalid date format");
+      throw new Error(INVALID_DATE);
     }
     if (args.message.length > 1000) {
-      throw new Error("Message too long (max 1000 characters)");
+      throw new Error("Please shorten your message (max 1000 characters).");
     }
 
     const eventTs = Date.parse(args.eventDate);
@@ -127,19 +136,18 @@ export const createBooking = mutation({
     }
 
     const bookingId = await ctx.db.insert("bookings", {
-      name: args.name.trim(),
-      email: args.email.trim().toLowerCase(),
-      phone: args.phone.trim(),
+      name,
+      email,
+      phone,
       eventDate: args.eventDate,
       message: args.message,
-      consentAt: Date.now(),
       createdAt: Date.now(),
     });
 
     ctx.scheduler.runAfter(0, api.bookings.sendBookingAlert, {
-      name: args.name,
-      email: args.email,
-      phone: args.phone,
+      name,
+      email,
+      phone,
       eventDate: args.eventDate,
       message: args.message,
     });

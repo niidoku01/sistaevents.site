@@ -106,9 +106,9 @@ const UploadCollection = () => {
         <CardContent className="space-y-6">
           {/* Category selector */}
           <div className="max-w-xs">
-            <Label className="mb-1.5 block text-sm font-medium">Category</Label>
+            <Label htmlFor="collection-category" className="mb-1.5 block text-sm font-medium">Category</Label>
             <Select value={category} onValueChange={(v: Category) => setCategory(v)}>
-              <SelectTrigger disabled={uploading}>
+              <SelectTrigger id="collection-category" disabled={uploading}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -146,6 +146,7 @@ const UploadCollection = () => {
               accept="image/jpeg,image/png,image/gif,image/webp"
               className="hidden"
               disabled={uploading}
+              aria-label="Upload collection images"
               onChange={(e) => e.target.files && handleFiles(e.target.files)}
             />
             <Upload className="mb-2 h-8 w-8 text-muted-foreground" />

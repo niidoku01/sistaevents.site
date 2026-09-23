@@ -1,20 +1,20 @@
 import { v } from "convex/values";
-import { createHash, timingSafeEqual } from "node:crypto";
 
 export const adminSecretArg = {
   secret: v.string(),
 };
 
-// Hash both sides then compare in constant time so response timing leaks
-// nothing about how closely an attacker's guess matches the real secret.
+// Constant-time string comparison that stays pure JS so this helper can be
+// imported by queries/mutations (no Node-only APIs, so Convex can bundle it).
+// It never short-circuits on the first differing character, so response timing
+// leaks nothing about how closely an attacker's guess matches the real secret.
 const timingSafeCompare = (a: string, b: string): boolean => {
-  try {
-    const ah = createHash("sha256").update(a).digest();
-    const bh = createHash("sha256").update(b).digest();
-    return timingSafeEqual(ah, bh);
-  } catch {
-    return a === b;
+  let diff = a.length ^ b.length;
+  const maxLength = Math.max(a.length, b.length);
+  for (let i = 0; i < maxLength; i++) {
+    diff |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
   }
+  return diff === 0;
 };
 
 export const validateAdminSecret = (secret: string) => {

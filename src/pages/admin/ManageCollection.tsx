@@ -13,7 +13,8 @@ import { getOrderedImages, getOrderRaw, ensureImagesInOrder, moveImage, swapImag
 
 interface UploadedImage {
   _id: string;
-  storageId: string;
+  storageId?: string | null;
+  r2Key?: string | null;
   originalName: string;
   size: number;
   contentType: string;
@@ -288,9 +289,9 @@ const ManageCollection = () => {
 
           {/* Filter */}
           <div className="max-w-xs">
-            <Label className="mb-1.5 block text-sm font-medium">Category</Label>
+            <Label htmlFor="manage-category-filter" className="mb-1.5 block text-sm font-medium">Category</Label>
             <Select value={selectedCategory} onValueChange={(v: CollectionCategory | "all") => setSelectedCategory(v)}>
-              <SelectTrigger className="rounded-xl border-white/60 bg-white/50 backdrop-blur-md shadow-sm transition-all duration-200 hover:bg-white/70 focus:ring-2 focus:ring-amber-400/30">
+              <SelectTrigger id="manage-category-filter" className="rounded-xl border-white/60 bg-white/50 backdrop-blur-md shadow-sm transition-all duration-200 hover:bg-white/70 focus:ring-2 focus:ring-amber-400/30">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="rounded-xl border-white/60 bg-white/90 backdrop-blur-xl shadow-xl">

@@ -50,6 +50,7 @@ export default function PlannerToolbar({
       <div className="flex items-center gap-1.5 sm:gap-3 overflow-x-auto scrollbar-none min-w-0">
         {!compact && (
           <Input
+            aria-label="Event name"
             value={eventName}
             onChange={(e) => setEventName(e.target.value)}
             className="max-w-[160px] sm:max-w-xs text-sm font-semibold rounded-xl border-slate-200/80 focus:border-indigo-400 focus:ring-indigo-400/20 flex-shrink-0"

@@ -51,9 +51,7 @@ const Bookings: React.FC = () => {
     let cancelled = false;
 
     const loadLegacyBookings = async () => {
-      if (convexBookings === undefined) return;
-
-      if (convexBookings.length > 0) {
+      if (convexBookings !== undefined && convexBookings.length > 0) {
         setServerBookings([]);
         setIsUsingFallback(false);
         return;
@@ -93,7 +91,7 @@ const Bookings: React.FC = () => {
   }, [convexBookings]);
 
   const bookings = useMemo(() => {
-    const source = convexBookings ?? serverBookings;
+    const source = convexBookings && convexBookings.length > 0 ? convexBookings : serverBookings;
     return [...source].sort((a, b) => a.eventDate.localeCompare(b.eventDate));
   }, [convexBookings, serverBookings]);
 
@@ -194,14 +192,14 @@ const Bookings: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {adminSecretStatus === "error" && (
+      {adminSecretStatus === "error" && bookings.length === 0 && (
         <Card className="border-amber-200/60 bg-gradient-to-r from-amber-50/60 to-orange-50/60 shadow-sm">
           <CardContent className="p-4 text-sm text-amber-900 font-medium">
             <span className="flex items-center gap-2">
               <Info className="w-4 h-4 shrink-0" />
               <span>
-                Could not connect to the backend server.
-                Make sure it is running: <code className="px-1.5 py-0.5 rounded bg-amber-100/80 font-mono text-xs">npm run dev:server</code> in a second terminal.
+                Could not connect to the admin API server.
+                <code className="px-1.5 py-0.5 rounded bg-amber-100/80 font-mono text-xs">npm run dev</code> starts both the website and the API server — restart it if this keeps showing.
               </span>
             </span>
           </CardContent>
@@ -258,6 +256,7 @@ const Bookings: React.FC = () => {
               </PopoverContent>
             </Popover>
             <Input
+              aria-label="Reason for blocking date"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Reason (maintenance, private event, etc.)"

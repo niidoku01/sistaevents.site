@@ -84,6 +84,7 @@ export default function ElementContextMenu({
         <div className="px-2 pb-1">
           <input
             type="text"
+            aria-label="Element label"
             value={element.label || def?.label || ""}
             onChange={(e) => {
               const ev = new CustomEvent("planner:label", { detail: { id: element.id, label: e.target.value } });
@@ -121,6 +122,7 @@ export default function ElementContextMenu({
             min={0}
             max={359}
             value={rotation}
+            aria-label="Rotation"
             onChange={(e) => setRotation(+e.target.value)}
             onMouseUp={() => onRotateTo(element.id, rotation)}
             onTouchEnd={() => onRotateTo(element.id, rotation)}

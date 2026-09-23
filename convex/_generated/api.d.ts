@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as _validation from "../_validation.js";
 import type * as admin from "../admin.js";
 import type * as bookings from "../bookings.js";
 import type * as collectionImages from "../collectionImages.js";
@@ -21,6 +22,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  _validation: typeof _validation;
   admin: typeof admin;
   bookings: typeof bookings;
   collectionImages: typeof collectionImages;

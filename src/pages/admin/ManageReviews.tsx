@@ -33,8 +33,8 @@ const ManageReviews = () => {
   const approveReview = useMutation(api.reviews.approveReview);
   const deleteReview = useMutation(api.reviews.deleteReview);
 
-  const loading = adminSecretStatus === "loading" || pendingReviews === undefined || approvedReviews === undefined;
-  const failed = adminSecretStatus === "error";
+  const secretError = adminSecretStatus === "error";
+  const loading = adminSecretStatus === "loading" || (!secretError && pendingReviews === undefined) || approvedReviews === undefined;
 
   const handleApprove = async (id: Id<"reviews">) => {
     try {
@@ -142,17 +142,6 @@ const ManageReviews = () => {
     </Card>
   );
 
-  if (failed) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-amber-700 font-medium">Could not connect to the backend server.</p>
-        <p className="text-sm text-slate-500 mt-2">
-          Make sure it is running: <code className="px-1.5 py-0.5 rounded bg-amber-100/80 font-mono text-xs">npm run dev:server</code> in a second terminal.
-        </p>
-      </div>
-    );
-  }
-
   if (loading) {
     return (
       <div className="text-center py-12">
@@ -163,6 +152,16 @@ const ManageReviews = () => {
 
   return (
     <div className="space-y-8">
+      {secretError && (
+        <Card className="border-amber-200/60 bg-gradient-to-r from-amber-50/60 to-orange-50/60 shadow-sm">
+          <CardContent className="p-4 text-sm text-amber-900 font-medium">
+            Pending review moderation is unavailable (could not reach the admin backend), but approved
+            reviews still load below.
+          </CardContent>
+        </Card>
+      )}
+
+      {!secretError && (
       <div>
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -193,6 +192,7 @@ const ManageReviews = () => {
           </div>
         )}
       </div>
+      )}
 
       <div>
         <div className="flex items-center justify-between mb-6">

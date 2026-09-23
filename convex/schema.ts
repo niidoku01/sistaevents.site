@@ -8,7 +8,6 @@ export default defineSchema({
     phone: v.string(),
     eventDate: v.string(),
     message: v.string(),
-    consentAt: v.optional(v.number()),
     createdAt: v.number(),
   })
     .index("by_created_at", ["createdAt"])
@@ -33,7 +32,9 @@ export default defineSchema({
     .index("by_approved", ["approved"])
     .index("by_created_at", ["createdAt"]),
   collectionImages: defineTable({
-    storageId: v.id("_storage"),
+    storageId: v.optional(v.id("_storage")),
+    r2Key: v.optional(v.string()),
+    url: v.optional(v.string()),
     originalName: v.string(),
     size: v.number(),
     contentType: v.string(),

@@ -28,7 +28,8 @@ const categoryMobileLabelMap: Record<Category, string> = {
 
 type UploadedImage = {
   _id: string;
-  storageId: string;
+  storageId?: string | null;
+  r2Key?: string | null;
   originalName: string;
   size: number;
   contentType: string;
@@ -58,7 +59,18 @@ export default function OurCollection() {
   const [isSwiping, setIsSwiping] = useState(false);
   const [visibleCount, setVisibleCount] = useState<number>(INITIAL_VISIBLE_IMAGES);
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+  const [barMinimized, setBarMinimized] = useState(false);
+  const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({});
+  const [currentImageLoaded, setCurrentImageLoaded] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  const markImageLoaded = useCallback((key: string) => {
+    setLoadedImages((prev) => (prev[key] ? prev : { ...prev, [key]: true }));
+  }, []);
+
+  useEffect(() => {
+    setCurrentImageLoaded(false);
+  }, [currentImageIndex]);
 
   useEffect(() => {
     collectionAPI.getAllImages()
@@ -169,6 +181,13 @@ export default function OurCollection() {
   }, [selectedCategory]);
 
   useEffect(() => {
+    const onScroll = () => setBarMinimized(window.scrollY > 160);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
     if (!selectedCategory || !hasMoreImages || !loadMoreRef.current) {
       return;
     }
@@ -263,48 +282,56 @@ export default function OurCollection() {
 
     return (
       <div className="columns-2 gap-3 sm:gap-5 space-y-3 sm:space-y-5 xl:columns-3 2xl:columns-4">
-        {images.map((img, i) => (
-          <div 
-            key={img._id || i} 
-            className="group relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer break-inside-avoid"
-            tabIndex={0}
-            role="button"
-            aria-label={`View ${img.originalName || `image ${i + 1}`}`}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                setCurrentImageIndex(i);
-              }
-            }}
-            onClick={() => setCurrentImageIndex(i)}
-            style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}
-          >
-            <div className="bg-slate-100 animate-pulse relative">
-              <img
-                src={img.url || ""}
-                srcSet={img.srcset}
-                alt={img.originalName || `Image ${i + 1}`}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 relative z-10"
-                loading={i < PRIORITY_GRID_IMAGES ? "eager" : "lazy"}
-                fetchpriority={i < PRIORITY_GRID_IMAGES ? "high" : "auto"}
-                decoding="sync"
-                sizes="(max-width: 640px) 50vw, (max-width: 1280px) 50vw, 33vw"
-                width={800}
-                height={600}
-                onLoad={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.classList.remove("opacity-0");
-                  target.parentElement?.classList.remove("animate-pulse");
-                }}
-              />
-              <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-colors duration-300 pointer-events-none">
-                <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 rounded-full p-2.5 shadow-lg">
-                  <ZoomIn className="w-[18px] h-[18px] text-slate-700" />
-                </span>
+        {images.map((img, i) => {
+          const isLoaded = loadedImages[img._id ?? `img-${i}`];
+          return (
+            <div
+              key={img._id || i}
+              className={`group relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer break-inside-avoid`}
+              tabIndex={0}
+              role="button"
+              aria-label={`View ${img.originalName || `image ${i + 1}`}`}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setCurrentImageIndex(i);
+                }
+              }}
+              onClick={() => setCurrentImageIndex(i)}
+              style={{ contentVisibility: "auto", containIntrinsicSize: "320px" }}
+            >
+              <div
+                className={`relative ${isLoaded ? "bg-transparent" : "bg-slate-200/80 animate-pulse"}`}
+                aria-hidden={!isLoaded}
+              >
+                <img
+                  src={img.url || ""}
+                  srcSet={img.srcset}
+                  alt={img.originalName || `Image ${i + 1}`}
+                  className={`w-full h-full object-cover group-hover:scale-105 relative z-10 transition-all duration-700 ${
+                    isLoaded ? "opacity-100" : "opacity-0"
+                  }`}
+                  loading={i < PRIORITY_GRID_IMAGES ? "eager" : "lazy"}
+                  fetchpriority={i < PRIORITY_GRID_IMAGES ? "high" : "auto"}
+                  decoding={isLoaded ? "sync" : "async"}
+                  sizes="(max-width: 640px) 50vw, (max-width: 1280px) 50vw, 33vw"
+                  width={800}
+                  height={600}
+                  onLoad={() => markImageLoaded(img._id ?? `img-${i}`)}
+                  onError={() => markImageLoaded(img._id ?? `img-${i}`)}
+                />
+                {!isLoaded && (
+                  <div className="absolute inset-0 z-0 rounded-2xl bg-gradient-to-br from-slate-100 via-slate-200 to-slate-100/60" />
+                )}
+                <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-colors duration-300 pointer-events-none">
+                  <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 rounded-full p-2.5 shadow-lg">
+                    <ZoomIn className="w-[18px] h-[18px] text-slate-700" />
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   };
@@ -331,6 +358,7 @@ export default function OurCollection() {
                   {categoryOrder.map((category) => {
                     const images = imagesByCategory[category];
                     const cover = getCoverImage(images, category);
+                    const isLoaded = loadedImages[`cover-${category}`];
                     return (
                       <button
                         key={category}
@@ -339,18 +367,20 @@ export default function OurCollection() {
                         onClick={() => setSelectedCategory(category)}
                       >
                         <div className="relative overflow-hidden rounded-2xl border border-white/50 bg-white shadow-sm hover:shadow-2xl transition-all duration-300 ring-1 ring-black/5">
-                          <div className="bg-slate-100 min-h-[220px] sm:min-h-[350px]">
+                          <div className={`bg-slate-200/80 ${isLoaded ? "" : "animate-pulse"}`}>
                             <img
                               src={cover.url}
                               srcSet={cover.srcset}
                               alt={categoryTitleMap[category]}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                              className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-700 ${isLoaded ? "opacity-100" : "opacity-0"}`}
                               loading={category === "weddings" ? "eager" : "lazy"}
                               fetchpriority={category === "weddings" ? "high" : "auto"}
                               decoding={category === "weddings" ? "sync" : "async"}
                               sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
                               width={1200}
                               height={1500}
+                              onLoad={() => markImageLoaded(`cover-${category}`)}
+                              onError={() => markImageLoaded(`cover-${category}`)}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10" />
                             <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
@@ -368,19 +398,64 @@ export default function OurCollection() {
             ) : (
               <div>
                 <div className="sticky top-[70px] sm:top-[92px] z-20 mb-4 sm:mb-6">
-                  <div className="relative rounded-xl sm:rounded-2xl border border-slate-200/80 bg-white/95 backdrop-blur p-2 sm:p-4 shadow-sm">
-                  <div className="flex items-center justify-between gap-3">
-                    <Button
-                      variant="ghost"
-                      onClick={() => setSelectedCategory(null)}
-                      className="h-9 w-9 sm:h-11 sm:w-11 p-0 rounded-lg sm:rounded-xl border border-amber-200 bg-white text-slate-700 hover:bg-amber-100 hover:text-amber-700 shadow-sm"
-                      aria-label="Back"
-                      title="Back"
-                    >
-                      <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    </Button>
+                  <div
+                    className={`relative rounded-xl sm:rounded-2xl border border-white/50 bg-white/70 backdrop-blur-xl backdrop-saturate-150 p-2 sm:p-4 shadow-lg shadow-slate-900/10 transition-all duration-500 ease-out origin-center ${
+                      barMinimized ? "opacity-0 scale-90 -translate-y-3 pointer-events-none" : "opacity-100 scale-100 translate-y-0"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <Button
+                        variant="ghost"
+                        onClick={() => setSelectedCategory(null)}
+                        className="h-9 w-9 sm:h-11 sm:w-11 p-0 rounded-lg sm:rounded-xl border border-amber-200 bg-white text-slate-700 hover:bg-amber-100 hover:text-amber-700 shadow-sm"
+                        aria-label="Back"
+                        title="Back"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      </Button>
 
-                    <div className="flex flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap pb-1" aria-label="Category switch">
+                      <div className="flex flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap pb-1" aria-label="Category switch">
+                        {categoryOrder.map((category) => {
+                          const isActive = selectedCategory === category;
+                          return (
+                            <button
+                              key={category}
+                              type="button"
+                              onClick={() => setSelectedCategory(category)}
+                              className={`shrink-0 rounded-lg sm:rounded-xl px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-sm border font-medium transition-all duration-200 active:scale-95 ${
+                                isActive
+                                  ? "bg-gradient-to-r from-[#FFD700] to-amber-500 text-slate-900 border-amber-400 shadow-md shadow-amber-300/50"
+                                  : "bg-white text-slate-700 border-slate-200 hover:bg-amber-50 hover:border-amber-200 hover:shadow-sm"
+                              }`}
+                              aria-label={`Switch to ${categoryTitleMap[category]}`}
+                              title={categoryTitleMap[category]}
+                            >
+                              <span className="sm:hidden">{categoryMobileLabelMap[category]}</span>
+                              <span className="hidden sm:inline">{categoryTitleMap[category]}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`fixed z-40 right-2 sm:right-4 transition-all duration-500 ease-out ${
+                      barMinimized
+                        ? "top-[70px] sm:top-4 opacity-100 scale-100 translate-x-0 translate-y-0"
+                        : "top-4 opacity-0 scale-75 -translate-x-[20vw] translate-y-1 pointer-events-none"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1 overflow-x-auto rounded-full border border-white/50 bg-white/80 backdrop-blur-xl backdrop-saturate-150 py-1.5 pl-1.5 pr-1 sm:pr-1.5 shadow-lg shadow-slate-900/10">
+                      <Button
+                        variant="ghost"
+                        onClick={() => setSelectedCategory(null)}
+                        className="h-8 w-8 shrink-0 rounded-full border border-amber-200 bg-white text-slate-700 hover:bg-amber-100 hover:text-amber-700 shadow-sm"
+                        aria-label="Back"
+                        title="Back"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </Button>
                       {categoryOrder.map((category) => {
                         const isActive = selectedCategory === category;
                         return (
@@ -388,7 +463,7 @@ export default function OurCollection() {
                             key={category}
                             type="button"
                             onClick={() => setSelectedCategory(category)}
-                            className={`shrink-0 rounded-lg sm:rounded-xl px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-sm border font-medium transition-all duration-200 active:scale-95 ${
+                            className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-medium whitespace-nowrap transition-all duration-200 active:scale-95 border ${
                               isActive
                                 ? "bg-gradient-to-r from-[#FFD700] to-amber-500 text-slate-900 border-amber-400 shadow-md shadow-amber-300/50"
                                 : "bg-white text-slate-700 border-slate-200 hover:bg-amber-50 hover:border-amber-200 hover:shadow-sm"
@@ -396,14 +471,12 @@ export default function OurCollection() {
                             aria-label={`Switch to ${categoryTitleMap[category]}`}
                             title={categoryTitleMap[category]}
                           >
-                            <span className="sm:hidden">{categoryMobileLabelMap[category]}</span>
-                            <span className="hidden sm:inline">{categoryTitleMap[category]}</span>
+                            {categoryMobileLabelMap[category]}
                           </button>
                         );
                       })}
                     </div>
                   </div>
-                </div>
                 </div>
 
                 <div className="py-1 sm:py-2">
@@ -470,23 +543,28 @@ export default function OurCollection() {
 
           {currentImage && (
             <div
-              className="w-full h-full flex items-center justify-center p-4 sm:p-6"
+              className="w-full h-full flex items-center justify-center p-4 sm:p-6 relative"
               style={{
                 transform: isSwiping ? `translateX(${swipeOffset * 0.4}px)` : "translateX(0)",
                 transition: isSwiping ? "none" : "transform 0.3s ease-out",
               }}
             >
+              {!currentImageLoaded && (
+                <div className="absolute inset-0 bg-slate-800/80 animate-pulse" aria-hidden="true" />
+              )}
               <img
                 src={currentImage}
                 srcSet={currentImageSrcset}
                 alt={currentImageIndex !== null && categoryImages ? categoryImages[currentImageIndex]?.originalName || "Full size view" : "Full size view"}
-                className="lightbox-img max-w-full max-h-full object-contain select-none"
-                decoding="sync"
+                className={`lightbox-img max-w-full max-h-full object-contain select-none transition-opacity duration-300 ${currentImageLoaded ? "opacity-100" : "opacity-0"}`}
+                decoding={currentImageLoaded ? "sync" : "async"}
                 fetchpriority="high"
                 sizes="100vw"
                 width={1600}
                 height={1200}
                 draggable={false}
+                onLoad={() => setCurrentImageLoaded(true)}
+                onError={() => setCurrentImageLoaded(true)}
               />
             </div>
           )}

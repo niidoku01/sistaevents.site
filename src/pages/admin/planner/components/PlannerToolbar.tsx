@@ -47,7 +47,7 @@ export default function PlannerToolbar({
 }: PlannerToolbarProps) {
   return (
     <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-slate-200/50 shadow-sm px-2 py-2 sm:px-4 sm:py-3">
-      <div className="flex items-center gap-1.5 sm:gap-3 overflow-x-auto scrollbar-none min-w-0">
+      <div className="flex flex-wrap items-center gap-1.5 sm:gap-3 gap-y-2 min-w-0 touch-manipulation">
         {!compact && (
           <Input
             aria-label="Event name"
@@ -57,13 +57,13 @@ export default function PlannerToolbar({
             placeholder="Event name"
           />
         )}
-        <div className="flex items-center gap-1.5 text-xs text-slate-500 bg-slate-50/80 px-2 py-1 rounded-lg flex-shrink-0 whitespace-nowrap">
+        <div className="flex items-center gap-1.5 text-xs text-slate-500 bg-slate-50/80 px-2.5 py-2 sm:py-1 rounded-lg flex-shrink-0 whitespace-nowrap">
           <Users className="w-3.5 h-3.5" />
           <span className="font-medium">~{totalGuests}</span>
-          <span className="text-slate-400">guests</span>
+          <span className="text-slate-400">{compact ? "" : "guests"}</span>
         </div>
 
-        <div className="flex-1 min-w-0" />
+        <div className="flex-1 min-w-0 hidden sm:block" />
 
         {/* Undo / Redo */}
         <div className="flex items-center gap-0.5 bg-slate-50/80 rounded-xl px-1 py-0.5 flex-shrink-0">
@@ -77,7 +77,7 @@ export default function PlannerToolbar({
           <button
             onClick={() => setScale(() => 1)}
             title="Reset zoom to 100%"
-            className="text-xs text-slate-500 font-mono w-10 text-center tabular-nums hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors"
+            className="text-xs text-slate-500 font-mono w-10 h-11 sm:h-8 text-center tabular-nums hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors flex items-center justify-center"
           >{Math.round(scale * 100)}%</button>
           <TbBtn onClick={() => setScale((s) => Math.min(3, s + 0.15))} title="Zoom in"><ZoomIn className="w-4 h-4" /></TbBtn>
         </div>
@@ -86,19 +86,19 @@ export default function PlannerToolbar({
         <div className="flex items-center gap-0.5 bg-slate-50/80 rounded-xl p-0.5 flex-shrink-0" title="View mode">
           <button
             onClick={() => setViewMode("2d")}
-            className={`flex items-center gap-1 h-8 px-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-150 ${viewMode === "2d" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+            className={`flex items-center gap-1 h-11 sm:h-8 px-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-150 flex-shrink-0 ${viewMode === "2d" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
           >
             <LayoutGrid className="w-3.5 h-3.5" />2D
           </button>
           <button
             onClick={() => setViewMode("3d")}
-            className={`flex items-center gap-1 h-8 px-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-150 ${viewMode === "3d" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+            className={`flex items-center gap-1 h-11 sm:h-8 px-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-150 flex-shrink-0 ${viewMode === "3d" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
           >
             <Box className="w-3.5 h-3.5" />3D
           </button>
           <button
             onClick={() => setViewMode("split")}
-            className={`flex items-center gap-1 h-8 px-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-150 ${viewMode === "split" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+            className={`flex items-center gap-1 h-11 sm:h-8 px-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-150 flex-shrink-0 ${viewMode === "split" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
           >
             <Columns2 className="w-3.5 h-3.5" />Split
           </button>
@@ -127,7 +127,7 @@ export default function PlannerToolbar({
         {onPreview3D && (
           <button
             onClick={onPreview3D}
-            className="flex items-center gap-1.5 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white text-[11px] font-bold px-3 py-2 rounded-xl shadow-md shadow-purple-500/20 transition-all duration-200 active:scale-95 uppercase tracking-wider flex-shrink-0"
+            className="flex items-center gap-1.5 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white text-[11px] font-bold px-3 h-11 sm:h-9 rounded-xl shadow-md shadow-purple-500/20 transition-all duration-200 active:scale-95 uppercase tracking-wider flex-shrink-0"
             title="View full 3D floor plan"
           >
             <Maximize2 className="w-3.5 h-3.5" />
@@ -150,7 +150,7 @@ function TbBtn({ onClick, disabled, title, children, active, variant }: {
   return (
     <Button
       variant="ghost" size="sm"
-      className={`h-8 w-8 p-0 rounded-xl transition-all duration-150
+      className={`h-11 w-11 sm:h-8 sm:w-8 p-0 rounded-xl transition-all duration-150
         ${variant === "danger"
           ? "text-slate-400 hover:text-red-500 hover:bg-red-50"
           : active

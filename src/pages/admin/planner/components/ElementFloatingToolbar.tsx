@@ -67,7 +67,7 @@ export default function ElementFloatingToolbar({
       )}
 
       {/* Main toolbar */}
-      <div className="flex items-center gap-0 bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl shadow-slate-900/10 border border-slate-200/60 px-1.5 py-1 max-w-[calc(100vw-16px)] overflow-x-auto scrollbar-none">
+      <div className="flex flex-wrap items-center justify-center gap-0 bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl shadow-slate-900/10 border border-slate-200/60 px-1.5 py-1 max-w-[min(100vw-16px,340px)] sm:flex-nowrap sm:justify-start sm:max-w-none sm:overflow-x-auto sm:scrollbar-none">
         {/* Rotate */}
         <ToolBtn onClick={() => onRotateBy(el.id, -90)} title="Rotate left 90°">
           <RotateCcw className="w-3.5 h-3.5" />
@@ -144,7 +144,7 @@ function ToolBtn({ onClick, disabled, title, children, variant }: {
   return (
     <Button
       variant="ghost" size="sm"
-      className={`h-9 w-9 sm:h-7 sm:w-7 p-0 rounded-xl transition-all duration-150
+      className={`h-11 w-11 sm:h-7 sm:w-7 p-0 rounded-xl transition-all duration-150
         ${variant === "danger"
           ? "text-slate-400 hover:text-red-500 hover:bg-red-50"
           : "text-slate-500 hover:text-slate-800 hover:bg-slate-100 active:scale-90"

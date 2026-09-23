@@ -52,6 +52,9 @@ const run = (text: string, opts: { bold?: boolean; color?: string; size?: number
 
 const fill = (hex: string) => ({ type: ShadingType.CLEAR, fill: hex });
 
+// Match the live preview formatting: "2026 / 09 / 30"
+const fmtDate = (iso: string): string => (iso || "—").replace(/-/g, " / ");
+
 // ─── Section builders ──────────────────────────────────────
 
 // Header: "INVOICE" inscription on the LEFT, logo + company name on the RIGHT.
@@ -59,25 +62,25 @@ function buildHeader(doc: BillingDoc, logoSvg?: string, logoPng?: Uint8Array): (
   const isInvoice = doc.kind === "invoice";
   const title = doc.kind === "invoice" ? "INVOICE" : "RECEIPT";
 
-  const lhs = [p([run(title, { bold: true, size: 44, color: DARK })], { spacing: { after: 30 } })];
+  const lhs = [p([run(title, { bold: true, size: 36, color: DARK })], { spacing: { after: 30 } })];
 
   const rhsChildren: (Paragraph | Table)[] = logoPng
     ? [
         new Paragraph({
-          alignment: AlignmentType.CENTER,
+          alignment: AlignmentType.RIGHT,
           spacing: { after: 40 },
           children: [
             logoSvg
               ? new ImageRun({
                   type: "svg",
                   data: new TextEncoder().encode(logoSvg),
-                  transformation: { width: 220, height: 220 },
+                  transformation: { width: 80, height: 80 },
                   fallback: { type: "png", data: logoPng },
                 })
               : new ImageRun({
                   type: "png",
                   data: logoPng,
-                  transformation: { width: 220, height: 220 },
+                  transformation: { width: 80, height: 80 },
                 }),
           ],
         }),
@@ -107,9 +110,9 @@ function buildHeader(doc: BillingDoc, logoSvg?: string, logoPng?: Uint8Array): (
 
   const rhs = [
     ...rhsChildren,
-    p([run(doc.companyName || "SISTA EVENTS & RENTALS", { bold: true, size: 24, color: DARK })], {
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 20, after: 20 },
+    p([run(doc.companyName || "Sista Events & Rentals", { bold: true, size: 20, color: DARK })], {
+      alignment: AlignmentType.RIGHT,
+      spacing: { before: 20, after: 0 },
     }),
   ];
 
@@ -154,7 +157,7 @@ function buildClientDetails(doc: BillingDoc): (Table | Paragraph)[] {
     client.push(p([run(doc.clientAddress, { color: MUTED, size: 18 })], { spacing: { after: 20 } }));
   }
   client.push(
-    p([run([doc.clientEmail, doc.clientPhone].filter(Boolean).join("   •   "), { color: MUTED, size: 18 })], {
+    p([run([doc.clientEmail, doc.clientPhone].filter(Boolean).join(" / "), { color: MUTED, size: 18 })], {
       spacing: { after: 0 },
     })
   );
@@ -172,8 +175,8 @@ function buildClientDetails(doc: BillingDoc): (Table | Paragraph)[] {
       spacing: { after: 80 },
     }),
     metaLine("NO.   ", doc.docNumber || "—"),
-    metaLine("ISSUE DATE   ", doc.issueDate || "—"),
-    metaLine(isInvoice ? "DUE DATE   " : "PAID DATE   ", (isInvoice ? doc.dueDate : doc.paidDate) || "—"),
+    metaLine("Issue   ", fmtDate(doc.issueDate)),
+    metaLine(isInvoice ? "Due   " : "Paid   ", fmtDate(isInvoice ? doc.dueDate : doc.paidDate)),
   ];
 
   return [
@@ -215,11 +218,11 @@ function buildItemsTable(doc: BillingDoc, media?: BillingMedia): (Table | Paragr
           new ImageRun({
             type: "svg",
             data: new TextEncoder().encode(media.stampSvg),
-            transformation: { width: 90, height: 90 },
+            transformation: { width: 64, height: 64 },
             fallback: media.stamp ? { type: "png", data: media.stamp } : undefined,
           }),
         ]
-      : [new ImageRun({ type: "png", data: media.stamp!, transformation: { width: 90, height: 90 } })];
+      : [new ImageRun({ type: "png", data: media.stamp!, transformation: { width: 64, height: 64 } })];
     return new Paragraph({
       alignment: AlignmentType.RIGHT,
       spacing: { before: 120, after: 0 },
@@ -232,10 +235,10 @@ function buildItemsTable(doc: BillingDoc, media?: BillingMedia): (Table | Paragr
   if (!isInvoice) {
     const descriptionParagraphs = doc.items.map((it: LineItem, i: number) => {
       const isLast = i === doc.items.length - 1;
-      return p([run(it.description || "Item", { size: 20, bold: !!it.description, color: DARK })], {
+      return p([run(it.description || "Item", { size: 20, bold: true, color: DARK })], {
         alignment: AlignmentType.LEFT,
         spacing: { line: 240, after: isLast ? 0 : 30 },
-        border: isLast ? undefined : { bottom: { style: BorderStyle.DOTTED, size: 4, color: "D0D0D0", space: 8 } },
+        border: isLast ? undefined : { bottom: { style: BorderStyle.DOTTED, size: 4, color: "E2E8F0", space: 8 } },
       });
     });
     const descriptionsBox = new Table({
@@ -325,6 +328,18 @@ function buildItemsTable(doc: BillingDoc, media?: BillingMedia): (Table | Paragr
   });
 
   // Totals — Subtotal, T & T, Total (with optional deposit row for invoices).
+  const accentBoxL = {
+    top: thin,
+    bottom: { style: BorderStyle.SINGLE, size: 8, color: ACCENT, space: 0 },
+    left: thin,
+    right: noneBorder,
+  };
+  const accentBoxR = {
+    top: thin,
+    bottom: { style: BorderStyle.SINGLE, size: 8, color: ACCENT, space: 0 },
+    left: noneBorder,
+    right: thin,
+  };
   const totalRow = (label: string, value: string, opts: { fill?: string; accent?: boolean } = {}) => {
     const blank = () =>
       new TableCell({
@@ -339,7 +354,7 @@ function buildItemsTable(doc: BillingDoc, media?: BillingMedia): (Table | Paragr
         spacing: { after: 0 },
       })],
       width: widthOf(2),
-      borders: cleanBorders,
+      borders: opts.accent ? accentBoxL : cleanBorders,
       shading: opts.fill ? fill(opts.fill) : undefined,
       margins: { top: 70, bottom: 70, left: 140, right: 140 },
       verticalAlign: VerticalAlign.CENTER,
@@ -350,9 +365,7 @@ function buildItemsTable(doc: BillingDoc, media?: BillingMedia): (Table | Paragr
         spacing: { after: 0 },
       })],
       width: widthOf(3),
-      borders: opts.accent
-        ? { top: thin, bottom: { style: BorderStyle.SINGLE, size: 8, color: ACCENT, space: 0 }, left: cleanBorders.left, right: cleanBorders.right }
-        : cleanBorders,
+      borders: opts.accent ? accentBoxR : cleanBorders,
       shading: opts.fill ? fill(opts.fill) : undefined,
       margins: { top: 70, bottom: 70, left: 140, right: 140 },
       verticalAlign: VerticalAlign.CENTER,
@@ -404,7 +417,7 @@ export function buildBillingDocx(doc: BillingDoc, media?: BillingMedia): Documen
   const isInvoice = doc.kind === "invoice";
   const terms =
     doc.terms ||
-    "Payment confirms your booking. No refunds for cancellations within 7 days of the event.";
+    "Payment confirms your booking. No refunds for cancellations within 7 days of the event; rescheduling is allowed up to 48 hours before the event, subject to availability.";
 
   return new Document({
     creator: "Sista Events & Rentals",
@@ -431,12 +444,12 @@ export function buildBillingDocx(doc: BillingDoc, media?: BillingMedia): Documen
                   top: { style: BorderStyle.SINGLE, size: 6, color: ACCENT, space: 6 },
                 },
                 spacing: { before: 160 },
-                children: [run("TS & CS", { bold: true, allCaps: true, color: ACCENT, size: 14 })],
+                children: [run("Ts & Cs", { bold: true, color: ACCENT, size: 14 })],
               }),
               new Paragraph({
                 alignment: AlignmentType.CENTER,
                 spacing: { before: 60, after: 40 },
-                children: [run(terms, { color: MUTED, size: 14 })],
+                children: [run(terms, { color: MUTED, size: 18 })],
               }),
               new Paragraph({
                 alignment: AlignmentType.CENTER,

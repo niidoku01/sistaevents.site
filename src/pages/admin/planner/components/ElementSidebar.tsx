@@ -59,9 +59,9 @@ export default function ElementSidebar({
     return (
       <div key={def.type} draggable onDragStart={() => handlePaletteDragStart(def.type)}
         onClick={() => handlePaletteTap?.(def.type)}
-        className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl border border-slate-100/80 hover:border-indigo-200 hover:bg-gradient-to-br hover:from-indigo-50/50 hover:to-purple-50/30 cursor-grab active:cursor-grabbing transition-all duration-200 select-none group hover:shadow-sm hover:scale-[1.02] active:scale-95">
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200" style={{ backgroundColor: def.color + "12" }}>
-          <Icon className="w-4.5 h-4.5" style={{ color: def.color }} />
+        className="flex flex-col items-center gap-1.5 p-3 sm:p-2.5 rounded-xl border border-slate-100/80 hover:border-indigo-200 hover:bg-gradient-to-br hover:from-indigo-50/50 hover:to-purple-50/30 cursor-grab active:cursor-grabbing transition-all duration-200 select-none group hover:shadow-sm hover:scale-[1.02] active:scale-95">
+        <div className="w-10 h-10 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200" style={{ backgroundColor: def.color + "12" }}>
+          <Icon className="w-5 h-5 sm:w-4.5 sm:h-4.5" style={{ color: def.color }} />
         </div>
         <span className="text-[9px] text-slate-600 text-center leading-tight font-medium">{def.label}</span>
       </div>
@@ -148,24 +148,29 @@ export default function ElementSidebar({
       <>
         {!sidebarOpen && (
           <button onClick={() => setSidebarOpen(true)}
-            className="fixed top-20 left-2 z-40 w-8 h-14 rounded-xl bg-white border border-slate-200/60 shadow-sm flex items-center justify-center hover:bg-slate-50 transition-all duration-200 hover:shadow-md">
+            className="fixed top-20 left-2 z-40 w-9 h-16 rounded-r-2xl bg-white border border-slate-200/60 shadow-md flex items-center justify-center hover:bg-slate-50 transition-all duration-200 hover:shadow-lg"
+            aria-label="Open elements">
             <ChevronRight className="w-4 h-4 text-slate-500" />
           </button>
         )}
 
         {sidebarOpen && (
-          <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
+          <div className="fixed inset-0 z-40 bg-black/25 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
         )}
 
         <div ref={sheetRef}
-          className={`fixed z-50 top-0 left-0 h-full w-64 bg-white/95 backdrop-blur-xl shadow-2xl border-r border-slate-200/50 transition-transform duration-300 ease-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+          className={`fixed z-50 top-0 left-0 h-full w-[84%] max-w-[300px] bg-white/95 backdrop-blur-xl shadow-2xl border-r border-slate-200/50 transition-transform duration-300 ease-out rounded-r-2xl will-change-transform pb-[env(safe-area-inset-bottom)] ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
           <div className="p-4 h-full flex flex-col">
+            <div className="flex justify-center pt-0.5 pb-2 sm:hidden">
+              <div className="w-10 h-1 rounded-full bg-slate-200" />
+            </div>
             <div className="flex items-center justify-between mb-4">
               <div className="flex gap-1 bg-slate-100/60 rounded-xl p-0.5">
                 <TabBtn active={sidebarTab === "elements"} onClick={() => setSidebarTab("elements")}>Elements</TabBtn>
                 <TabBtn active={sidebarTab === "layers"} onClick={() => setSidebarTab("layers")}>Layers</TabBtn>
               </div>
-              <button onClick={() => setSidebarOpen(false)} className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
+              <button onClick={() => setSidebarOpen(false)} aria-label="Close elements"
+                className="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-100 transition-colors">
                 <ChevronLeft className="w-4 h-4" />
               </button>
             </div>

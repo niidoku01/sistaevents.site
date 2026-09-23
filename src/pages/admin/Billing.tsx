@@ -14,6 +14,8 @@ import {
   FilePlus2,
   CheckCircle2,
   ListChecks,
+  Plus,
+  Trash2,
   Phone,
   MapPin,
   Globe,
@@ -110,7 +112,7 @@ function createDefault(kind: DocKind): BillingDoc {
     companyAddress: "Kasoa, Accra",
     companyEmail: "info@sistaevents.com",
     companyPhone: "0555 182 969",
-    companyWebsite: "sistaevents.com",
+    companyWebsite: "sistaevents.site",
     clientName: "",
     clientEmail: "",
     clientPhone: "",
@@ -226,6 +228,17 @@ const Billing: React.FC = () => {
       ...d,
       items: d.items.map((it) => (it.id === id ? { ...it, ...patch } : it)),
     }));
+  };
+
+  const addItem = () => {
+    patchActive((d) => ({ ...d, items: [...d.items, emptyItem()] }));
+  };
+
+  const removeItem = (id: string) => {
+    patchActive((d) => {
+      const items = d.items.filter((it) => it.id !== id);
+      return { ...d, items: items.length > 0 ? items : [emptyItem()] };
+    });
   };
 
   const switchKind = (k: DocKind) => {
@@ -413,20 +426,23 @@ const Billing: React.FC = () => {
           {/* Line items */}
           <Section
             icon={<ListChecks className="w-4 h-4" />}
-            title="items"
+            title="Items"
             subtitle="Description of services"
           >
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {kind === "invoice" ? (
-                <div className="rounded-xl border border-slate-200/70 bg-slate-50/50 p-2.5 grid grid-cols-2 sm:grid-cols-[1fr,80px,110px,auto] gap-2 items-center">
-                  {doc.items[0] && (
-                    <>
+                <div className="space-y-2">
+                  {doc.items.map((it) => (
+                    <div
+                      key={it.id}
+                      className="rounded-xl border border-slate-200/70 bg-slate-50/50 p-2.5 grid grid-cols-2 sm:grid-cols-[1fr,80px,110px,110px,auto] gap-2 items-end"
+                    >
                       <div className="col-span-2 sm:col-auto">
                         <Field label="Item">
                           <Input
-                            value={doc.items[0].description}
-                            onChange={(e) => updateItem(doc.items[0].id, { description: e.target.value })}
-                            placeholder="e.g. Marquee tent (20×20 ft)"
+                            value={it.description}
+                            onChange={(e) => updateItem(it.id, { description: e.target.value })}
+                            placeholder="e.g. Cheese tent (20×20 ft)"
                             className={inputCls}
                           />
                         </Field>
@@ -435,8 +451,8 @@ const Billing: React.FC = () => {
                         <Input
                           type="number"
                           min={0}
-                          value={Number.isFinite(doc.items[0].qty) ? doc.items[0].qty : 0}
-                          onChange={(e) => updateItem(doc.items[0].id, { qty: Math.max(0, Number(e.target.value)) })}
+                          value={Number.isFinite(it.qty) ? it.qty : 0}
+                          onChange={(e) => updateItem(it.id, { qty: Math.max(0, Number(e.target.value)) })}
                           className={inputCls}
                         />
                       </Field>
@@ -445,34 +461,73 @@ const Billing: React.FC = () => {
                           type="number"
                           min={0}
                           step="0.01"
-                          value={Number.isFinite(doc.items[0].unitPrice) ? doc.items[0].unitPrice : 0}
-                          onChange={(e) => updateItem(doc.items[0].id, { unitPrice: Math.max(0, Number(e.target.value)) })}
+                          value={Number.isFinite(it.unitPrice) ? it.unitPrice : 0}
+                          onChange={(e) => updateItem(it.id, { unitPrice: Math.max(0, Number(e.target.value)) })}
                           className={inputCls}
                         />
                       </Field>
                       <div className="flex flex-col items-start justify-end">
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 hidden sm:block">Amount</span>
                         <span className="text-sm font-bold text-slate-800 tabular-nums whitespace-nowrap">
-                          {money((doc.items[0].qty || 0) * (doc.items[0].unitPrice || 0), doc.currency)}
+                          {money(it.qty * it.unitPrice, doc.currency)}
                         </span>
                       </div>
-                    </>
-                  )}
+                      <div className="flex justify-end items-end">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeItem(it.id)}
+                          className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                          aria-label="Remove item"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (
-                <div className="rounded-xl border border-slate-200/70 bg-slate-50/50 p-2.5">
-                  {doc.items[0] && (
-                    <Field label="Item">
-                      <Input
-                        value={doc.items[0].description}
-                        onChange={(e) => updateItem(doc.items[0].id, { description: e.target.value })}
-                        placeholder="e.g. Marquee tent (20×20 ft)"
-                        className={inputCls}
-                      />
-                    </Field>
-                  )}
+                <div className="space-y-2">
+                  {doc.items.map((it) => (
+                    <div
+                      key={it.id}
+                      className="rounded-xl border border-slate-200/70 bg-slate-50/50 p-2.5 flex items-end gap-2"
+                    >
+                      <div className="flex-1">
+                        <Field label="Item">
+                          <Input
+                            value={it.description}
+                            onChange={(e) => updateItem(it.id, { description: e.target.value })}
+                            placeholder="e.g. Cheese tent (20×20 ft)"
+                            className={inputCls}
+                          />
+                        </Field>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeItem(it.id)}
+                        className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg shrink-0"
+                        aria-label="Remove item"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               )}
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addItem}
+                className="w-full rounded-xl border-dashed border-slate-300/80 text-slate-500 hover:text-amber-600 hover:border-amber-400/70 hover:bg-amber-50/50 text-xs font-semibold h-9"
+              >
+                <Plus className="w-4 h-4" />
+                Add another {kind === "invoice" ? "service" : "item"}
+              </Button>
             </div>
           </Section>
 

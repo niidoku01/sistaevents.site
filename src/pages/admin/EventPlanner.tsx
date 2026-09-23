@@ -344,22 +344,24 @@ const EventPlanner: React.FC = () => {
     <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
       {/* ─── Header ──────────────────────────────────────── */}
       <div className="flex-shrink-0 border-b border-slate-200/60 bg-white overflow-hidden">
-        <div className="flex items-center gap-2 sm:gap-3 px-2 py-2 sm:px-5 sm:py-3 min-w-0">
-          <div className="min-w-0">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 px-2 py-2 sm:px-5 sm:py-3 min-w-0">
+          <div className="flex items-center justify-between gap-2 sm:block min-w-0">
             <h1 className="text-sm sm:text-base font-bold text-slate-800 truncate">Floor Planner</h1>
           </div>
-          <div className="flex-1" />
-          <PlannerToolbar
-            eventName={eventName} setEventName={setEventName} totalGuests={totalGuests}
-            scale={scale} setScale={setScale} showGrid={showGrid} setShowGrid={setShowGrid}
-            viewMode={viewMode} setViewMode={setViewMode} venueBg={venueBg} setVenueBg={setVenueBg}
-            showBgPicker={showBgPicker} setShowBgPicker={setShowBgPicker}
-            undo={undo} redo={redo} canUndo={canUndo} canRedo={canRedo}
-            handleAutoArrange={handleAutoArrange} savePlan={savePlan} exportPNG={exportPNG} clearAll={clearAll}
-            currentBg={currentBg}
-            onPreview3D={() => setShowFullscreen3D(true)}
-            compact={isMobile}
-          />
+          <div className="hidden sm:block sm:flex-1" />
+          <div className="min-w-0">
+            <PlannerToolbar
+              eventName={eventName} setEventName={setEventName} totalGuests={totalGuests}
+              scale={scale} setScale={setScale} showGrid={showGrid} setShowGrid={setShowGrid}
+              viewMode={viewMode} setViewMode={setViewMode} venueBg={venueBg} setVenueBg={setVenueBg}
+              showBgPicker={showBgPicker} setShowBgPicker={setShowBgPicker}
+              undo={undo} redo={redo} canUndo={canUndo} canRedo={canRedo}
+              handleAutoArrange={handleAutoArrange} savePlan={savePlan} exportPNG={exportPNG} clearAll={clearAll}
+              currentBg={currentBg}
+              onPreview3D={() => setShowFullscreen3D(true)}
+              compact={isMobile}
+            />
+          </div>
         </div>
       </div>
 
@@ -429,36 +431,36 @@ const EventPlanner: React.FC = () => {
 
       {/* ─── 3D Controls (below canvas) ──────────────────── */}
       {viewMode !== "2d" && (
-        <div className="flex-shrink-0 border-t border-slate-200/40 bg-gradient-to-r from-slate-50 via-white to-slate-50 px-2 py-2 sm:px-6 sm:py-3 overflow-x-auto">
-          <div className="flex items-center gap-2 sm:gap-5 flex-nowrap min-w-0">
+        <div className="flex-shrink-0 border-t border-slate-200/40 bg-gradient-to-r from-slate-50 via-white to-slate-50 px-2 py-2 sm:px-6 sm:py-3 max-h-32 overflow-y-auto">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-5 min-w-0">
             <div className="flex items-center gap-2 flex-shrink-0">
               <Box className="w-4 h-4 text-purple-500" />
               <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">3D</span>
             </div>
-            <div className="h-4 w-px bg-slate-200 flex-shrink-0" />
+            <div className="hidden sm:block h-4 w-px bg-slate-200 flex-shrink-0" />
             <div className="flex items-center gap-2 flex-shrink-0">
               <span className="text-[10px] text-slate-400 font-medium">Tilt</span>
               <input type="range" min={20} max={80} value={perspective3D.rotateX}
                 onChange={(e) => setPerspective3D((p) => ({ ...p, rotateX: +e.target.value }))}
-                className="w-16 sm:w-28 h-1.5 accent-purple-500 rounded-full" />
+                className="w-20 sm:w-28 h-1.5 accent-purple-500 rounded-full" />
               <span className="text-[10px] font-mono text-slate-500 w-8 text-right">{perspective3D.rotateX}&deg;</span>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <span className="text-[10px] text-slate-400 font-medium">Rotate</span>
               <input type="range" min={-180} max={180} value={perspective3D.rotateZ}
                 onChange={(e) => setPerspective3D((p) => ({ ...p, rotateZ: +e.target.value }))}
-                className="w-16 sm:w-28 h-1.5 accent-purple-500 rounded-full" />
+                className="w-20 sm:w-28 h-1.5 accent-purple-500 rounded-full" />
               <span className="text-[10px] font-mono text-slate-500 w-8 text-right">{perspective3D.rotateZ}&deg;</span>
             </div>
             <button
-              className="text-[10px] text-purple-500 hover:text-purple-700 font-semibold uppercase tracking-wider transition-colors flex-shrink-0"
+              className="text-[10px] text-purple-500 hover:text-purple-700 font-semibold uppercase tracking-wider transition-colors flex-shrink-0 h-9"
               onClick={() => setPerspective3D({ rotateX: 45, rotateZ: -30 })}
             >
               Reset
             </button>
-            <div className="h-4 w-px bg-slate-200 flex-shrink-0" />
+            <div className="hidden sm:block h-4 w-px bg-slate-200 flex-shrink-0" />
             <button
-              className="flex items-center gap-1.5 text-[10px] text-white bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 font-semibold uppercase tracking-wider px-3 py-1.5 rounded-lg shadow-sm transition-all duration-200 active:scale-95 flex-shrink-0"
+              className="flex items-center gap-1.5 text-[10px] text-white bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 font-semibold uppercase tracking-wider px-3 h-9 sm:h-8 rounded-lg shadow-sm transition-all duration-200 active:scale-95 flex-shrink-0"
               onClick={export3D}
               title="Download 3D view as PNG"
             >

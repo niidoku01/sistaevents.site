@@ -166,7 +166,7 @@ export default function PlannerCanvas({
 
   return (
     <div
-      className="flex-1 min-h-0 min-w-0 overflow-auto rounded-2xl border border-slate-200/50 bg-gradient-to-br from-slate-50 to-slate-100/50 relative transition-all duration-300"
+      className="flex-1 min-h-0 min-w-0 overflow-auto overscroll-contain rounded-2xl border border-slate-200/50 bg-gradient-to-br from-slate-50 to-slate-100/50 relative transition-all duration-300"
       onMouseDown={handleCanvasMouseDown}
     >
       {/* Guide lines */}

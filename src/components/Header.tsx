@@ -273,7 +273,7 @@ export const Header = () => {
                   Collection
                 </button>
                 <button
-                  onClick={() => handleNavigation("/bookings")}
+                  onClick={() => scrollToSection("contact")}
                   className="mobile-menu-item flex items-center gap-3 text-left text-sm font-medium glass-nav-link-mobile"
                   style={{ animationDelay: "300ms" }}
                 >

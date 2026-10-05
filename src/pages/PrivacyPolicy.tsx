@@ -122,22 +122,6 @@ export default function PrivacyPolicy() {
             </p>
           </Section>
 
-          <Section title="Children's privacy">
-            <p>
-              Our services are not directed at children under 13, and we do not knowingly collect personal data from
-              children. If you believe a child has provided us with personal data, please contact us so we can remove
-              it.
-            </p>
-          </Section>
-
-          <Section title="International transfers">
-            <p>
-              Our providers (Convex, Vercel, Resend, Google) may store or process data in regions outside your country
-              of residence. We rely on providers that offer appropriate safeguards (including EU standard
-              contractual clauses where applicable) for such transfers.
-            </p>
-          </Section>
-
           <Section title="Changes to this policy">
             <p>
               We may update this policy from time to time. Any changes will be posted on this page with an updated

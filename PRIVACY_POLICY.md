@@ -74,14 +74,6 @@ We use essential cookies for:
 
 You can control cookies through your browser settings.
 
-## Children's Privacy
-
-Our services are not intended for children under 13. We do not knowingly collect data from children.
-
-## International Data Transfers
-
-Your data may be transferred to and processed in countries outside your residence. We ensure adequate protection through standard contractual clauses.
-
 ## Changes to This Policy
 
 We may update this privacy policy periodically. We will notify you of significant changes via email or website notice.

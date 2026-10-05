@@ -252,5 +252,5 @@ npm run build -- --stats
 
 ---
 
-**Dev date** February 7, 2026  
+**Last Updated:** February 7, 2026  
 **Review Schedule:** Quarterly

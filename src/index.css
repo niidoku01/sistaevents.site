@@ -216,7 +216,7 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
 
   body {
@@ -916,4 +916,3 @@ html::-webkit-scrollbar-thumb:hover {
   height: 44vh;
   height: 44dvh;
 }
-

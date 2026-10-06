@@ -118,10 +118,13 @@ export const Header = () => {
           >
             <img
               src={images.misc.sistalogo}
+              alt="Sista Events and Rentals"
               className="logo-icon transition-transform duration-300 group-hover:scale-110"
               loading="eager"
               decoding="sync"
               fetchpriority="high"
+              width={48}
+              height={48}
             />
             <div className="inline-flex items-center min-w-0 max-w-[calc(100vw-8rem)] sm:max-w-none">
               <p className="text-sm sm:text-base md:text-lg lg:text-xl font-bold bg-linear-to-r from-[#FFD700] to-accent to-primary bg-clip-text text-transparent truncate whitespace-nowrap drop-shadow-sm">

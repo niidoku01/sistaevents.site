@@ -499,7 +499,7 @@ export const Contact = () => {
             <Card className="border-border group hover:shadow-lg transition-shadow duration-300">
               <CardContent className="p-3.5 sm:p-6">
                 <div className="flex items-center gap-3 sm:items-start sm:gap-4">
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-green-500/20 to-green-500/5 flex items-center justify-center flex-shrink-0 group-hover:from-green-500/30 group-hover:to-green-500/10 transition-colors duration-300">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-linear-to-br from-green-500/20 to-green-500/5 flex items-center justify-center flex-shrink-0 group-hover:from-green-500/30 group-hover:to-green-500/10 transition-colors duration-300">
                     <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                   </div>
                   <div className="min-w-0">
@@ -513,7 +513,7 @@ export const Contact = () => {
             <Card className="border-border group hover:shadow-lg transition-shadow duration-300">
               <CardContent className="p-3.5 sm:p-6">
                 <div className="flex items-center gap-3 sm:items-start sm:gap-4">
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-red-600/15 to-red-600/5 flex items-center justify-center flex-shrink-0 group-hover:from-red-600/25 group-hover:to-red-600/10 transition-colors duration-300">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-linear-to-br from-red-600/15 to-red-600/5 flex items-center justify-center flex-shrink-0 group-hover:from-red-600/25 group-hover:to-red-600/10 transition-colors duration-300">
                     <Mail className="w-4 h-4 sm:w-5 sm:h-5" fill="white" stroke="#dc2626" />
                   </div>
                   <div className="min-w-0">
@@ -527,7 +527,7 @@ export const Contact = () => {
             <Card className="border-border group hover:shadow-lg transition-shadow duration-300">
               <CardContent className="p-3.5 sm:p-6">
                 <div className="flex items-center gap-3 sm:items-start sm:gap-4">
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-green-500/20 to-green-500/5 flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-linear-to-br from-green-500/20 to-green-500/5 flex items-center justify-center flex-shrink-0">
                     <WhatsAppIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                   </div>
                   <div className="min-w-0">
@@ -541,7 +541,7 @@ export const Contact = () => {
             <Card className="border-border group hover:shadow-lg transition-shadow duration-300">
               <CardContent className="p-3.5 sm:p-6">
                 <div className="flex items-center gap-3 sm:items-start sm:gap-4">
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-red-600/15 to-red-600/5 flex items-center justify-center flex-shrink-0 group-hover:from-red-600/25 group-hover:to-red-600/10 transition-colors duration-300">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-linear-to-br from-red-600/15 to-red-600/5 flex items-center justify-center flex-shrink-0 group-hover:from-red-600/25 group-hover:to-red-600/10 transition-colors duration-300">
                     <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
                   </div>
                   <div className="min-w-0">

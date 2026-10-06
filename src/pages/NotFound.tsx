@@ -76,7 +76,7 @@ export default function NotFound() {
           </p>
           <Link
             to="/"
-            className={`mt-8 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#FFD700] to-amber-500 px-6 py-3 text-sm font-semibold text-slate-900 shadow-lg shadow-amber-300/40 transition-all duration-700 delay-1000 hover:shadow-xl hover:shadow-amber-300/50 hover:scale-105 active:scale-95 ${
+            className={`mt-8 inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-[#FFD700] to-amber-500 px-6 py-3 text-sm font-semibold text-slate-900 shadow-lg shadow-amber-300/40 transition-all duration-700 delay-1000 hover:shadow-xl hover:shadow-amber-300/50 hover:scale-105 active:scale-95 ${
               visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             }`}
           >

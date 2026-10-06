@@ -70,7 +70,7 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-50 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Ambient glow blobs behind the glass card */}
       <div className="pointer-events-none absolute -top-24 -left-24 w-72 h-72 rounded-full bg-amber-200/40 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-28 -right-16 w-80 h-80 rounded-full bg-slate-300/40 blur-3xl" />
@@ -78,7 +78,7 @@ const Login: React.FC = () => {
 
       <div className="glass-login relative w-full max-w-md rounded-3xl p-8 sm:p-10">
         <div className="text-center mb-8">
-          <h1 className="text-2xl sm:text-[1.6rem] font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent tracking-tight">
+          <h1 className="text-2xl sm:text-[1.6rem] font-bold bg-linear-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent tracking-tight">
             Admin Dashboard
           </h1>
         </div>
@@ -153,7 +153,7 @@ const Login: React.FC = () => {
           <Button
             type="submit"
             disabled={loading || authUnavailable}
-            className="w-full h-11 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white font-semibold text-sm tracking-wide transition-all duration-200 shadow-lg shadow-amber-500/30 hover:shadow-xl hover:shadow-amber-500/40 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+            className="w-full h-11 rounded-xl bg-linear-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white font-semibold text-sm tracking-wide transition-all duration-200 shadow-lg shadow-amber-500/30 hover:shadow-xl hover:shadow-amber-500/40 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
           >
             {loading ? "Logging in..." : "Log In"}
           </Button>

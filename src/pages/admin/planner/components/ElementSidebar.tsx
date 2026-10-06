@@ -59,7 +59,7 @@ export default function ElementSidebar({
     return (
       <div key={def.type} draggable onDragStart={() => handlePaletteDragStart(def.type)}
         onClick={() => handlePaletteTap?.(def.type)}
-        className="flex flex-col items-center gap-1.5 p-3 sm:p-2.5 rounded-xl border border-slate-100/80 hover:border-indigo-200 hover:bg-gradient-to-br hover:from-indigo-50/50 hover:to-purple-50/30 cursor-grab active:cursor-grabbing transition-all duration-200 select-none group hover:shadow-sm hover:scale-[1.02] active:scale-95">
+        className="flex flex-col items-center gap-1.5 p-3 sm:p-2.5 rounded-xl border border-slate-100/80 hover:border-indigo-200 hover:bg-linear-to-br hover:from-indigo-50/50 hover:to-purple-50/30 cursor-grab active:cursor-grabbing transition-all duration-200 select-none group hover:shadow-xs hover:scale-[1.02] active:scale-95">
         <div className="w-10 h-10 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200" style={{ backgroundColor: def.color + "12" }}>
           <Icon className="w-5 h-5 sm:w-4.5 sm:h-4.5" style={{ color: def.color }} />
         </div>
@@ -126,7 +126,7 @@ export default function ElementSidebar({
               <div key={el.id} onClick={() => setSelectedId(el.id)}
                 className={`flex items-center gap-2 p-2 rounded-xl cursor-pointer text-[10px] transition-all duration-150
                   ${isActive
-                    ? "bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200/60 shadow-sm"
+                    ? "bg-linear-to-r from-indigo-50 to-purple-50 border border-indigo-200/60 shadow-xs"
                     : "hover:bg-slate-50 border border-transparent"
                   }`}>
                 <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: (def?.color || "#94a3b8") + "15" }}>
@@ -186,7 +186,7 @@ export default function ElementSidebar({
   // ─── Desktop: inline sidebar ──────────────────────────────
   return (
     <div className={`${sidebarOpen ? "w-56" : "w-10"} transition-all duration-300 flex-shrink-0`}>
-      <div className={`bg-white/80 backdrop-blur-xl border border-slate-200/50 shadow-sm h-full rounded-2xl ${sidebarOpen ? "" : "overflow-hidden"}`}>
+      <div className={`bg-white/80 backdrop-blur-xl border border-slate-200/50 shadow-xs h-full rounded-2xl ${sidebarOpen ? "" : "overflow-hidden"}`}>
         <div className="p-2 h-full">
           {sidebarOpen ? (
             <div className="space-y-3">
@@ -218,7 +218,7 @@ export default function ElementSidebar({
 function TabBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button onClick={onClick}
-      className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-lg transition-all duration-150 ${active ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}>
+      className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-lg transition-all duration-150 ${active ? "bg-white text-indigo-600 shadow-xs" : "text-slate-400 hover:text-slate-600"}`}>
       {children}
     </button>
   );

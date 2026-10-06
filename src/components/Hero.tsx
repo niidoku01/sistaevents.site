@@ -1,4 +1,4 @@
-﻿import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -93,7 +93,7 @@ const HeroContent = () => {
           decoding="sync"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/90 via-primary/70 to-primary/50" />
+        <div className="absolute inset-0 bg-linear-to-r from-primary/90 via-primary/70 to-primary/50" />
       </div>
     
 

@@ -1,4 +1,4 @@
-﻿import { Header } from "@/components/Header";
+import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { BackToTop } from "@/components/BackToTop";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
@@ -304,7 +304,7 @@ export default function OurCollection() {
           return (
             <div
               key={img._id || i}
-              className={`group relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer break-inside-avoid`}
+              className={`group relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-xs hover:shadow-xl transition-all duration-300 cursor-pointer break-inside-avoid`}
               tabIndex={0}
               role="button"
               aria-label={`View ${img.originalName || `image ${i + 1}`}`}
@@ -338,7 +338,7 @@ export default function OurCollection() {
                   onError={() => markImageLoaded(img._id ?? `img-${i}`)}
                 />
                 {!isLoaded && (
-                  <div className="absolute inset-0 z-0 rounded-2xl bg-gradient-to-br from-slate-100 via-slate-200 to-slate-100/60" />
+                  <div className="absolute inset-0 z-0 rounded-2xl bg-linear-to-br from-slate-100 via-slate-200 to-slate-100/60" />
                 )}
                 <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-colors duration-300 pointer-events-none">
                   <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 rounded-full p-2.5 shadow-lg">
@@ -359,12 +359,12 @@ export default function OurCollection() {
       <Header />
       <main className="flex-1 pt-14 sm:pt-16 lg:pt-20">
         <div className="container mx-auto px-4 lg:px-6 max-w-7xl">
-          <div className="relative overflow-hidden rounded-3xl border border-amber-100 bg-gradient-to-br from-amber-50 via-white to-sky-50 px-6 sm:px-8 py-8 sm:py-10 mb-8 sm:mb-10">
+          <div className="relative overflow-hidden rounded-3xl border border-amber-100 bg-linear-to-br from-amber-50 via-white to-sky-50 px-6 sm:px-8 py-8 sm:py-10 mb-8 sm:mb-10">
               <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-amber-200/35 blur-3xl" />
               <div className="absolute -bottom-16 -left-16 h-44 w-44 rounded-full bg-sky-200/35 blur-3xl" />
 
               <div className="relative">
-                <h1 className="text-1xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#FFD700] to-amber-500 bg-clip-text text-transparent tracking-tight">OUR COLLECTION</h1>
+                <h1 className="text-1xl sm:text-2xl md:text-3xl font-bold bg-linear-to-r from-[#FFD700] to-amber-500 bg-clip-text text-transparent tracking-tight">OUR COLLECTION</h1>
                 <p className="mt-2 text-sm sm:text-base text-slate-700">Gallery Experience</p>
               </div>
             </div>
@@ -383,7 +383,7 @@ export default function OurCollection() {
                         className="group text-left w-full sm:flex-1 sm:min-w-0"
                         onClick={() => setSelectedCategory(category)}
                       >
-                        <div className="relative overflow-hidden rounded-2xl border border-white/50 bg-white shadow-sm hover:shadow-2xl transition-all duration-300 ring-1 ring-black/5">
+                        <div className="relative overflow-hidden rounded-2xl border border-white/50 bg-white shadow-xs hover:shadow-2xl transition-all duration-300 ring-1 ring-black/5">
                           <div className={`bg-slate-200/80 ${isLoaded ? "" : "animate-pulse"}`}>
                             <img
                               src={cover.url}
@@ -399,7 +399,7 @@ export default function OurCollection() {
                               onLoad={() => markImageLoaded(`cover-${category}`)}
                               onError={() => markImageLoaded(`cover-${category}`)}
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10" />
+                            <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/30 to-black/10" />
                             <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
                               <h3 className="text-white text-xl sm:text-2xl font-bold tracking-tight">
                                 {categoryTitleMap[category]}
@@ -424,7 +424,7 @@ export default function OurCollection() {
                       <Button
                         variant="ghost"
                         onClick={() => setSelectedCategory(null)}
-                        className="h-9 w-9 sm:h-11 sm:w-11 p-0 rounded-lg sm:rounded-xl border border-amber-200 bg-white text-slate-700 hover:bg-amber-100 hover:text-amber-700 shadow-sm"
+                        className="h-9 w-9 sm:h-11 sm:w-11 p-0 rounded-lg sm:rounded-xl border border-amber-200 bg-white text-slate-700 hover:bg-amber-100 hover:text-amber-700 shadow-xs"
                         aria-label="Back"
                         title="Back"
                       >
@@ -441,8 +441,8 @@ export default function OurCollection() {
                               onClick={() => setSelectedCategory(category)}
                               className={`shrink-0 rounded-lg sm:rounded-xl px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-sm border font-medium transition-all duration-200 active:scale-95 ${
                                 isActive
-                                  ? "bg-gradient-to-r from-[#FFD700] to-amber-500 text-slate-900 border-amber-400 shadow-md shadow-amber-300/50"
-                                  : "bg-white text-slate-700 border-slate-200 hover:bg-amber-50 hover:border-amber-200 hover:shadow-sm"
+                                  ? "bg-linear-to-r from-[#FFD700] to-amber-500 text-slate-900 border-amber-400 shadow-md shadow-amber-300/50"
+                                  : "bg-white text-slate-700 border-slate-200 hover:bg-amber-50 hover:border-amber-200 hover:shadow-xs"
                               }`}
                               aria-label={`Switch to ${categoryTitleMap[category]}`}
                               title={categoryTitleMap[category]}
@@ -467,7 +467,7 @@ export default function OurCollection() {
                       <Button
                         variant="ghost"
                         onClick={() => setSelectedCategory(null)}
-                        className="h-8 w-8 shrink-0 rounded-full border border-amber-200 bg-white text-slate-700 hover:bg-amber-100 hover:text-amber-700 shadow-sm"
+                        className="h-8 w-8 shrink-0 rounded-full border border-amber-200 bg-white text-slate-700 hover:bg-amber-100 hover:text-amber-700 shadow-xs"
                         aria-label="Back"
                         title="Back"
                       >
@@ -482,8 +482,8 @@ export default function OurCollection() {
                             onClick={() => setSelectedCategory(category)}
                             className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-medium whitespace-nowrap transition-all duration-200 active:scale-95 border ${
                               isActive
-                                ? "bg-gradient-to-r from-[#FFD700] to-amber-500 text-slate-900 border-amber-400 shadow-md shadow-amber-300/50"
-                                : "bg-white text-slate-700 border-slate-200 hover:bg-amber-50 hover:border-amber-200 hover:shadow-sm"
+                                ? "bg-linear-to-r from-[#FFD700] to-amber-500 text-slate-900 border-amber-400 shadow-md shadow-amber-300/50"
+                                : "bg-white text-slate-700 border-slate-200 hover:bg-amber-50 hover:border-amber-200 hover:shadow-xs"
                             }`}
                             aria-label={`Switch to ${categoryTitleMap[category]}`}
                             title={categoryTitleMap[category]}

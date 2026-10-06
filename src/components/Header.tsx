@@ -1,4 +1,4 @@
-﻿import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -124,7 +124,7 @@ export const Header = () => {
               fetchpriority="high"
             />
             <div className="inline-flex items-center min-w-0 max-w-[calc(100vw-8rem)] sm:max-w-none">
-              <p className="text-sm sm:text-base md:text-lg lg:text-xl font-bold bg-gradient-to-r from-[#FFD700] to-accent to-primary bg-clip-text text-transparent truncate whitespace-nowrap drop-shadow-sm">
+              <p className="text-sm sm:text-base md:text-lg lg:text-xl font-bold bg-linear-to-r from-[#FFD700] to-accent to-primary bg-clip-text text-transparent truncate whitespace-nowrap drop-shadow-sm">
                 SISTA EVENTS AND RENTALS
               </p>
             </div>
@@ -200,10 +200,10 @@ export const Header = () => {
           {/* Drawer */}
           <nav
             id="mobile-nav"
-            className="md:hidden fixed inset-y-0 right-0 z-[61] w-[min(82vw,20rem)] overflow-y-auto rounded-l-3xl bg-gradient-to-b from-white/85 via-white/70 to-white/50 backdrop-blur-2xl backdrop-saturate-150 border-l border-white/60 shadow-[-12px_0_48px_rgba(0,0,0,0.16)] px-4 sm:px-5 pt-20 pb-8 flex flex-col gap-1.5 mobile-drawer-enter"
+            className="md:hidden fixed inset-y-0 right-0 z-[61] w-[min(82vw,20rem)] overflow-y-auto rounded-l-3xl bg-linear-to-b from-white/85 via-white/70 to-white/50 backdrop-blur-2xl backdrop-saturate-150 border-l border-white/60 shadow-[-12px_0_48px_rgba(0,0,0,0.16)] px-4 sm:px-5 pt-20 pb-8 flex flex-col gap-1.5 mobile-drawer-enter"
           >
             {/* Top accent glow */}
-            <div className="pointer-events-none absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-accent/10 to-transparent" />
+            <div className="pointer-events-none absolute top-0 inset-x-0 h-40 bg-linear-to-b from-accent/10 to-transparent" />
             <div className="pointer-events-none absolute top-24 left-0 w-44 h-44 bg-accent/10 rounded-full blur-3xl opacity-60" />
             {/* Close button inside drawer */}
             <button

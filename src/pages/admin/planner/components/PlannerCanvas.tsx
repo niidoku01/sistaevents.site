@@ -166,7 +166,7 @@ export default function PlannerCanvas({
 
   return (
     <div
-      className="flex-1 min-h-0 min-w-0 overflow-auto overscroll-contain rounded-2xl border border-slate-200/50 bg-gradient-to-br from-slate-50 to-slate-100/50 relative transition-all duration-300"
+      className="flex-1 min-h-0 min-w-0 overflow-auto overscroll-contain rounded-2xl border border-slate-200/50 bg-linear-to-br from-slate-50 to-slate-100/50 relative transition-all duration-300"
       onMouseDown={handleCanvasMouseDown}
     >
       {/* Guide lines */}
@@ -217,7 +217,7 @@ export default function PlannerCanvas({
         {/* Empty state */}
         {elements.length === 0 && !dragFromPalette && (
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 flex items-center justify-center mb-4">
+            <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-indigo-50 to-purple-50 border border-indigo-100 flex items-center justify-center mb-4">
               <LayoutGrid className="w-7 h-7 text-indigo-300" />
             </div>
             <p className="text-sm text-slate-500 font-semibold mb-1">Start planning your event</p>

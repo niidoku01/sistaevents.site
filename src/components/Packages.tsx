@@ -170,9 +170,9 @@ export const Packages = () => {
             >
               {pkg.popular && (
                 <>
-                  <div className="absolute inset-0 bg-gradient-to-b from-accent/[0.04] via-transparent to-accent/[0.06] pointer-events-none" />
+                  <div className="absolute inset-0 bg-linear-to-b from-accent/[0.04] via-transparent to-accent/[0.06] pointer-events-none" />
                   <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10">
-                    <span className="inline-flex items-center bg-gradient-to-r from-accent to-amber-500 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-[0_8px_24px_-2px_hsl(var(--accent)/0.7),0_4px_10px_rgba(0,0,0,0.2),0_0_20px_hsl(var(--accent)/0.3)]">
+                    <span className="inline-flex items-center bg-linear-to-r from-accent to-amber-500 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-[0_8px_24px_-2px_hsl(var(--accent)/0.7),0_4px_10px_rgba(0,0,0,0.2),0_0_20px_hsl(var(--accent)/0.3)]">
                       Most Popular
                     </span>
                   </div>

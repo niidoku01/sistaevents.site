@@ -34,7 +34,7 @@ export const LoadingBalloon = () => {
           {/* Progress bar */}
           <div className="h-0.5 w-32 overflow-hidden rounded-full bg-border sm:w-40">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-accent/60 to-accent animate-[progressFill_2.8s_ease-in-out_0.3s_forwards]"
+              className="h-full rounded-full bg-linear-to-r from-accent/60 to-accent animate-[progressFill_2.8s_ease-in-out_0.3s_forwards]"
               style={{ width: "0%" }}
             />
           </div>

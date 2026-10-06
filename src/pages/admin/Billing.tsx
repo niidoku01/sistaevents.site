@@ -167,9 +167,9 @@ function Section({ icon, title, subtitle, children }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200/60 bg-white/70 backdrop-blur-sm shadow-sm hover:shadow-md transition-all duration-300">
+    <div className="rounded-2xl border border-slate-200/60 bg-white/70 backdrop-blur-sm shadow-xs hover:shadow-md transition-all duration-300">
       <div className="flex items-start gap-3 px-4 py-3 sm:flex-row">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-100 to-amber-50 border border-amber-200/60 flex items-center justify-center text-amber-600 flex-shrink-0">
+        <div className="w-9 h-9 rounded-xl bg-linear-to-br from-amber-100 to-amber-50 border border-amber-200/60 flex items-center justify-center text-amber-600 flex-shrink-0">
           {icon}
         </div>
         <div className="min-w-0">
@@ -291,11 +291,11 @@ const Billing: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* ── Page header ─────────────────────────────────── */}
-      <div className="rounded-2xl border border-slate-200/60 bg-white/70 backdrop-blur-sm shadow-sm overflow-hidden">
-        <div className="h-[2px] bg-gradient-to-r from-transparent via-amber-400/60 to-transparent" />
+      <div className="rounded-2xl border border-slate-200/60 bg-white/70 backdrop-blur-sm shadow-xs overflow-hidden">
+        <div className="h-[2px] bg-linear-to-r from-transparent via-amber-400/60 to-transparent" />
         <div className="px-4 py-4 sm:px-6 flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20">
+            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-amber-400 to-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20">
               <ReceiptText className="w-5 h-5" />
             </div>
             <div className="min-w-0">
@@ -344,7 +344,7 @@ const Billing: React.FC = () => {
                   onClick={() => switchKind(k)}
                   className={`flex items-center justify-center gap-2 px-5 py-2 rounded-lg text-sm font-bold capitalize transition-all duration-200 flex-1 sm:flex-none ${
                     active
-                      ? "bg-white text-amber-600 shadow-sm"
+                      ? "bg-white text-amber-600 shadow-xs"
                       : "text-slate-400 hover:text-slate-600"
                   }`}
                 >
@@ -580,7 +580,7 @@ const Billing: React.FC = () => {
             </div>
 
             {/* Live totals strip */}
-            <div className="mt-4 rounded-xl border border-slate-200/70 bg-gradient-to-r from-slate-50 to-white p-3 flex flex-wrap items-center gap-x-6 gap-y-2">
+            <div className="mt-4 rounded-xl border border-slate-200/70 bg-linear-to-r from-slate-50 to-white p-3 flex flex-wrap items-center gap-x-6 gap-y-2">
               <TotalChip label="Subtotal" value={money(totals.subtotal, doc.currency)} />
               {doc.discountRate > 0 && <TotalChip label={`Discount (-${doc.discountRate}%)`} value={`− ${money(totals.discountAmount, doc.currency)}`} muted />}
               {doc.taxRate > 0 && <TotalChip label={`Tax (+${doc.taxRate}%)`} value={money(totals.taxAmount, doc.currency)} muted />}
@@ -643,7 +643,7 @@ const Billing: React.FC = () => {
           </div>
 
           <div className="rounded-2xl border border-slate-200/60 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.06)] overflow-hidden">
-            <div className="h-[2px] bg-gradient-to-r from-amber-500/70 via-amber-400/50 to-transparent" />
+            <div className="h-[2px] bg-linear-to-r from-amber-500/70 via-amber-400/50 to-transparent" />
             <PreviewDocument doc={doc} />
           </div>
 
@@ -691,7 +691,7 @@ function PreviewDocument({ doc }: { doc: BillingDoc }) {
         </div>
       </div>
 
-      <div className="h-px bg-gradient-to-r from-amber-500 to-amber-500/20 my-4" />
+      <div className="h-px bg-linear-to-r from-amber-500 to-amber-500/20 my-4" />
 
       {/* Bill to left + invoice details right */}
       <div className="flex justify-between gap-4 flex-wrap">

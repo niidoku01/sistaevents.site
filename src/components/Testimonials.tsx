@@ -5,7 +5,7 @@ import { ReviewForm } from "./ReviewForm";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 
-const shimmerBase = "bg-[length:200%_100%] bg-gradient-to-r from-muted via-muted/50 via-[50%] to-muted animate-shimmer";
+const shimmerBase = "bg-[length:200%_100%] bg-linear-to-r from-muted via-muted/50 via-[50%] to-muted animate-shimmer";
 
 // Modern loader component
 const TestimonialsLoader = () => (
@@ -67,7 +67,7 @@ const TestimonialsHeading = ({ average }: { average?: number }) => (
     </p>
 
     {average !== undefined && (
-      <div className="inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-full border border-border/60 bg-background/70 px-5 py-2 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
+      <div className="inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-full border border-border/60 bg-background/70 px-5 py-2 shadow-xs animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
         <div className="flex gap-0.5" aria-label={`Average rating ${average.toFixed(1)} out of 5`}>
           {[...Array(5)].map((_, i) => (
             <Star
@@ -154,15 +154,15 @@ const TestimonialsContent = () => {
                   }
                 }
               `}</style>
-              <Card className="relative overflow-hidden border-border h-full hover:border-accent/50 transition-all duration-300 hover:shadow-2xl hover:shadow-accent/20 bg-gradient-to-br from-muted/30 to-background">
+              <Card className="relative overflow-hidden border-border h-full hover:border-accent/50 transition-all duration-300 hover:shadow-2xl hover:shadow-accent/20 bg-linear-to-br from-muted/30 to-background">
                 {/* Animated gradient background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-accent/[0.02] via-transparent to-accent/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 bg-linear-to-br from-accent/[0.02] via-transparent to-accent/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                 <CardContent className="relative p-5 sm:p-6 lg:p-7 flex flex-col h-full">
                   {/* Top row: Avatar + Name (left), Event type (center), Rating tile (right) */}
                   <div className="flex items-center justify-between gap-3 mb-4 z-10">
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent/30 to-accent/10 flex items-center justify-center flex-shrink-0 ring-2 ring-accent/20 group-hover:ring-accent/40 transition-all duration-300">
+                      <div className="w-8 h-8 rounded-full bg-linear-to-br from-accent/30 to-accent/10 flex items-center justify-center flex-shrink-0 ring-2 ring-accent/20 group-hover:ring-accent/40 transition-all duration-300">
                         <span className="text-xs font-bold text-accent">
                           {testimonial.name.charAt(0).toUpperCase()}
                         </span>
@@ -191,7 +191,7 @@ const TestimonialsContent = () => {
                   </div>
 
                   {/* Rounded review span */}
-                  <div className="flex-grow rounded-2xl border border-border/40 bg-background/60 p-4 sm:p-5 shadow-sm group-hover:shadow-accent/10 transition-shadow duration-300">
+                  <div className="flex-grow rounded-2xl border border-border/40 bg-background/60 p-4 sm:p-5 shadow-xs group-hover:shadow-accent/10 transition-shadow duration-300">
                     <p className="text-sm sm:text-base text-foreground leading-relaxed whitespace-pre-line break-words line-clamp-5">
                       &quot;{testimonial.content}&quot;
                     </p>
@@ -236,7 +236,7 @@ const TestimonialsContent = () => {
           }`}
         >
           <div className="relative rounded-3xl border border-white/30 bg-white/60 backdrop-blur-2xl shadow-2xl shadow-black/10 p-6 sm:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-1 rounded-b-full bg-gradient-to-r from-accent to-amber-500" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-1 rounded-b-full bg-linear-to-r from-accent to-amber-500" />
             <div className="mb-6 sm:mb-8">
               <h3 className="text-2xl sm:text-3xl font-bold text-foreground">
                 Share your experience
@@ -288,7 +288,7 @@ export const Testimonials = () => {
   return (
     <section ref={sectionRef} id="testimonials" className="section-mobile-padding bg-background relative overflow-hidden">
       {/* Background gradient effects */}
-      <div className="absolute inset-0 bg-gradient-to-b from-accent/[0.02] via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-linear-to-b from-accent/[0.02] via-transparent to-transparent pointer-events-none" />
       <div className="absolute top-20 left-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl opacity-40 pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl opacity-40 pointer-events-none" />
       

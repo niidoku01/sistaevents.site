@@ -17,7 +17,7 @@ export default function PrivacyPolicy() {
     <div className="min-h-screen flex flex-col bg-slate-50">
       <Header />
       <main className="flex-1">
-        <div className="bg-gradient-to-b from-slate-100 via-white to-slate-50 py-10 sm:py-14">
+        <div className="bg-linear-to-b from-slate-100 via-white to-slate-50 py-10 sm:py-14">
           <div className="container mx-auto px-4 lg:px-6 max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-widest text-accent mb-2">Data Protection</p>
             <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-3">Privacy Policy</h1>
@@ -133,11 +133,11 @@ export default function PrivacyPolicy() {
             <div className="flex flex-col sm:flex-row gap-3">
               <a
                 href="mailto:info@sistaevents.com"
-                className="inline-flex items-center gap-2 rounded-xl bg-white/80 border border-white/60 px-4 py-3 text-sm font-medium text-foreground shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+                className="inline-flex items-center gap-2 rounded-xl bg-white/80 border border-white/60 px-4 py-3 text-sm font-medium text-foreground shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
               >
                 <Mail className="w-4 h-4 text-accent" /> info@sistaevents.com
               </a>
-              <span className="inline-flex items-center gap-2 rounded-xl bg-white/80 border border-white/60 px-4 py-3 text-sm font-medium text-foreground shadow-sm">
+              <span className="inline-flex items-center gap-2 rounded-xl bg-white/80 border border-white/60 px-4 py-3 text-sm font-medium text-foreground shadow-xs">
                 <ShieldCheck className="w-4 h-4 text-accent" /> Data Protection Compliant
               </span>
             </div>

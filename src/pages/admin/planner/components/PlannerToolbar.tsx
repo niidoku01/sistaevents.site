@@ -46,7 +46,7 @@ export default function PlannerToolbar({
   currentBg, onPreview3D, compact,
 }: PlannerToolbarProps) {
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-slate-200/50 shadow-sm px-2 py-2 sm:px-4 sm:py-3">
+    <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-slate-200/50 shadow-xs px-2 py-2 sm:px-4 sm:py-3">
       <div className="flex flex-wrap items-center gap-1.5 sm:gap-3 gap-y-2 min-w-0 touch-manipulation">
         {!compact && (
           <Input
@@ -86,19 +86,19 @@ export default function PlannerToolbar({
         <div className="flex items-center gap-0.5 bg-slate-50/80 rounded-xl p-0.5 flex-shrink-0" title="View mode">
           <button
             onClick={() => setViewMode("2d")}
-            className={`flex items-center gap-1 h-11 sm:h-8 px-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-150 flex-shrink-0 ${viewMode === "2d" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+            className={`flex items-center gap-1 h-11 sm:h-8 px-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-150 flex-shrink-0 ${viewMode === "2d" ? "bg-white text-indigo-600 shadow-xs" : "text-slate-400 hover:text-slate-600"}`}
           >
             <LayoutGrid className="w-3.5 h-3.5" />2D
           </button>
           <button
             onClick={() => setViewMode("3d")}
-            className={`flex items-center gap-1 h-11 sm:h-8 px-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-150 flex-shrink-0 ${viewMode === "3d" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+            className={`flex items-center gap-1 h-11 sm:h-8 px-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-150 flex-shrink-0 ${viewMode === "3d" ? "bg-white text-indigo-600 shadow-xs" : "text-slate-400 hover:text-slate-600"}`}
           >
             <Box className="w-3.5 h-3.5" />3D
           </button>
           <button
             onClick={() => setViewMode("split")}
-            className={`flex items-center gap-1 h-11 sm:h-8 px-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-150 flex-shrink-0 ${viewMode === "split" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+            className={`flex items-center gap-1 h-11 sm:h-8 px-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-150 flex-shrink-0 ${viewMode === "split" ? "bg-white text-indigo-600 shadow-xs" : "text-slate-400 hover:text-slate-600"}`}
           >
             <Columns2 className="w-3.5 h-3.5" />Split
           </button>
@@ -127,7 +127,7 @@ export default function PlannerToolbar({
         {onPreview3D && (
           <button
             onClick={onPreview3D}
-            className="flex items-center gap-1.5 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white text-[11px] font-bold px-3 h-11 sm:h-9 rounded-xl shadow-md shadow-purple-500/20 transition-all duration-200 active:scale-95 uppercase tracking-wider flex-shrink-0"
+            className="flex items-center gap-1.5 bg-linear-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white text-[11px] font-bold px-3 h-11 sm:h-9 rounded-xl shadow-md shadow-purple-500/20 transition-all duration-200 active:scale-95 uppercase tracking-wider flex-shrink-0"
             title="View full 3D floor plan"
           >
             <Maximize2 className="w-3.5 h-3.5" />

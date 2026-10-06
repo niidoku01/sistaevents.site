@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -219,23 +219,23 @@ const ManageCollection = () => {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1 space-y-2">
-                <div className="h-6 w-48 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 bg-[length:200%_100%] animate-shimmer" />
-                <div className="h-4 w-36 rounded-lg bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 bg-[length:200%_100%] animate-shimmer" />
+                <div className="h-6 w-48 rounded-lg bg-linear-to-r from-slate-200 via-slate-100 to-slate-200 bg-[length:200%_100%] animate-shimmer" />
+                <div className="h-4 w-36 rounded-lg bg-linear-to-r from-slate-200 via-slate-100 to-slate-200 bg-[length:200%_100%] animate-shimmer" />
               </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex gap-3">
-              <div className="h-10 w-36 rounded-xl bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer" />
-              <div className="h-10 w-28 rounded-xl bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer" />
+              <div className="h-10 w-36 rounded-xl bg-linear-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer" />
+              <div className="h-10 w-28 rounded-xl bg-linear-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer" />
             </div>
-            <div className="h-10 w-52 rounded-xl bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer" />
+            <div className="h-10 w-52 rounded-xl bg-linear-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer" />
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="overflow-hidden rounded-2xl border border-white/40 bg-white/50">
-                  <div className="aspect-[4/3] bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 animate-shimmer" />
+                  <div className="aspect-[4/3] bg-linear-to-br from-slate-200 via-slate-100 to-slate-200 animate-shimmer" />
                   <div className="p-2 space-y-1.5">
-                    <div className="h-3 w-full rounded bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer" />
+                    <div className="h-3 w-full rounded bg-linear-to-r from-slate-200 via-slate-100 to-slate-200 animate-shimmer" />
                   </div>
                 </div>
               ))}
@@ -250,20 +250,20 @@ const ManageCollection = () => {
     <div className="space-y-6 overflow-x-hidden animate-fade-in">
       {/* Main card */}
       <Card className="overflow-hidden border-white/50 bg-white/60 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.04)]">
-        <CardHeader className="border-b border-white/30 bg-gradient-to-r from-white/40 via-white/20 to-white/40">
+        <CardHeader className="border-b border-white/30 bg-linear-to-r from-white/40 via-white/20 to-white/40">
           <div className="flex items-center justify-between overflow-hidden">
             <div className="min-w-0 flex-1">
-              <CardTitle className="truncate text-lg sm:text-xl font-bold bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 bg-clip-text text-transparent">
+              <CardTitle className="truncate text-lg sm:text-xl font-bold bg-linear-to-r from-slate-900 via-slate-700 to-slate-900 bg-clip-text text-transparent">
                 Manage Collection
               </CardTitle>
               <CardDescription className="truncate text-xs sm:text-sm">Reorder, hide, or delete images across categories.</CardDescription>
             </div>
             <div className="flex shrink-0 gap-1 sm:gap-2">
-              <Button variant="outline" size="sm" onClick={handleReset} className="gap-1.5 px-2 sm:px-3 rounded-xl border-white/60 bg-white/50 backdrop-blur-md hover:bg-white/70 transition-all duration-200 shadow-sm hover:shadow-md active:scale-95">
+              <Button variant="outline" size="sm" onClick={handleReset} className="gap-1.5 px-2 sm:px-3 rounded-xl border-white/60 bg-white/50 backdrop-blur-md hover:bg-white/70 transition-all duration-200 shadow-xs hover:shadow-md active:scale-95">
                 <RotateCcw className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Reset Order</span>
               </Button>
-              <Button variant="outline" size="sm" onClick={() => { setLoading(true); fetchUploaded(); }} disabled={loading} className="gap-1.5 px-2 sm:px-3 rounded-xl border-white/60 bg-white/50 backdrop-blur-md hover:bg-white/70 transition-all duration-200 shadow-sm hover:shadow-md active:scale-95">
+              <Button variant="outline" size="sm" onClick={() => { setLoading(true); fetchUploaded(); }} disabled={loading} className="gap-1.5 px-2 sm:px-3 rounded-xl border-white/60 bg-white/50 backdrop-blur-md hover:bg-white/70 transition-all duration-200 shadow-xs hover:shadow-md active:scale-95">
                 <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
                 <span className="hidden sm:inline">Refresh</span>
               </Button>
@@ -273,8 +273,8 @@ const ManageCollection = () => {
         <CardContent className="space-y-6 overflow-hidden pt-6">
           {/* Summary stats */}
           <div className="flex flex-wrap gap-3">
-            <div className="flex items-center gap-2.5 rounded-xl border border-white/50 bg-gradient-to-br from-white/70 to-white/40 backdrop-blur-md px-4 py-2.5 text-sm shadow-sm">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-slate-600 to-slate-700 text-white shadow-md shadow-slate-500/20">
+            <div className="flex items-center gap-2.5 rounded-xl border border-white/50 bg-linear-to-br from-white/70 to-white/40 backdrop-blur-md px-4 py-2.5 text-sm shadow-xs">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-slate-600 to-slate-700 text-white shadow-md shadow-slate-500/20">
                 <FolderOpen className="h-4 w-4" />
               </div>
               <div>
@@ -282,8 +282,8 @@ const ManageCollection = () => {
                 <strong className="text-base font-bold tabular-nums">{allStaticCount + uploadedImages.length}</strong>
               </div>
             </div>
-            <div className="flex items-center gap-2.5 rounded-xl border border-white/50 bg-gradient-to-br from-white/70 to-white/40 backdrop-blur-md px-4 py-2.5 text-sm shadow-sm">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-amber-500 text-white shadow-md shadow-amber-500/20">
+            <div className="flex items-center gap-2.5 rounded-xl border border-white/50 bg-linear-to-br from-white/70 to-white/40 backdrop-blur-md px-4 py-2.5 text-sm shadow-xs">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-amber-400 to-amber-500 text-white shadow-md shadow-amber-500/20">
                 <Upload className="h-4 w-4" />
               </div>
               <div>
@@ -295,7 +295,7 @@ const ManageCollection = () => {
 
           {/* Fetch error */}
           {fetchError && (
-            <div className="rounded-xl border border-red-200/60 bg-gradient-to-r from-red-50 to-red-100/50 p-3 text-sm text-red-800 shadow-sm backdrop-blur-sm">
+            <div className="rounded-xl border border-red-200/60 bg-linear-to-r from-red-50 to-red-100/50 p-3 text-sm text-red-800 shadow-xs backdrop-blur-sm">
               <strong>Failed to load images:</strong> {fetchError}
             </div>
           )}
@@ -304,7 +304,7 @@ const ManageCollection = () => {
           <div className="max-w-xs">
             <Label htmlFor="manage-category-filter" className="mb-1.5 block text-sm font-medium">Category</Label>
             <Select value={selectedCategory} onValueChange={(v: CollectionCategory | "all") => setSelectedCategory(v)}>
-              <SelectTrigger id="manage-category-filter" className="rounded-xl border-white/60 bg-white/50 backdrop-blur-md shadow-sm transition-all duration-200 hover:bg-white/70 focus:ring-2 focus:ring-amber-400/30">
+              <SelectTrigger id="manage-category-filter" className="rounded-xl border-white/60 bg-white/50 backdrop-blur-md shadow-xs transition-all duration-200 hover:bg-white/70 focus:ring-2 focus:ring-amber-400/30">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="rounded-xl border-white/60 bg-white/90 backdrop-blur-xl shadow-xl">
@@ -328,7 +328,7 @@ const ManageCollection = () => {
                       key={img._id}
                       data-reveal
                       style={{ "--reveal-delay": `${Math.min(i * 50, 400)}ms` } as React.CSSProperties}
-                      className="group overflow-hidden rounded-2xl border border-white/40 bg-white/50 backdrop-blur-md shadow-sm hover:shadow-lg hover:shadow-slate-200/50 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] is-visible"
+                      className="group overflow-hidden rounded-2xl border border-white/40 bg-white/50 backdrop-blur-md shadow-xs hover:shadow-lg hover:shadow-slate-200/50 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] is-visible"
                     >
                       <div
                         className="group relative aspect-[4/3] cursor-pointer bg-muted overflow-hidden"
@@ -347,13 +347,13 @@ const ManageCollection = () => {
                           width={400}
                           height={300}
                         />
-                        <Badge className={`absolute right-2 top-2 shadow-sm ${getCategoryColor(img.category)}`} variant="secondary">
+                        <Badge className={`absolute right-2 top-2 shadow-xs ${getCategoryColor(img.category)}`} variant="secondary">
                           {getCategoryLabel(img.category)}
                         </Badge>
                         {"isUploaded" in img && img.isUploaded && (
-                          <Badge className="absolute left-2 top-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-sm" variant="secondary">Uploaded</Badge>
+                          <Badge className="absolute left-2 top-2 bg-linear-to-r from-amber-500 to-amber-600 text-white shadow-xs" variant="secondary">Uploaded</Badge>
                         )}
-                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 transition-all duration-300 group-hover:opacity-100">
+                        <div className="absolute inset-0 flex items-center justify-center bg-linear-to-t from-black/30 via-transparent to-transparent opacity-0 transition-all duration-300 group-hover:opacity-100">
                           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-md border border-white/30 scale-75 transition-all duration-300 group-hover:scale-100">
                             <ExternalLink className="h-4 w-4 text-white drop-shadow" />
                           </div>
@@ -366,7 +366,7 @@ const ManageCollection = () => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-6 w-6 shrink-0 rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 hover:shadow-sm transition-all duration-200 active:scale-90"
+                              className="h-6 w-6 shrink-0 rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 hover:shadow-xs transition-all duration-200 active:scale-90"
                               onClick={() => handleDelete(img._id, img.category)}
                               disabled={deleting === img._id}
                               title="Delete uploaded image"
@@ -417,14 +417,14 @@ const ManageCollection = () => {
                       onDragEnd={() => { setDragIdx(null); setDropTarget(null); }}
                       className={`flex items-center gap-2 overflow-hidden rounded-xl border p-1.5 sm:p-2 transition-all duration-200 ${
                         isSwapTarget
-                          ? "border-amber-400/60 bg-gradient-to-r from-amber-50/80 to-amber-100/40 ring-2 ring-amber-400/30 shadow-md shadow-amber-200/30"
+                          ? "border-amber-400/60 bg-linear-to-r from-amber-50/80 to-amber-100/40 ring-2 ring-amber-400/30 shadow-md shadow-amber-200/30"
                           : "border-white/40 bg-white/50 backdrop-blur-md hover:bg-white/70 hover:shadow-md hover:shadow-slate-100/50 hover:-translate-y-px"
-                      } ${hidden ? "opacity-40" : ""} ${isDragging ? "opacity-30 shadow-inner scale-[0.98]" : ""} ${
+                      } ${hidden ? "opacity-40" : ""} ${isDragging ? "opacity-30 shadow-inset scale-[0.98]" : ""} ${
                         isDropOver ? "border-amber-400/60 bg-amber-50/50 shadow-lg -translate-y-0.5 scale-[1.01]" : ""
                       } ${!hidden ? "cursor-grab active:cursor-grabbing" : ""}`}
                     >
                       <div
-                        className="h-12 w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-muted sm:h-16 sm:w-24 shadow-sm ring-1 ring-black/5 transition-shadow duration-200 hover:shadow-md"
+                        className="h-12 w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg bg-muted sm:h-16 sm:w-24 shadow-xs ring-1 ring-black/5 transition-shadow duration-200 hover:shadow-md"
                         onClick={() => img.url && setPreview({ url: img.url, name: img.originalName })}
                       >
                         <img src={img.url || ""} srcSet={img.srcset} alt={img.originalName} className="h-full w-full object-cover transition-transform duration-300 hover:scale-110" loading="lazy" decoding="async" fetchpriority="low" sizes="80px" width={160} height={120} />
@@ -433,29 +433,29 @@ const ManageCollection = () => {
                         <div className="flex items-center gap-2">
                           <p className="truncate text-xs font-medium sm:text-sm">{img.originalName}</p>
                           {isUploaded && (
-                            <Badge className="shrink-0 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-[9px] px-1.5 py-0 shadow-sm" variant="secondary">Uploaded</Badge>
+                            <Badge className="shrink-0 bg-linear-to-r from-amber-500 to-amber-600 text-white text-[9px] px-1.5 py-0 shadow-xs" variant="secondary">Uploaded</Badge>
                           )}
                         </div>
                         <p className="text-[10px] text-muted-foreground sm:text-xs tabular-nums">#{idx + 1}</p>
                       </div>
                       <div className="flex shrink-0 items-center gap-0">
-                        <Button variant="ghost" size="icon" className="h-6 w-6 sm:h-7 sm:w-7 rounded-lg transition-all duration-200 hover:bg-slate-100 hover:shadow-sm active:scale-90" onClick={() => handleMoveUp(idx)} disabled={idx === 0} title="Move up">
+                        <Button variant="ghost" size="icon" className="h-6 w-6 sm:h-7 sm:w-7 rounded-lg transition-all duration-200 hover:bg-slate-100 hover:shadow-xs active:scale-90" onClick={() => handleMoveUp(idx)} disabled={idx === 0} title="Move up">
                           <ArrowUp className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 sm:h-7 sm:w-7 rounded-lg transition-all duration-200 hover:bg-slate-100 hover:shadow-sm active:scale-90" onClick={() => handleMoveDown(idx)} disabled={idx >= orderedImages.length - 1} title="Move down">
+                        <Button variant="ghost" size="icon" className="h-6 w-6 sm:h-7 sm:w-7 rounded-lg transition-all duration-200 hover:bg-slate-100 hover:shadow-xs active:scale-90" onClick={() => handleMoveDown(idx)} disabled={idx >= orderedImages.length - 1} title="Move down">
                           <ArrowDown className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                         </Button>
-                        <Button variant="ghost" size="icon" className={`h-6 w-6 sm:h-7 sm:w-7 rounded-lg transition-all duration-200 hover:shadow-sm active:scale-90 ${swapMode && !isSwapTarget ? "text-amber-500 bg-amber-50" : "hover:bg-slate-100"}`} onClick={() => handleSwapClick(img._id)} title={swapMode ? "Swap with this" : "Select to swap"}>
+                        <Button variant="ghost" size="icon" className={`h-6 w-6 sm:h-7 sm:w-7 rounded-lg transition-all duration-200 hover:shadow-xs active:scale-90 ${swapMode && !isSwapTarget ? "text-amber-500 bg-amber-50" : "hover:bg-slate-100"}`} onClick={() => handleSwapClick(img._id)} title={swapMode ? "Swap with this" : "Select to swap"}>
                           <ArrowLeftRight className={`h-3 w-3 sm:h-3.5 sm:w-3.5`} />
                         </Button>
-                        <Button variant="ghost" size="icon" className={`h-6 w-6 sm:h-7 sm:w-7 rounded-lg transition-all duration-200 hover:shadow-sm active:scale-90 ${hidden ? "text-emerald-500 hover:bg-emerald-50" : "hover:bg-slate-100"}`} onClick={() => handleToggleHide(img._id)} title={hidden ? "Show" : "Hide"}>
+                        <Button variant="ghost" size="icon" className={`h-6 w-6 sm:h-7 sm:w-7 rounded-lg transition-all duration-200 hover:shadow-xs active:scale-90 ${hidden ? "text-emerald-500 hover:bg-emerald-50" : "hover:bg-slate-100"}`} onClick={() => handleToggleHide(img._id)} title={hidden ? "Show" : "Hide"}>
                           {hidden ? <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> : <EyeOff className="h-3 w-3 sm:h-3.5 sm:w-3.5" />}
                         </Button>
                         {isUploaded && (
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6 sm:h-7 sm:w-7 rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 hover:shadow-sm transition-all duration-200 active:scale-90"
+                            className="h-6 w-6 sm:h-7 sm:w-7 rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 hover:shadow-xs transition-all duration-200 active:scale-90"
                             onClick={() => handleDelete(img._id, img.category)}
                             disabled={deleting === img._id}
                             title="Delete uploaded image"
@@ -470,8 +470,8 @@ const ManageCollection = () => {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300/60 py-12 text-muted-foreground bg-gradient-to-b from-slate-50/50 to-transparent">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200/60 mb-3 shadow-sm">
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300/60 py-12 text-muted-foreground bg-linear-to-b from-slate-50/50 to-transparent">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-slate-100 to-slate-200/60 mb-3 shadow-xs">
                 <ImageIcon className="h-7 w-7 text-slate-400" />
               </div>
               <p className="text-sm font-medium">All images in this category are hidden</p>

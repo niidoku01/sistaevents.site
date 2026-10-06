@@ -409,7 +409,7 @@ const EventPlanner: React.FC = () => {
                 <span className="text-[10px] font-bold text-white/80 uppercase tracking-widest">3D Live</span>
               </div>
               <Suspense fallback={
-                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+                <div className="w-full h-full flex flex-col items-center justify-center bg-linear-to-br from-slate-900 via-slate-800 to-slate-900">
                   <div className="w-8 h-8 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mb-3"></div>
                   <span className="text-xs text-white/40 font-medium tracking-wide">Loading 3D scene...</span>
                 </div>
@@ -431,7 +431,7 @@ const EventPlanner: React.FC = () => {
 
       {/* ─── 3D Controls (below canvas) ──────────────────── */}
       {viewMode !== "2d" && (
-        <div className="flex-shrink-0 border-t border-slate-200/40 bg-gradient-to-r from-slate-50 via-white to-slate-50 px-2 py-2 sm:px-6 sm:py-3 max-h-32 overflow-y-auto">
+        <div className="flex-shrink-0 border-t border-slate-200/40 bg-linear-to-r from-slate-50 via-white to-slate-50 px-2 py-2 sm:px-6 sm:py-3 max-h-32 overflow-y-auto">
           <div className="flex flex-wrap items-center gap-2 sm:gap-5 min-w-0">
             <div className="flex items-center gap-2 flex-shrink-0">
               <Box className="w-4 h-4 text-purple-500" />
@@ -460,7 +460,7 @@ const EventPlanner: React.FC = () => {
             </button>
             <div className="hidden sm:block h-4 w-px bg-slate-200 flex-shrink-0" />
             <button
-              className="flex items-center gap-1.5 text-[10px] text-white bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 font-semibold uppercase tracking-wider px-3 h-9 sm:h-8 rounded-lg shadow-sm transition-all duration-200 active:scale-95 flex-shrink-0"
+              className="flex items-center gap-1.5 text-[10px] text-white bg-linear-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 font-semibold uppercase tracking-wider px-3 h-9 sm:h-8 rounded-lg shadow-xs transition-all duration-200 active:scale-95 flex-shrink-0"
               onClick={export3D}
               title="Download 3D view as PNG"
             >

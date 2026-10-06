@@ -149,7 +149,7 @@ export default function CanvasElement({
         <>
           {handles.map((h) => (
             <div key={h}
-              className="absolute w-5 h-5 sm:w-3 sm:h-3 bg-white border-[1.5px] border-indigo-400 rounded-full shadow-sm hover:bg-indigo-100 hover:border-indigo-500 hover:scale-125 transition-all duration-150 z-30"
+              className="absolute w-5 h-5 sm:w-3 sm:h-3 bg-white border-[1.5px] border-indigo-400 rounded-full shadow-xs hover:bg-indigo-100 hover:border-indigo-500 hover:scale-125 transition-all duration-150 z-30"
               style={{ ...handlePositions[h], cursor: handleCursors[h] }}
               onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); onResizeStart(el.id, h, e); }}
               onTouchStart={(e) => { e.stopPropagation(); const t = e.touches[0]; onResizeStart(el.id, h, { clientX: t.clientX, clientY: t.clientY, stopPropagation: () => {}, preventDefault: () => {} } as React.MouseEvent); }}
@@ -161,7 +161,7 @@ export default function CanvasElement({
       {/* Rotation badge */}
       {selected && el.rotation !== 0 && (
         <div className="absolute -top-6 left-1/2 -translate-x-1/2 pointer-events-none z-30">
-          <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50/90 backdrop-blur-sm px-1.5 py-0.5 rounded-full border border-indigo-200/60 shadow-sm">
+          <span className="text-[9px] font-bold text-indigo-600 bg-indigo-50/90 backdrop-blur-sm px-1.5 py-0.5 rounded-full border border-indigo-200/60 shadow-xs">
             {el.rotation}&deg;
           </span>
         </div>
@@ -170,7 +170,7 @@ export default function CanvasElement({
       {/* Size badge */}
       {selected && (
         <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 pointer-events-none z-30">
-          <span className="text-[9px] font-mono text-slate-500 bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded-full border border-slate-200/60 shadow-sm">
+          <span className="text-[9px] font-mono text-slate-500 bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded-full border border-slate-200/60 shadow-xs">
             {el.width}&times;{el.height}
           </span>
         </div>
@@ -188,7 +188,7 @@ export default function CanvasElement({
       {/* Group indicator */}
       {isGrouped && (
         <div className="absolute -top-5 -left-3 pointer-events-none z-30">
-          <span className="text-[8px] font-bold text-blue-500 bg-blue-50/90 backdrop-blur-sm px-1.5 py-0.5 rounded-full border border-blue-200/60 shadow-sm">group</span>
+          <span className="text-[8px] font-bold text-blue-500 bg-blue-50/90 backdrop-blur-sm px-1.5 py-0.5 rounded-full border border-blue-200/60 shadow-xs">group</span>
         </div>
       )}
     </div>

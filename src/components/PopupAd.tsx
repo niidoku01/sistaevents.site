@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
@@ -130,7 +130,7 @@ const PopupAdWithConvex = () => {
           />
         </div>
 
-        <div className="bg-gradient-to-br from-amber-50 to-white px-4 py-4 sm:px-5">
+        <div className="bg-linear-to-br from-amber-50 to-white px-4 py-4 sm:px-5">
           <button
             onClick={handleCtaClick}
             className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition-all duration-200 hover:bg-slate-800 active:scale-95 hover:shadow-lg"

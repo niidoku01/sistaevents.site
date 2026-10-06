@@ -178,7 +178,7 @@ const ManageFeaturedAvailability = () => {
             <div
               key={item.key}
               className={cn(
-                "overflow-hidden rounded-2xl border border-white/40 bg-white/60 backdrop-blur-md shadow-sm hover:shadow-md transition-all duration-300",
+                "overflow-hidden rounded-2xl border border-white/40 bg-white/60 backdrop-blur-md shadow-xs hover:shadow-md transition-all duration-300",
                 isExpanded && "border-amber-200/60"
               )}
             >
@@ -188,7 +188,7 @@ const ManageFeaturedAvailability = () => {
                   src={primaryImage.src}
                   srcSet={primaryImage.srcset}
                   alt={item.title}
-                  className="h-14 w-14 sm:h-16 sm:w-16 rounded-xl object-cover border border-white/60 shadow-sm flex-none"
+                  className="h-14 w-14 sm:h-16 sm:w-16 rounded-xl object-cover border border-white/60 shadow-xs flex-none"
                   loading="lazy"
                   decoding="async"
                   width={64}
@@ -212,7 +212,7 @@ const ManageFeaturedAvailability = () => {
                     onClick={() => handleToggle(item.key, !isAvailable)}
                     aria-label={`${item.title}: open for bookings`}
                     className={cn(
-                      "relative inline-flex h-7 min-w-[5.5rem] cursor-pointer items-center rounded-full px-1 text-[10px] sm:text-[11px] font-semibold text-white shadow-sm transition-colors duration-200",
+                      "relative inline-flex h-7 min-w-[5.5rem] cursor-pointer items-center rounded-full px-1 text-[10px] sm:text-[11px] font-semibold text-white shadow-xs transition-colors duration-200",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                       isAvailable
                         ? "bg-emerald-500 hover:bg-emerald-600"
@@ -287,7 +287,7 @@ const ManageFeaturedAvailability = () => {
                           aria-pressed={photoVisible}
                           aria-label={`${item.title} photo ${imageIndex + 1}: ${photoVisible ? "on display" : "hidden"}`}
                           className={cn(
-                            "group relative aspect-square overflow-hidden rounded-lg border shadow-sm transition-all duration-200",
+                            "group relative aspect-square overflow-hidden rounded-lg border shadow-xs transition-all duration-200",
                             photoVisible ? "border-white/60 hover:border-amber-300/70" : "border-slate-200/70"
                           )}
                         >
@@ -302,7 +302,7 @@ const ManageFeaturedAvailability = () => {
                           {!photoVisible && <span className="absolute inset-0 bg-slate-900/50" />}
                           <span
                             className={cn(
-                              "absolute left-1.5 bottom-1.5 flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold shadow-sm",
+                              "absolute left-1.5 bottom-1.5 flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold shadow-xs",
                               photoVisible ? "bg-emerald-600/90 text-white" : "bg-slate-800/80 text-white"
                             )}
                           >
@@ -310,7 +310,7 @@ const ManageFeaturedAvailability = () => {
                             {photoVisible ? "On display" : "Hidden"}
                           </span>
                           <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <span className="rounded-lg bg-slate-900/70 px-2 py-1 text-[10px] font-semibold text-white shadow-sm">
+                            <span className="rounded-lg bg-slate-900/70 px-2 py-1 text-[10px] font-semibold text-white shadow-xs">
                               {photoVisible ? "Tap to hide" : "Tap to show"}
                             </span>
                           </span>

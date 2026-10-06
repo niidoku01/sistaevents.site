@@ -59,7 +59,7 @@ const AdminNav: React.FC = () => {
       >
         {activeRect && (
           <div
-            className="absolute top-0 bottom-0 z-0 rounded-xl bg-gradient-to-br from-amber-400/12 via-amber-500/6 to-yellow-400/10 border border-amber-300/25 shadow-[0_0_16px_rgba(245,158,11,0.10)] transition-all duration-300 ease-out"
+            className="absolute top-0 bottom-0 z-0 rounded-xl bg-linear-to-br from-amber-400/12 via-amber-500/6 to-yellow-400/10 border border-amber-300/25 shadow-[0_0_16px_rgba(245,158,11,0.10)] transition-all duration-300 ease-out"
             style={{ left: activeRect.left, width: activeRect.width }}
           />
         )}

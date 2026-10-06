@@ -137,7 +137,7 @@ const Bookings: React.FC = () => {
   return (
     <div className="space-y-6">
       {adminSecretStatus === "error" && bookings.length === 0 && (
-        <Card className="border-amber-200/60 bg-gradient-to-r from-amber-50/60 to-orange-50/60 shadow-sm">
+        <Card className="border-amber-200/60 bg-linear-to-r from-amber-50/60 to-orange-50/60 shadow-xs">
           <CardContent className="p-4 text-sm text-amber-900 font-medium">
             <span className="flex items-center gap-2">
               <Info className="w-4 h-4 shrink-0" />
@@ -150,7 +150,7 @@ const Bookings: React.FC = () => {
         </Card>
       )}
 
-      <Card className="border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300 bg-white/50 backdrop-blur-sm">
+      <Card className="border-slate-200/60 shadow-xs hover:shadow-md transition-all duration-300 bg-white/50 backdrop-blur-sm">
         <CardHeader className="pb-4">
           <div className="space-y-1">
             <CardTitle className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
@@ -196,7 +196,7 @@ const Bookings: React.FC = () => {
             />
             <Button 
               onClick={handleBlockDate}
-              className="rounded-lg bg-gradient-to-r from-amber-400 to-amber-500 hover:from-red-500 hover:to-red-600 text-white font-semibold transition-all duration-200 shadow-md hover:shadow-red-200 w-full md:w-auto"
+              className="rounded-lg bg-linear-to-r from-amber-400 to-amber-500 hover:from-red-500 hover:to-red-600 text-white font-semibold transition-all duration-200 shadow-md hover:shadow-red-200 w-full md:w-auto"
             >
               Block Date
             </Button>
@@ -213,7 +213,7 @@ const Bookings: React.FC = () => {
                 .slice()
                 .sort((a, b) => a.eventDate.localeCompare(b.eventDate))
                 .map((d) => (
-                  <div key={d._id} className="rounded-lg border border-red-200 bg-gradient-to-r from-red-50 to-red-100/60 p-4 hover:bg-red-100 hover:shadow-md hover:shadow-red-300/60 transition-all duration-200">
+                  <div key={d._id} className="rounded-lg border border-red-200 bg-linear-to-r from-red-50 to-red-100/60 p-4 hover:bg-red-100 hover:shadow-md hover:shadow-red-300/60 transition-all duration-200">
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <Badge variant="secondary" className="bg-red-200 text-red-900 border-red-300 font-semibold">
                         {formatIsoDate(d.eventDate)}
@@ -287,7 +287,7 @@ const Bookings: React.FC = () => {
       </Card>
 
       {/* Bookings Card */}
-      <Card className="border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300 bg-white/50 backdrop-blur-sm">
+      <Card className="border-slate-200/60 shadow-xs hover:shadow-md transition-all duration-300 bg-white/50 backdrop-blur-sm">
         <CardHeader className="pb-4">
           <div className="space-y-1">
             <CardTitle className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
@@ -307,7 +307,7 @@ const Bookings: React.FC = () => {
               </div>
             ) : (
               bookings.map((b, idx) => (
-                  <div key={b._id} className="rounded-lg border border-slate-200/60 bg-gradient-to-r from-white to-slate-50/50 p-4 hover:shadow-md transition-all duration-200 group">
+                  <div key={b._id} className="rounded-lg border border-slate-200/60 bg-linear-to-r from-white to-slate-50/50 p-4 hover:shadow-md transition-all duration-200 group">
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="min-w-0">
                         <p className="font-semibold text-slate-900">{b.name}</p>

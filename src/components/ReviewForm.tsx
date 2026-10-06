@@ -221,7 +221,7 @@ export const ReviewForm = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
 
       <Button
         type="submit"
-        className="w-full active:scale-[0.98] transition-all duration-200 bg-gradient-to-r from-accent to-amber-500 hover:shadow-lg hover:shadow-accent/30 text-white font-semibold py-4 rounded-xl text-sm sm:text-base"
+        className="w-full active:scale-[0.98] transition-all duration-200 bg-linear-to-r from-accent to-amber-500 hover:shadow-lg hover:shadow-accent/30 text-white font-semibold py-4 rounded-xl text-sm sm:text-base"
         disabled={isSubmitting}
       >
         {isSubmitting ? "Submitting..." : "Submit a review"}

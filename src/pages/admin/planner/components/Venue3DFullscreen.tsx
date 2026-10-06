@@ -79,7 +79,7 @@ export default function Venue3DFullscreen({ elements, eventName, totalGuests, on
       {/* 3D Canvas - full viewport */}
       <div className="absolute inset-0">
         <Suspense fallback={
-          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+          <div className="w-full h-full flex flex-col items-center justify-center bg-linear-to-br from-slate-950 via-slate-900 to-slate-950">
             <div className="w-12 h-12 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mb-4"></div>
             <span className="text-sm text-white/50 font-medium tracking-wide">Loading 3D venue...</span>
           </div>
@@ -93,7 +93,7 @@ export default function Venue3DFullscreen({ elements, eventName, totalGuests, on
       </div>
 
       {/* Top bar - event info + actions */}
-      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/70 via-black/30 to-transparent pointer-events-none">
+      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 py-3 bg-linear-to-b from-black/70 via-black/30 to-transparent pointer-events-none">
         <div className="flex items-center gap-3 pointer-events-auto">
           <div className="flex items-center gap-2 bg-black/60 backdrop-blur-md rounded-xl px-4 py-2 border border-white/10">
             <span className="text-xs font-bold text-white/90 tracking-wide">{eventName}</span>
@@ -182,14 +182,14 @@ export default function Venue3DFullscreen({ elements, eventName, totalGuests, on
               <span className="text-[10px] text-white/50">Shadows</span>
               <button onClick={toggleShadows}
                 className={`w-8 h-4 rounded-full transition-all duration-200 ${showShadows ? "bg-amber-500" : "bg-white/20"}`}>
-                <div className={`w-3 h-3 rounded-full bg-white shadow transition-transform duration-200 ${showShadows ? "translate-x-4" : "translate-x-0.5"}`} />
+                <div className={`w-3 h-3 rounded-full bg-white shadow-sm transition-transform duration-200 ${showShadows ? "translate-x-4" : "translate-x-0.5"}`} />
               </button>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-white/50">Grid</span>
               <button onClick={toggleGrid3D}
                 className={`w-8 h-4 rounded-full transition-all duration-200 ${showGrid3D ? "bg-cyan-500" : "bg-white/20"}`}>
-                <div className={`w-3 h-3 rounded-full bg-white shadow transition-transform duration-200 ${showGrid3D ? "translate-x-4" : "translate-x-0.5"}`} />
+                <div className={`w-3 h-3 rounded-full bg-white shadow-sm transition-transform duration-200 ${showGrid3D ? "translate-x-4" : "translate-x-0.5"}`} />
               </button>
             </div>
             <div>

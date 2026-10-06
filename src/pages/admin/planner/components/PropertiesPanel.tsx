@@ -57,7 +57,7 @@ export default function PropertiesPanel({
   if (!selectedEl || !selectedDef) {
     return (
       <div className="w-64 bg-white/80 backdrop-blur-xl border border-slate-200/50 rounded-2xl p-4 flex flex-col items-center justify-center text-center flex-shrink-0 hidden lg:flex">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200/50 flex items-center justify-center mb-3">
+        <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-slate-50 to-slate-100 border border-slate-200/50 flex items-center justify-center mb-3">
           <MoveHorizontal className="w-5 h-5 text-slate-300" />
         </div>
         <p className="text-xs text-slate-500 font-medium">Select an element</p>

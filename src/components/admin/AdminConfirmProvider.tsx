@@ -49,7 +49,7 @@ export const AdminConfirmProvider = ({ children }: { children: ReactNode }) => {
       {children}
       <AlertDialog open={!!pending} onOpenChange={(open) => !open && close(false)}>
         <AlertDialogContent className="overflow-hidden border-white/50 bg-white/75 p-0 shadow-[0_24px_80px_rgba(15,23,42,0.25)] backdrop-blur-2xl sm:max-w-md">
-          <div className={`h-1 w-full ${pending?.destructive ? "bg-gradient-to-r from-red-500 via-rose-400 to-amber-300" : "bg-gradient-to-r from-amber-400 via-yellow-300 to-emerald-300"}`} />
+          <div className={`h-1 w-full ${pending?.destructive ? "bg-linear-to-r from-red-500 via-rose-400 to-amber-300" : "bg-linear-to-r from-amber-400 via-yellow-300 to-emerald-300"}`} />
           <div className="p-6">
             <AlertDialogHeader className="text-left">
               <div className={`mb-3 flex h-11 w-11 items-center justify-center rounded-2xl ${pending?.destructive ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"}`}>

@@ -79,7 +79,7 @@ const ManageReviews = () => {
   };
 
   const ReviewCard = ({ review, isPending }: { review: ReviewCardReview; isPending: boolean }) => (
-    <Card className="border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300 bg-gradient-to-br from-white to-slate-50/50 hover:to-slate-50 backdrop-blur-sm overflow-hidden group">
+    <Card className="border-slate-200/60 shadow-xs hover:shadow-md transition-all duration-300 bg-linear-to-br from-white to-slate-50/50 hover:to-slate-50 backdrop-blur-sm overflow-hidden group">
       <CardContent className="p-5">
         <div className="space-y-4">
           <div className="flex justify-between items-start gap-3">
@@ -120,7 +120,7 @@ const ManageReviews = () => {
               {isPending && (
                 <Button
                   size="sm"
-                  className="rounded-lg bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
+                  className="rounded-lg bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold transition-all duration-200 shadow-xs hover:shadow-md"
                   onClick={() => handleApprove(review._id)}
                 >
                   <Check className="w-3.5 h-3.5 mr-1.5" />
@@ -153,7 +153,7 @@ const ManageReviews = () => {
   return (
     <div className="space-y-8">
       {secretError && (
-        <Card className="border-amber-200/60 bg-gradient-to-r from-amber-50/60 to-orange-50/60 shadow-sm">
+        <Card className="border-amber-200/60 bg-linear-to-r from-amber-50/60 to-orange-50/60 shadow-xs">
           <CardContent className="p-4 text-sm text-amber-900 font-medium">
             Pending review moderation is unavailable (could not reach the admin backend), but approved
             reviews still load below.
@@ -176,7 +176,7 @@ const ManageReviews = () => {
         </div>
 
         {pendingReviews.length === 0 ? (
-          <Card className="border-slate-200/60 shadow-sm bg-white/50 backdrop-blur-sm">
+          <Card className="border-slate-200/60 shadow-xs bg-white/50 backdrop-blur-sm">
             <CardContent className="p-8 text-center">
               <div className="text-slate-500">
                 <p className="font-medium">No pending reviews</p>
@@ -208,7 +208,7 @@ const ManageReviews = () => {
         </div>
 
         {approvedReviews.length === 0 ? (
-          <Card className="border-slate-200/60 shadow-sm bg-white/50 backdrop-blur-sm">
+          <Card className="border-slate-200/60 shadow-xs bg-white/50 backdrop-blur-sm">
             <CardContent className="p-8 text-center">
               <div className="text-slate-500">
                 <p className="font-medium">No approved reviews yet</p>

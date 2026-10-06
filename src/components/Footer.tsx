@@ -1,6 +1,4 @@
 import { Mail, Phone, MapPin } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { scrollToId } from "@/lib/scrollTo";
 
 const InstagramIcon = ({ className }: { className?: string }) => (
   <svg
@@ -26,26 +24,7 @@ const TikTokIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const quickLinks = [
-  { id: "services", label: "Services" },
-  { id: "featured", label: "Logistics" },
-  { id: "about", label: "About Us" },
-  { id: "contact", label: "Booking" },
-];
-
 export const Footer = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const isHomePage = location.pathname === "/";
-
-  const scrollToSection = (id: string) => {
-    if (!isHomePage) {
-      navigate("/", { state: { scrollTo: id } });
-      return;
-    }
-    scrollToId(id);
-  };
-
   return (
     <footer className="bg-black text-primary-foreground py-12 lg:py-16 relative">
       <div className="footer-gradient-border absolute top-0 left-0 right-0" />
@@ -63,17 +42,26 @@ export const Footer = () => {
           <div>
             <h4 className="font-semibold mb-3 text-sm sm:text-base">Quick Links</h4>
             <ul className="space-y-2 text-xs sm:text-sm">
-              {quickLinks.map((item) => (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    onClick={() => scrollToSection(item.id)}
-                    className="text-primary-foreground/80 hover:text-accent transition-colors duration-200 inline-flex items-center gap-1.5 group text-left"
-                  >
-                    {item.label}
-                  </button>
-                </li>
-              ))}
+              <li>
+                <a href="#services" className="text-primary-foreground/80 hover:text-accent transition-colors duration-200 inline-flex items-center gap-1.5 group">
+                  Services
+                </a>
+              </li>
+              <li>
+                <a href="#featured" className="text-primary-foreground/80 hover:text-accent transition-colors duration-200 inline-flex items-center gap-1.5 group">
+                  logistics
+                </a>
+              </li>
+              <li>
+                <a href="#about" className="text-primary-foreground/80 hover:text-accent transition-colors duration-200 inline-flex items-center gap-1.5 group">
+                  About Us
+                </a>
+              </li>
+              <li>
+                <a href="#contact" className="text-primary-foreground/80 hover:text-accent transition-colors duration-200 inline-flex items-center gap-1.5 group">
+                  Booking
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -154,15 +142,15 @@ export const Footer = () => {
         <div className="pt-8 border-t border-primary-foreground/20 text-center text-sm text-primary-foreground/60">
           <p>&copy; {new Date().getFullYear()} Sista Events And Rentals. All rights reserved.</p>
           <p className="mt-1">
-            <Link
-              to="/privacy-policy"
+            <a
+              href="/privacy-policy"
               className="text-primary-foreground/80 hover:text-accent transition-colors duration-200 inline-flex items-center gap-1.5 group"
             >
               Privacy Policy
-            </Link>
+            </a>
           </p>
           <p className="mt-1">
-            Bxcoda - powered by <span className="text-sky-300 font-medium">BX GAMING AND MORE </span>
+            Bxdevo - powered by <span className="text-sky-300 font-medium">BX GAMING AND MORE </span>
           </p>
         </div>
       </div>

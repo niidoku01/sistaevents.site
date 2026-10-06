@@ -265,7 +265,7 @@ const verifyAdmin = async (req, res, next) => {
       .map((e) => e.trim().toLowerCase())
       .filter(Boolean);
 
-    if (adminEmails.length > 0 && (!decoded.email || !adminEmails.includes(decoded.email.toLowerCase()))) {
+    if (adminEmails.length === 0 || !decoded.email || !adminEmails.includes(decoded.email.toLowerCase())) {
       return res.status(403).json({ error: "Forbidden — not an admin user" });
     }
 

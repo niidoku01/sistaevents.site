@@ -141,13 +141,12 @@ export const Footer = () => {
         </div>
 
         <div className="pt-8 border-t border-primary-foreground/20 text-center text-sm text-primary-foreground/60">
-          <p>&copy; {new Date().getFullYear()} Sista Events And Rentals. All rights reserved.</p>
-          <p className="mt-1">
+          <p>
             <Link
               to="/privacy-policy"
-              className="text-primary-foreground/60 hover:text-accent transition-colors duration-200 cursor-pointer"
+              className="hover:text-accent transition-colors duration-200 cursor-pointer"
             >
-              Privacy Policy
+              &copy; {new Date().getFullYear()} Sista Events And Rentals. All rights reserved.
             </Link>
           </p>
           <p className="mt-1">

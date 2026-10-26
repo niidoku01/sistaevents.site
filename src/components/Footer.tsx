@@ -1,4 +1,5 @@
 import { Mail, Phone, MapPin } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const InstagramIcon = ({ className }: { className?: string }) => (
   <svg
@@ -142,15 +143,15 @@ export const Footer = () => {
         <div className="pt-8 border-t border-primary-foreground/20 text-center text-sm text-primary-foreground/60">
           <p>&copy; {new Date().getFullYear()} Sista Events And Rentals. All rights reserved.</p>
           <p className="mt-1">
-            <a
-              href="/privacy-policy"
-              className="text-primary-foreground/80 hover:text-accent transition-colors duration-200 inline-flex items-center gap-1.5 group"
+            <Link
+              to="/privacy-policy"
+              className="text-primary-foreground/60 hover:text-accent transition-colors duration-200 cursor-pointer"
             >
               Privacy Policy
-            </a>
+            </Link>
           </p>
           <p className="mt-1">
-            Bxdevo - powered by <span className="text-sky-300 font-medium">BX GAMING AND MORE </span>
+            Bxdevo - powered by <span className="text-sky-300 font-medium">BX TECHNOLOGIES </span>
           </p>
         </div>
       </div>

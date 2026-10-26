@@ -4,9 +4,16 @@
 // before any data is sent to the database. Users only ever see generic field
 // messages below — never the exact rules, which stay in this module.
 
-const NAME_RE = /^[A-Za-z]+(?:[' ’.-]+[A-Za-z]+)*$/;
+// Names: Unicode letters, optionally separated by spaces, apostrophes,
+// hyphens, or periods. This covers names such as O’Brien, Nii-Doku,
+// Müller, and St. John without allowing arbitrary punctuation.
+const NAME_RE = /^[\p{L}\p{M}]+(?:[ '\u2019\u02BC.\-\u2010\u2011]+[\p{L}\p{M}]+)*$/u;
+const NAME_ALLOWED_RE = /[^\p{L}\p{M} '\u2019\u02BC.\-\u2010\u2011]/gu;
 const EVENT_RE = /^[A-Za-z0-9]+(?:[ .,'&()-]+[A-Za-z0-9]+)*$/;
-const GMAIL_RE = /^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?(?:\+[a-z0-9]+)?@gmail\.com$/;
+// Any real email address (not just Gmail): user@domain.tld with valid labels.
+const EMAIL_RE =
+  /^(?!.*\.\.)[a-z0-9](?:[a-z0-9._%+-]*[a-z0-9])?@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*\.[a-z]{2,}$/;
+// Phone: exactly ten digits.
 const PHONE_RE = /^\d{10}$/;
 
 // Generic, rule-free messages shown to users when a field is invalid.
@@ -21,11 +28,24 @@ export type InputKind = "name" | "phone" | "email" | "event";
 export const sanitizeInput = (value: string, kind: InputKind): string => {
   switch (kind) {
     case "name":
-      return value.replace(/[^A-Za-z\s.'’-]/g, "").replace(/\s{2,}/g, " ").trim();
+      // Keep accents, apostrophes, hyphens, and periods. Keep a single trailing
+      // space while typing so full names are possible; leading/multiple spaces
+      // are removed as the user types.
+      return value
+        .normalize("NFC")
+        .replace(NAME_ALLOWED_RE, "")
+        .replace(/\s+/g, " ")
+        .replace(/^\s+/, "");
     case "event":
       return value.replace(/[^A-Za-z0-9\s.,'&()-]/g, "").replace(/\s{2,}/g, " ").trim();
-    case "phone":
-      return value.replace(/\D/g, "");
+    case "phone": {
+      const digits = value.replace(/\D/g, "");
+      // Accept +233 numbers by converting them to the local 0-prefixed form.
+      if (digits.startsWith("233") && digits.length > 10) {
+        return ("0" + digits.slice(3)).slice(0, 10);
+      }
+      return digits.slice(0, 10);
+    }
     case "email":
       return value.replace(/\s+/g, "").toLowerCase();
   }
@@ -49,12 +69,19 @@ export const autocorrectPhone = (value: string): string => {
   return digits;
 };
 
-export const isValidName = (value: string): boolean =>
-  value.length >= 2 && NAME_RE.test(value);
+export const isValidName = (value: string): boolean => {
+  const name = value.trim();
+  return name.length >= 2 && name.length <= 100 && NAME_RE.test(name);
+};
 
-export const isValidPhone = (value: string): boolean => PHONE_RE.test(value);
+export const isValidPhone = (value: string): boolean => PHONE_RE.test(value.trim());
 
-export const isValidEmail = (value: string): boolean => GMAIL_RE.test(value);
+export const isValidEmail = (value: string): boolean => {
+  const email = value.trim().toLowerCase();
+  return email.length <= 254 && EMAIL_RE.test(email);
+};
 
-export const isValidEventType = (value: string): boolean =>
-  value.length >= 2 && EVENT_RE.test(value);
+export const isValidEventType = (value: string): boolean => {
+  const event = value.trim();
+  return event.length >= 2 && event.length <= 100 && EVENT_RE.test(event);
+};

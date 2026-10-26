@@ -655,7 +655,7 @@ app.post("/api/collections/upload-file", adminLimiter, verifyAdmin, express.raw(
 
     // Generate responsive WebP variants (best-effort) so the gallery can send
     // the right size to each screen instead of always downloading the original.
-    const VARIANT_WIDTHS = [480, 800, 1280];
+    const VARIANT_WIDTHS = [480, 800, 1280, 1920];
     const variants = [];
     const keyWithoutExt = key.replace(/\.[^.]+$/, "");
     try {
@@ -668,7 +668,7 @@ app.post("/api/collections/upload-file", adminLimiter, verifyAdmin, express.raw(
         const variantBody = await sharp(body, { failOn: "none" })
           .rotate()
           .resize({ width, withoutEnlargement: true })
-          .webp({ quality: 82 })
+          .webp({ quality: 80, effort: 4, smartSubsample: true })
           .toBuffer();
         const variantKey = `${keyWithoutExt}-${width}.webp`;
         await r2.putObject({ key: variantKey, body: variantBody, contentType: "image/webp" });

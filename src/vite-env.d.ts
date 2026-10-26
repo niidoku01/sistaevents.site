@@ -1,15 +1,22 @@
 /// <reference types="vite/client" />
 
 declare module "*?responsive" {
-	const image: { src: string; srcset: string };
+	const image: { src: string; srcset: string; width: number; height: number };
 	export const src: string;
 	export const srcset: string;
+	export const width: number;
+	export const height: number;
 	export default image;
 }
 
 declare module "virtual:responsive-collection-manifest" {
-	const manifest: Record<string, { srcset: string }>;
+	const manifest: Record<string, { srcset: string; width: number; height: number }>;
 	export default manifest;
+}
+
+declare module "virtual:responsive-collection-images" {
+	const images: Array<{ path: string; srcset: string; width: number; height: number }>;
+	export default images;
 }
 
 interface ImportMetaEnv {

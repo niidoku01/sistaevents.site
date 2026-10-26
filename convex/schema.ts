@@ -58,6 +58,7 @@ export default defineSchema({
     imageUrl: v.optional(v.string()),
     ctaText: v.optional(v.string()),
     ctaUrl: v.optional(v.string()),
+    celebratory: v.optional(v.boolean()),
     isActive: v.boolean(),
     startsAt: v.optional(v.number()), // unix ms
     endsAt: v.optional(v.number()),   // unix ms

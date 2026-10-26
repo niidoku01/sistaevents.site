@@ -52,6 +52,7 @@ export const createPopupAd = mutation({
 		imageUrl: v.optional(v.string()),
 		ctaText: v.optional(v.string()),
 		ctaUrl: v.optional(v.string()),
+		celebratory: v.optional(v.boolean()),
 		startsAt: v.optional(v.number()),
 		endsAt: v.optional(v.number()),
 		active: v.boolean(),
@@ -66,8 +67,8 @@ export const createPopupAd = mutation({
 		if (args.message.length > 500) {
 			throw new Error("Message too long (max 500 characters)");
 		}
-		if (args.imageUrl && args.imageUrl.length > 5000) {
-			throw new Error("Image URL too long");
+		if (args.imageUrl && args.imageUrl.length > 2_000_000) {
+			throw new Error("Image is too large. Please compress it further.");
 		}
 		if (args.ctaUrl && args.ctaUrl.length > 2000) {
 			throw new Error("CTA URL too long");
@@ -97,18 +98,21 @@ export const createPopupAd = mutation({
 			);
 		}
 
-		return await ctx.db.insert("popupAds", {
+		const popupAd = {
 			title: args.title,
 			message: args.message,
-			imageUrl: args.imageUrl,
-			ctaText: args.ctaText,
-			ctaUrl: args.ctaUrl,
 			isActive: args.active,
-			startsAt: args.startsAt,
-			endsAt: args.endsAt,
 			createdAt: now,
 			updatedAt: now,
-		});
+			...(args.imageUrl !== undefined && { imageUrl: args.imageUrl }),
+			...(args.ctaText !== undefined && { ctaText: args.ctaText }),
+			...(args.ctaUrl !== undefined && { ctaUrl: args.ctaUrl }),
+			...(args.celebratory !== undefined && { celebratory: args.celebratory }),
+			...(args.startsAt !== undefined && { startsAt: args.startsAt }),
+			...(args.endsAt !== undefined && { endsAt: args.endsAt }),
+		};
+
+		return await ctx.db.insert("popupAds", popupAd);
 	},
 });
 

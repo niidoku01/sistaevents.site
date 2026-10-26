@@ -63,8 +63,8 @@ export const ReviewForm = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
 
     try {
       await submitReview({
-        name: sanitizeInput(formData.name, "name"),
-        email: sanitizeInput(formData.email, "email"),
+        name: sanitizeInput(formData.name, "name").trim(),
+        email: sanitizeInput(formData.email, "email").trim(),
         event: sanitizeInput(formData.event, "event"),
         content: sanitizeProse(formData.content),
         rating,
@@ -142,6 +142,7 @@ export const ReviewForm = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
             id="name"
             name="name"
             autoComplete="name"
+            maxLength={100}
             value={formData.name}
             onChange={handleChange}
             placeholder="Your name or nickname"
@@ -162,6 +163,7 @@ export const ReviewForm = ({ onSuccess }: { onSuccess?: () => void } = {}) => {
             name="email"
             type="email"
             autoComplete="email"
+            maxLength={254}
             value={formData.email}
             onChange={handleChange}
             placeholder="example@mail.com"

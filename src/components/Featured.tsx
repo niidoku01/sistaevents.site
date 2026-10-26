@@ -5,6 +5,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { images } from "@/lib/imageImports";
 import { getLogisticsAvailability, LOGISTICS_AVAILABILITY_EVENT } from "@/lib/logisticsAvailability";
+import { preloadImages } from "@/lib/imagePreload";
 type ResponsiveImage = { src: string; srcset?: string };
 export type FeaturedItem = {
   key: string;
@@ -172,6 +173,21 @@ export const Featured = () => {
     setCurrentImageIndex(0);
   };
 
+  // Preload the neighbouring full-size photos so arrow/thumbnail navigation is
+  // instant instead of showing a blank frame.
+  useEffect(() => {
+    if (!selectedItem || selectedItem.images.length === 0) return;
+    const count = selectedItem.images.length;
+    preloadImages(
+      [
+        selectedItem.images[(currentImageIndex - 1 + count) % count],
+        selectedItem.images[currentImageIndex % count],
+        selectedItem.images[(currentImageIndex + 1) % count],
+      ],
+      "100vw"
+    );
+  }, [selectedItem, currentImageIndex]);
+
   const nextImage = () => {
     if (selectedItem) {
       setCurrentImageIndex((prev) => (prev + 1) % selectedItem.images.length);
@@ -197,7 +213,7 @@ export const Featured = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8" data-reveal-stagger>
-          {featuredItemsWithAvailability.map((item, index) => {
+          {featuredItemsWithAvailability.map((item) => {
             // For Floral Arrangements, show per-image description
             const isFloral = item.title === "Floral Arrangements" && item.imageDescriptions;
             const previewIdx = 0;
@@ -237,9 +253,8 @@ export const Featured = () => {
                       className={`w-full h-full transition-transform duration-300 group-hover:scale-105 ${
                         item.category === "Aesthetics" || item.category === "Decor" ? "object-cover" : "object-contain"
                       }`}
-                      loading={index < 3 ? "eager" : "lazy"}
-                      fetchpriority={index < 3 ? "high" : "auto"}
-                      decoding={index < 3 ? "sync" : "async"}
+                      loading="lazy"
+                      decoding="async"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       width={800}
                       height={600}
@@ -290,9 +305,9 @@ export const Featured = () => {
                   srcSet={selectedItem.images[currentImageIndex].srcset}
                   alt={`${selectedItem.title} - Image ${currentImageIndex + 1}`}
                   className="w-full h-full object-contain"
-                  loading={currentImageIndex === 0 ? "eager" : "lazy"}
+                  loading="eager"
                   fetchpriority="high"
-                  decoding="sync"
+                  decoding="async"
                   sizes="100vw"
                   width={1600}
                   height={1200}

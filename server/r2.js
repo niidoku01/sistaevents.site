@@ -69,12 +69,14 @@ const deleteObject = async (key) => {
 
 // Server-to-server PUT. Used when the browser can't reach R2 directly (no CORS
 // on the bucket, which can only be configured in the Cloudflare dashboard).
+// Collection keys are unique per upload, so they can be cached forever.
 const putObject = async ({ key, body, contentType }) => {
   await s3Client.send(new PutObjectCommand({
     Bucket: R2_BUCKET_NAME,
     Key: key,
     Body: body,
     ContentType: contentType,
+    CacheControl: "public, max-age=31536000, immutable",
   }));
 };
 

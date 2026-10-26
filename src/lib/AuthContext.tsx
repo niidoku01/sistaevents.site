@@ -25,7 +25,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubscribe = onIdTokenChanged(
       auth,
       async (user) => {
-        setUser(user);
         if (user) {
           try {
             const token = await user.getIdToken();
@@ -36,6 +35,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           setAuthToken(null);
         }
+        // Publish the user only after the API token is ready. Admin pages fetch
+        // their server-side Convex secret as soon as they mount.
+        setUser(user);
         setLoading(false);
       },
       (error) => {

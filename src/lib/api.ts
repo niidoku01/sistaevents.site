@@ -1,6 +1,7 @@
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
+import { invalidateGalleryImageCache } from "./galleryCache";
 
 const convexUrl = (import.meta.env.VITE_CONVEX_URL as string | undefined)?.trim() || "";
 let convexClient: ConvexHttpClient | null = null;
@@ -171,13 +172,21 @@ type UploadFileResult = {
 
 export type UploadFileStatus = "queued" | "uploading" | "done" | "failed";
 
+export type UploadProgressFile = {
+  name: string;
+  status: UploadFileStatus;
+  /** 0–100 for this individual file. */
+  percent: number;
+  size: number;
+};
+
 export type UploadProgressState = {
   totalFiles: number;
   completedFiles: number;
   failedFiles: number;
   percent: number;
   currentFile: string | null;
-  files: { name: string; status: UploadFileStatus }[];
+  files: UploadProgressFile[];
 };
 
 const UPLOAD_CONCURRENCY = 8;
@@ -306,30 +315,61 @@ export const collectionAPI = {
     const results: CollectionImageResult[] = [];
     const failures: { name: string; error: Error }[] = [];
     const totalBytes = files.reduce((sum, f) => sum + f.size, 0);
-    const statuses = new Map<string, UploadFileStatus>();
-    files.forEach((f) => statuses.set(f.name, "queued"));
+    // Keyed by index rather than name so selecting two files with the same
+    // filename still produces independent, correctly ordered statuses.
+    const statuses: UploadFileStatus[] = files.map(() => "queued");
+    const filePercents: number[] = files.map(() => 0);
 
     let transferredBytes = 0;
     let completedFiles = 0;
+    let currentFile: string | null = null;
+    let notifyTimer: ReturnType<typeof setTimeout> | null = null;
 
-    const notify = (currentFile: string | null) => {
+    const emitProgress = () => {
       onProgress?.({
         totalFiles: files.length,
         completedFiles,
         failedFiles: failures.length,
         percent: totalBytes === 0 ? 100 : Math.min(100, Math.round((transferredBytes / totalBytes) * 100)),
         currentFile,
-        files: files.map((f) => ({ name: f.name, status: statuses.get(f.name) ?? ("queued" as const) })),
+        files: files.map((f, index) => ({
+          name: f.name,
+          status: statuses[index],
+          percent: Math.round(filePercents[index]),
+          size: f.size,
+        })),
       });
     };
 
-    await runWithConcurrency(files, UPLOAD_CONCURRENCY, async (file) => {
+    // XHR emits several progress events per file per second. Throttle byte
+    // updates so a multi-image upload doesn't re-render on every tick, but
+    // flush status changes immediately so the per-file views stay in sync.
+    const notify = (file: string | null, immediate = false) => {
+      currentFile = file;
+      if (immediate) {
+        if (notifyTimer !== null) {
+          clearTimeout(notifyTimer);
+          notifyTimer = null;
+        }
+        emitProgress();
+        return;
+      }
+      if (notifyTimer !== null) return;
+      notifyTimer = setTimeout(() => {
+        notifyTimer = null;
+        emitProgress();
+      }, 120);
+    };
+
+    await runWithConcurrency(files, UPLOAD_CONCURRENCY, async (file, index) => {
       let contributed = 0;
-      statuses.set(file.name, "uploading");
+      statuses[index] = "uploading";
+      notify(file.name, true);
       try {
         const { r2Key, url, width, height, srcset } = await uploadFileToR2(file, category, (transferred) => {
           transferredBytes += transferred - contributed;
           contributed = transferred;
+          filePercents[index] = file.size > 0 ? Math.min(99, (transferred / file.size) * 100) : 0;
           notify(file.name);
         });
         const id = await convexClient.mutation(api.collectionImages.saveImage, {
@@ -345,6 +385,7 @@ export const collectionAPI = {
           secret,
         });
         imagesCache = null;
+        invalidateGalleryImageCache();
         results.push({
           _id: id,
           r2Key,
@@ -360,19 +401,27 @@ export const collectionAPI = {
         });
         transferredBytes += file.size - contributed;
         contributed = file.size;
+        filePercents[index] = 100;
         completedFiles += 1;
-        statuses.set(file.name, "done");
-        notify(null);
+        statuses[index] = "done";
+        notify(null, true);
       } catch (err) {
-        transferredBytes -= contributed;
-        contributed = 0;
-        statuses.set(file.name, "failed");
+        // Keep the transferred byte count so the aggregate progress stays
+        // monotonic; the failed tile itself communicates the failure.
+        filePercents[index] = 0;
+        statuses[index] = "failed";
         const error = err instanceof Error ? err : new Error("Upload failed");
         console.error(`Collection upload failed for "${file.name}":`, error.message);
         failures.push({ name: file.name, error });
-        notify(null);
+        notify(null, true);
       }
     });
+
+    if (notifyTimer !== null) {
+      clearTimeout(notifyTimer);
+      notifyTimer = null;
+    }
+    notify(null, true);
 
     if (failures.length > 0) {
       const failedNames = failures.map((f) => f.name).slice(0, 5).join(", ");
@@ -444,12 +493,15 @@ export const collectionAPI = {
     const secret = await getConvexAdminSecret();
     await convexClient.mutation(api.collectionImages.deleteImage, { id: id as Id<"collectionImages">, secret });
     imagesCache = null;
+    invalidateGalleryImageCache();
   },
 
   async updateImageCategory(id: string, category: string) {
     if (!convexClient) throw new Error("Convex client not available — check VITE_CONVEX_URL");
     const secret = await getConvexAdminSecret();
     await convexClient.mutation(api.collectionImages.updateCategory, { id: id as Id<"collectionImages">, category, secret });
+    imagesCache = null;
+    invalidateGalleryImageCache();
   },
 
   async getLayout(): Promise<Record<string, { orderedIds: string[]; hiddenIds: string[]; updatedAt: number }>> {
@@ -466,6 +518,17 @@ export const collectionAPI = {
 };
 
 export const popupAdAPI = {
+  /**
+   * Upload a popup image to R2 through the admin API and return its public URL.
+   * Storing a URL instead of a base64 data URL keeps the Convex document small
+   * and works with deployments that still cap `imageUrl` at 5,000 characters.
+   */
+  async uploadImageToR2(file: File): Promise<string> {
+    const { url } = await uploadFileToR2(file, "other");
+    if (!url) throw new Error("Image upload succeeded but no public URL was returned");
+    return url;
+  },
+
   async uploadImage(file: File) {
     const formData = new FormData();
     formData.append("image", file);

@@ -916,3 +916,69 @@ html::-webkit-scrollbar-thumb:hover {
   height: 44vh;
   height: 44dvh;
 }
+
+/* ── Celebration ads: lightweight CSS confetti ─────────────────────────── */
+.sista-confetti-fall,
+.sista-confetti-burst {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.sista-confetti-fall {
+  top: -20px;
+  animation-name: sista-confetti-fall;
+  animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+  animation-fill-mode: both;
+}
+
+.sista-confetti-burst {
+  left: 50%;
+  top: 50%;
+  animation-name: sista-confetti-burst;
+  animation-timing-function: cubic-bezier(0.16, 0.7, 0.3, 1);
+  animation-fill-mode: both;
+}
+
+@keyframes sista-confetti-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -8vh, 0) rotate(0deg) scale(0.8);
+  }
+  8% {
+    opacity: 1;
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--confetti-drift, 0px), var(--confetti-fall-distance, 110vh), 0)
+      rotate(var(--confetti-spin, 540deg)) scale(1);
+  }
+}
+
+@keyframes sista-confetti-burst {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.35) rotate(0deg);
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--confetti-x, 0px)), calc(-50% + var(--confetti-y, 0px)))
+      scale(1) rotate(var(--confetti-spin, 360deg));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sista-confetti-fall,
+  .sista-confetti-burst {
+    animation: none !important;
+    display: none;
+  }
+}

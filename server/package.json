@@ -26,8 +26,12 @@
     "firebase-admin": "^13.10.0",
     "helmet": "^8.1.0",
     "multer": "^2.4.0",
-    "sharp": "^0.35.0",
+    "sharp": "^0.35.5",
     "twilio": "^4.23.0"
+  },
+  "allowScripts": {
+    "better-sqlite3@12.11.1": true,
+    "@firebase/util@1.15.3": true
   },
   "overrides": {
     "protobufjs": "8.6.6",

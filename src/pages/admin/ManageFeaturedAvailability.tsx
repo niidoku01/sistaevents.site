@@ -212,11 +212,11 @@ const ManageFeaturedAvailability = () => {
                     onClick={() => handleToggle(item.key, !isAvailable)}
                     aria-label={`${item.title}: open for bookings`}
                     className={cn(
-                      "relative inline-flex h-7 min-w-[5.5rem] cursor-pointer items-center rounded-full px-1 text-[10px] sm:text-[11px] font-semibold text-white shadow-xs transition-colors duration-200",
+                      "relative inline-flex h-7 min-w-[5.5rem] cursor-pointer items-center rounded-full border bg-transparent px-1 text-[10px] sm:text-[11px] font-semibold shadow-none transition-colors duration-200",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                       isAvailable
-                        ? "bg-emerald-500 hover:bg-emerald-600"
-                        : "bg-red-400 hover:bg-red-500"
+                        ? "border-emerald-400 text-emerald-700 hover:border-emerald-500 hover:bg-emerald-50/70"
+                        : "border-red-300 text-red-600 hover:border-red-400 hover:bg-red-50/70"
                     )}
                   >
                     <span
@@ -229,17 +229,10 @@ const ManageFeaturedAvailability = () => {
                     </span>
                     <span
                       className={cn(
-                        "pointer-events-none absolute top-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-md transition-all duration-300 ease-in-out",
-                        isAvailable ? "right-0.5" : "left-0.5"
+                        "pointer-events-none absolute top-[3px] flex h-5 w-5 items-center justify-center rounded-full shadow-sm transition-all duration-300 ease-in-out",
+                        isAvailable ? "right-0.5 bg-emerald-500" : "left-0.5 bg-red-400"
                       )}
-                    >
-                      <span
-                        className={cn(
-                          "h-1.5 w-1.5 rounded-full transition-colors duration-300",
-                          isAvailable ? "bg-emerald-500" : "bg-red-400"
-                        )}
-                      />
-                    </span>
+                    />
                   </button>
                   <button
                     type="button"
@@ -302,12 +295,19 @@ const ManageFeaturedAvailability = () => {
                           {!photoVisible && <span className="absolute inset-0 bg-slate-900/50" />}
                           <span
                             className={cn(
-                              "absolute left-1.5 bottom-1.5 flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold shadow-xs",
-                              photoVisible ? "bg-emerald-600/90 text-white" : "bg-slate-800/80 text-white"
+                              "absolute bottom-1.5 left-1.5 flex items-center justify-center",
+                              !photoVisible &&
+                                "gap-1 rounded-full bg-slate-800/80 px-2 py-0.5 text-[10px] font-semibold text-white shadow-xs"
                             )}
                           >
-                            {photoVisible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
-                            {photoVisible ? "On display" : "Hidden"}
+                            {photoVisible ? (
+                              <Eye className="h-4 w-4 text-black drop-shadow-[0_1px_2px_rgba(255,255,255,0.65)]" />
+                            ) : (
+                              <>
+                                <EyeOff className="h-3 w-3" />
+                                Hidden
+                              </>
+                            )}
                           </span>
                           <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             <span className="rounded-lg bg-slate-900/70 px-2 py-1 text-[10px] font-semibold text-white shadow-xs">

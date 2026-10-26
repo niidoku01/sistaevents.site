@@ -92,6 +92,8 @@ const HeroContent = () => {
           fetchpriority="high"
           decoding="sync"
           sizes="100vw"
+          width={heroImage.width}
+          height={heroImage.height}
         />
         <div className="absolute inset-0 bg-linear-to-r from-primary/90 via-primary/70 to-primary/50" />
       </div>
@@ -102,7 +104,7 @@ const HeroContent = () => {
            WE PLAN EVENTS  
           <br />
           <span className="text-[11px] sm:text-xs md:text-sm lg:text-base bg-gradient-accent bg-clip-text text-transparent mt-2 sm:mt-4 block max-w-3xl mx-auto text-center text-balance">
-          Weddings, Funerals, Parties, Graduation & Corporate Events  
+          Weddings . Funerals . Parties . Graduation . Corporate Events
           </span>
         </h1>
         

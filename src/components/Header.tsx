@@ -53,7 +53,7 @@ const ServicesIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 );
 
 const NavIcon = ({ children }: { children: React.ReactNode }) => (
-  <span className="w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-xl bg-white/75 border border-white/60 shadow-[0_1px_4px_rgba(0,0,0,0.08)] text-accent backdrop-blur-md">
+  <span className="w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-xl bg-white/75 border border-white/60 shadow-[0_1px_4px_rgba(0,0,0,0.08)] text-slate-900 backdrop-blur-md transition-colors duration-200 hover:text-accent group-hover:text-accent">
     {children}
   </span>
 );
@@ -221,7 +221,7 @@ export const Header = () => {
             {(isCollectionPage || !isHomePage) && (
               <button
                 onClick={() => handleNavigation("/")}
-                className="mobile-menu-item flex items-center gap-3 text-left text-sm font-medium glass-nav-link-mobile"
+                className="group mobile-menu-item flex items-center gap-3 text-left text-sm font-medium glass-nav-link-mobile"
                 style={{ animationDelay: "0ms" }}
               >
                 <NavIcon><HomeIcon className="w-4 h-4" /></NavIcon>
@@ -237,7 +237,7 @@ export const Header = () => {
                 )}
                 <button
                   onClick={() => scrollToSection("services")}
-                  className="mobile-menu-item flex items-center gap-3 text-left text-sm font-medium glass-nav-link-mobile"
+                  className="group mobile-menu-item flex items-center gap-3 text-left text-sm font-medium glass-nav-link-mobile"
                   style={{ animationDelay: "50ms" }}
                 >
                   <NavIcon><ServicesIcon className="w-4 h-4" /></NavIcon>
@@ -245,7 +245,7 @@ export const Header = () => {
                 </button>
                 <button
                   onClick={() => scrollToSection("featured")}
-                  className="mobile-menu-item flex items-center gap-3 text-left text-sm font-medium glass-nav-link-mobile"
+                  className="group mobile-menu-item flex items-center gap-3 text-left text-sm font-medium glass-nav-link-mobile"
                   style={{ animationDelay: "100ms" }}
                 >
                   <NavIcon><LogisticsIcon className="w-4 h-4" /></NavIcon>
@@ -253,7 +253,7 @@ export const Header = () => {
                 </button>
                 <button
                   onClick={() => scrollToSection("about")}
-                  className="mobile-menu-item flex items-center gap-3 text-left text-sm font-medium glass-nav-link-mobile"
+                  className="group mobile-menu-item flex items-center gap-3 text-left text-sm font-medium glass-nav-link-mobile"
                   style={{ animationDelay: "150ms" }}
                 >
                   <NavIcon><AboutIcon className="w-4 h-4" /></NavIcon>
@@ -261,7 +261,7 @@ export const Header = () => {
                 </button>
                 <button
                   onClick={() => scrollToSection("testimonials")}
-                  className="mobile-menu-item flex items-center gap-3 text-left text-sm font-medium glass-nav-link-mobile"
+                  className="group mobile-menu-item flex items-center gap-3 text-left text-sm font-medium glass-nav-link-mobile"
                   style={{ animationDelay: "200ms" }}
                 >
                   <NavIcon><TestimonialIcon className="w-4 h-4" /></NavIcon>
@@ -269,7 +269,7 @@ export const Header = () => {
                 </button>
                 <button
                   onClick={() => handleNavigation("/our-collection")}
-                  className="mobile-menu-item flex items-center gap-3 text-left text-sm font-medium glass-nav-link-mobile"
+                  className="group mobile-menu-item flex items-center gap-3 text-left text-sm font-medium glass-nav-link-mobile"
                   style={{ animationDelay: "250ms" }}
                 >
                   <NavIcon><CollectionIcon className="w-4 h-4" /></NavIcon>
@@ -277,7 +277,7 @@ export const Header = () => {
                 </button>
                 <button
                   onClick={() => scrollToSection("contact")}
-                  className="mobile-menu-item flex items-center gap-3 text-left text-sm font-medium glass-nav-link-mobile"
+                  className="group mobile-menu-item flex items-center gap-3 text-left text-sm font-medium glass-nav-link-mobile"
                   style={{ animationDelay: "300ms" }}
                 >
                   <NavIcon><BookingIcon className="w-4 h-4" /></NavIcon>

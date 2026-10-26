@@ -13,38 +13,39 @@ import { visualizer } from "rollup-plugin-visualizer";
  *    The final srcset tier is the source's native resolution so large/retina
  *    screens and the full-screen viewer can fetch the highest quality possible;
  *    `src` stays capped at 1920w so old browsers/lossy paths stay lean.
- * 2. `virtual:responsive-collection-manifest` is populated at build start by
+ * 2. `virtual:responsive-collection-images` is populated at build start by
  *    scanning `src/assets/collections`, so the collection gallery can build
  *    per-image `srcset` values without relying on glob query imports (which
- *    rolldown-vite does not route through this plugin).
+ *    rolldown-vite does not route through this plugin). The virtual module also
+ *    keeps the original source images out of the client bundle.
  *
  * Variants are written to `public/res/img` (gitignored) so they are served
  * statically in both dev and production builds.
  */
-const RESPONSIVE_WIDTHS = [480, 800, 1280, 1920];
+const RESPONSIVE_WIDTHS = [320, 480, 800, 1280, 1920];
 const MAX_GENERATED_WIDTH = 1920;
 const RESPONSIVE_OUTPUT_PREFIX = "/res/img/";
 const COLLECTION_DIR = path.resolve(process.cwd(), "src/assets/collections");
+// Bump when the encoding settings below change so browsers don't keep serving
+// stale variants from a previous build (the file names are not content-hashed).
+const VARIANT_VERSION = "v2";
 
 function responsiveImages(): Plugin {
   const cache = new Map<string, string>();
   const outputDir = path.resolve(process.cwd(), "public/res/img");
-  const collectionManifest: Record<string, { srcset: string }> = {};
+  const collectionManifest: Record<string, { srcset: string; width: number; height: number }> = {};
 
   const toUrl = (fileName: string) => `${RESPONSIVE_OUTPUT_PREFIX}${encodeURI(fileName)}`;
 
-  const generateVariants = async (filePath: string): Promise<{ width: number; url: string }[]> => {
+  const generateVariants = async (filePath: string): Promise<{ variants: { width: number; url: string }[]; width: number; height: number }> => {
     const meta = await sharp(filePath, { failOn: "none" }).metadata();
     const srcWidth = meta.width || MAX_GENERATED_WIDTH;
+    const srcHeight = meta.height || 0;
 
-    // Always include a native-resolution top tier so large/retina screens and
-    // the full-screen viewer can request the source's full resolution instead
-    // of being capped at MAX_GENERATED_WIDTH.
+    // Cap the largest tier at 1920w. The old native-resolution tier could
+    // easily exceed 3 MB per photo, which made the lightbox slow on phones.
     let widths = RESPONSIVE_WIDTHS.filter((w) => w < srcWidth);
-    widths.push(srcWidth);
-    if (widths.length === 0) {
-      widths = [Math.min(srcWidth, MAX_GENERATED_WIDTH)];
-    }
+    widths.push(srcWidth <= MAX_GENERATED_WIDTH ? srcWidth : MAX_GENERATED_WIDTH);
     widths = Array.from(new Set(widths)).sort((a, b) => a - b);
 
     await fs.mkdir(outputDir, { recursive: true });
@@ -53,18 +54,22 @@ function responsiveImages(): Plugin {
 
     const variants: { width: number; url: string }[] = [];
     for (const width of widths) {
-      const fileName = `${parentDir}-${baseName}-${width}.webp`;
+      const fileName = `${parentDir}-${baseName}-${VARIANT_VERSION}-${width}.webp`;
       const outFile = path.join(outputDir, fileName);
       if (!(await fs.access(outFile).then(() => true).catch(() => false))) {
         await sharp(filePath, { failOn: "none" })
           .rotate()
           .resize({ width })
-          .webp({ quality: width === srcWidth ? 95 : 90, effort: 3 })
+          .webp({
+            quality: width >= 1280 ? 82 : 80,
+            effort: 4,
+            smartSubsample: true,
+          })
           .toFile(outFile);
       }
       variants.push({ width, url: toUrl(fileName) });
     }
-    return variants;
+    return { variants, width: srcWidth, height: srcHeight };
   };
 
   const walkFiles = async (dirPath: string): Promise<string[]> => {
@@ -88,14 +93,17 @@ function responsiveImages(): Plugin {
       const files = await walkFiles(COLLECTION_DIR);
       for (const filePath of files) {
         if (!/\.(jpe?g|png|webp)$/i.test(filePath)) continue;
-        const variants = await generateVariants(filePath);
+        const { variants, width, height } = await generateVariants(filePath);
         const rel = path.relative(process.cwd(), filePath).split(path.sep).join("/");
         collectionManifest[rel] = {
           srcset: variants.map((v) => `${v.url} ${v.width}w`).join(", "),
+          width,
+          height,
         };
       }
     },
     async resolveId(source, importer, options) {
+      if (source === "virtual:responsive-collection-images") return source;
       if (source === "virtual:responsive-collection-manifest") return source;
       const query = source.split("?")[1] || "";
       if (!query.startsWith("responsive")) return null;
@@ -104,6 +112,12 @@ function responsiveImages(): Plugin {
       return `${resolved.id}?responsive`;
     },
     async load(id) {
+      if (id === "virtual:responsive-collection-images") {
+        const images = Object.entries(collectionManifest)
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([filePath, data]) => ({ path: filePath, ...data }));
+        return `export default ${JSON.stringify(images)};`;
+      }
       if (id === "virtual:responsive-collection-manifest") {
         return `export default ${JSON.stringify(collectionManifest)};`;
       }
@@ -116,13 +130,15 @@ function responsiveImages(): Plugin {
       const cached = cache.get(id);
       if (cached) return cached;
 
-      const variants = await generateVariants(filePath);
+      const { variants, width, height } = await generateVariants(filePath);
       const src = (variants.findLast((v) => v.width <= MAX_GENERATED_WIDTH) ?? variants[variants.length - 1]).url;
       const srcset = variants.map((v) => `${v.url} ${v.width}w`).join(", ");
       const code = [
         `export const src = ${JSON.stringify(src)};`,
         `export const srcset = ${JSON.stringify(srcset)};`,
-        `export default { src, srcset };`,
+        `export const width = ${JSON.stringify(width)};`,
+        `export const height = ${JSON.stringify(height)};`,
+        `export default { src, srcset, width, height };`,
       ].join("\n");
       cache.set(id, code);
       return code;
@@ -152,12 +168,16 @@ export default defineConfig({
   plugins: [
     responsiveImages(),
     react(),
-    visualizer({
-      open: true,
-      gzipSize: true,
-      brotliSize: true,
-      filename: "dist/stats.html",
-    }),
+    ...(process.env.ANALYZE === "1"
+      ? [
+          visualizer({
+            open: false,
+            gzipSize: true,
+            brotliSize: true,
+            filename: "dist/stats.html",
+          }),
+        ]
+      : []),
   ],
   resolve: {
     alias: {
@@ -175,7 +195,6 @@ export default defineConfig({
       output: {
         manualChunks(id: string) {
           if (id.includes("node_modules/react") || id.includes("node_modules/react-dom") || id.includes("node_modules/react-router")) return "vendor-react";
-          if (id.includes("node_modules/firebase")) return "vendor-firebase";
           if (id.includes("node_modules/convex")) return "vendor-convex";
           if (id.includes("node_modules/@radix-ui")) return "vendor-ui";
         },

@@ -54,9 +54,13 @@ export const Contact = () => {
   });
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [hasInteracted, setHasInteracted] = useState(false);
   const [touched, setTouched] = useState<{ name?: boolean; email?: boolean; phone?: boolean }>({});
-  const hasRequiredFields = Boolean(formData.name.trim() && formData.email.trim() && formData.message.trim());
-  const wordCount = formData.message.trim() ? formData.message.trim().split(/\s+/).filter(Boolean).length : 0;
+  const hasRequiredFields = Boolean(
+    formData.name.trim() && formData.email.trim() && formData.phone.trim() && formData.message.trim()
+  );
+  const showMissingFieldsHint = hasInteracted && !hasRequiredFields && !isLoading;
+  const messageLength = formData.message.length;
 
   const nameInvalid = touched.name && !isValidName(sanitizeInput(formData.name, "name"));
   const emailInvalid = touched.email && !isValidEmail(sanitizeInput(formData.email, "email"));
@@ -65,6 +69,7 @@ export const Contact = () => {
   const getMissingFieldMessage = () => {
     if (!formData.name.trim()) return "Please enter your name.";
     if (!formData.email.trim()) return "Please enter your email address.";
+    if (!formData.phone.trim()) return "Please enter your phone number.";
     if (!formData.message.trim()) return "Please tell us about your event.";
     return "";
   };
@@ -231,6 +236,7 @@ export const Contact = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setHasInteracted(true);
 
     const validationMessage = getMissingFieldMessage();
     if (validationMessage) {
@@ -242,8 +248,8 @@ export const Contact = () => {
       return;
     }
 
-    const name = sanitizeInput(formData.name, "name");
-    const email = sanitizeInput(formData.email, "email");
+    const name = sanitizeInput(formData.name, "name").trim();
+    const email = sanitizeInput(formData.email, "email").trim();
     const phone = autocorrectPhone(formData.phone);
 
     // Silence-safe gate: only generic alerts, never the validation rules.
@@ -294,6 +300,7 @@ export const Contact = () => {
         message: "",
       });
       setTouched({});
+      setHasInteracted(false);
       
       // Clear success message after 5 seconds
       setTimeout(() => setSuccessMessage(""), 5000);
@@ -343,8 +350,10 @@ export const Contact = () => {
                         aria-required="true"
                         aria-invalid={nameInvalid || undefined}
                         autoComplete="name"
+                        maxLength={100}
                         value={formData.name}
                         onChange={(e) => {
+                          setHasInteracted(true);
                           setTouched((prev) => ({ ...prev, name: false }));
                           setFormData({ ...formData, name: sanitizeInput(e.target.value, "name") });
                         }}
@@ -365,8 +374,10 @@ export const Contact = () => {
                         aria-required="true"
                         aria-invalid={emailInvalid || undefined}
                         autoComplete="email"
+                        maxLength={254}
                         value={formData.email}
                         onChange={(e) => {
+                          setHasInteracted(true);
                           setTouched((prev) => ({ ...prev, email: false }));
                           setFormData({ ...formData, email: sanitizeInput(e.target.value, "email") });
                         }}
@@ -388,14 +399,17 @@ export const Contact = () => {
                         id="phone"
                         type="tel"
                         autoComplete="tel"
-                        inputMode="tel"
+                        inputMode="numeric"
+                        pattern="[0-9]{10}"
+                        aria-required="true"
                         aria-invalid={phoneInvalid || undefined}
                         value={formData.phone}
                         onChange={(e) => {
+                          setHasInteracted(true);
                           setTouched((prev) => ({ ...prev, phone: false }));
                           setFormData({ ...formData, phone: sanitizeInput(e.target.value, "phone") });
                         }}
-                        placeholder="(0) 123456789"
+                        placeholder="0241234567"
                         className={phoneInvalid ? "border-red-500/60 ring-red-500/20" : ""}
                       />
                       {phoneInvalid && (
@@ -454,18 +468,21 @@ export const Contact = () => {
                         aria-required="true"
                         maxLength={1000}
                         value={formData.message}
-                        onChange={(e) => setFormData({ ...formData, message: sanitizeProse(e.target.value) })}
+                        onChange={(e) => {
+                          setHasInteracted(true);
+                          setFormData({ ...formData, message: sanitizeProse(e.target.value) });
+                        }}
                         placeholder="Describe your event needs, logistics, guest count, venue, etc."
                         className="min-h-[150px] pb-8 pr-16"
                       />
                       <span
                         className={`pointer-events-none absolute right-3 bottom-2.5 rounded-md px-1.5 py-0.5 text-[10px] font-semibold tabular-nums ${
-                          wordCount > 160
+                          messageLength > 900
                             ? "text-red-600"
                             : "text-slate-500"
                         }`}
                       >
-                        {wordCount}/1000
+                        {messageLength}/1000
                       </span>
                     </div>
                   </div>
@@ -485,9 +502,9 @@ export const Contact = () => {
                       </span>
                     ) : "Send Booking"}
                   </Button>
-                  {!hasRequiredFields && !isLoading && (
+                  {showMissingFieldsHint && (
                     <p className="text-xs text-red-600 dark:text-red-400 text-center">
-                      {getMissingFieldMessage() || "Please fill in your name, email, and message to continue."}
+                      {getMissingFieldMessage() || "Please fill in your name, email, phone, and message to continue."}
                     </p>
                   )}
                 </form>

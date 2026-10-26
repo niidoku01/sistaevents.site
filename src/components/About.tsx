@@ -51,9 +51,8 @@ export const About = () => {
                 style={{
                   objectPosition: "center"
                 }}
-                loading="eager"
-                decoding="sync"
-                fetchpriority="high"
+                loading="lazy"
+                decoding="async"
                 width={1200}
                 height={1200}
                 sizes="(max-width: 1024px) 100vw, 50vw"

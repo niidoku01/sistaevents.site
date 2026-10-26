@@ -53,7 +53,12 @@ const sanitize = (raw: unknown): CollectionOrderMap | null => {
   return base;
 };
 
-const readStored = (): CollectionOrderMap => {
+// Parsing the saved layout is not free and the order helpers are called for
+// every image while rendering (and per row in the admin list). Cache the parsed
+// object until it is changed through `save`/`applyServerLayout`.
+let storedOrder: CollectionOrderMap | null = null;
+
+const parseStored = (): CollectionOrderMap => {
   const base = defaultOrder();
   let parsed: unknown = null;
   try {
@@ -71,6 +76,11 @@ const readStored = (): CollectionOrderMap => {
   return base;
 };
 
+const readStored = (): CollectionOrderMap => {
+  if (!storedOrder) storedOrder = parseStored();
+  return storedOrder;
+};
+
 const load = (): CollectionOrderMap => {
   return serverLayout ?? readStored();
 };
@@ -81,6 +91,7 @@ const save = (map: CollectionOrderMap) => {
   } catch {
     // ignore quota errors
   }
+  storedOrder = map;
   serverLayout = map;
 };
 
@@ -214,6 +225,7 @@ export const applyServerLayout = (layout: ServerLayout | null | undefined) => {
   } catch {
     // ignore quota errors
   }
+  storedOrder = base;
   serverLayout = base;
 };
 

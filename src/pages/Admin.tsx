@@ -32,10 +32,10 @@ const Admin: React.FC = () => {
   }
 
   return (
-    <div className="h-dvh sm:min-h-screen bg-linear-to-br from-slate-100 via-white to-slate-100 p-2 sm:p-4 md:p-6 overflow-hidden">
+    <div className="h-dvh overflow-hidden bg-linear-to-br from-slate-100 via-white to-slate-100 p-2 sm:p-4 md:p-6">
       <NoIndexMeta />
-      <div className="h-full sm:min-h-screen sm:flex sm:items-start sm:items-center sm:justify-center">
-        <div className="h-full sm:h-auto w-full max-w-7xl rounded-2xl sm:rounded-3xl bg-white/60 backdrop-blur-2xl border border-white/50 shadow-[0_8px_40px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col sm:min-h-0 sm:max-h-[95vh]">
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="flex h-full w-full max-w-7xl flex-col overflow-hidden rounded-2xl border border-white/50 bg-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.06)] backdrop-blur-2xl sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:rounded-3xl md:max-h-[calc(100dvh-3rem)]">
           {/* Header (dynamic glass) */}
           <div className="flex-shrink-0 z-40 border-b border-white/30 bg-white/40 backdrop-blur-2xl">
             <div className="h-[2px] bg-linear-to-r from-transparent via-amber-400/50 to-transparent" />

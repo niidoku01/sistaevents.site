@@ -1,4 +1,4 @@
-import collectionSrcsets from "virtual:responsive-collection-manifest";
+import collectionImages from "virtual:responsive-collection-images";
 
 export type CollectionCategory = "weddings" | "funerals" | "corporate";
 
@@ -6,6 +6,8 @@ export type StaticCollectionImage = {
   _id: string;
   url: string;
   srcset?: string;
+  width?: number;
+  height?: number;
   originalName: string;
   category: CollectionCategory;
 };
@@ -18,14 +20,32 @@ const categoryFolders: Record<CollectionCategory, string> = {
   corporate: "/corporate/",
 };
 
-const imageModules = import.meta.glob("../assets/collections/**/*.{jpg,jpeg,png,webp,avif,gif,JPG,JPEG,PNG,WEBP,AVIF,GIF}", {
-  eager: true,
-  import: "default",
-}) as Record<string, string>;
+type CollectionImageSource = {
+  path: string;
+  srcset: string;
+  width: number;
+  height: number;
+};
 
-const getSrcset = (globPath: string): string | undefined => {
-  const normalized = `src/${globPath.replace(/^\.\.\//, "")}`;
-  return collectionSrcsets[decodeURIComponent(normalized)]?.srcset;
+// Pick a reasonably sized static fallback for browsers that do not support
+// srcset or for the first paint before the browser chooses a candidate.
+const getFallbackUrl = (srcset: string): string => {
+  const entries = srcset
+    .split(",")
+    .map((part) => {
+      const [url, descriptor = ""] = part.trim().split(/\s+/);
+      return { url, width: Number(descriptor.replace(/w$/i, "")) || 0 };
+    })
+    .filter((entry) => entry.url);
+
+  if (entries.length === 0) return "";
+
+  const preferred = entries
+    .slice()
+    .reverse()
+    .find((entry) => entry.width <= 1280);
+
+  return (preferred ?? entries[entries.length - 1]).url;
 };
 
 const toFileName = (path: string): string => {
@@ -117,45 +137,41 @@ const getCategoryFromPath = (path: string): CollectionCategory | null => {
   return null;
 };
 
-const groupedByCategory: Record<CollectionCategory, { path: string; url: string }[]> = {
+const groupedByCategory: Record<CollectionCategory, CollectionImageSource[]> = {
   weddings: [],
   funerals: [],
   corporate: [],
 };
 
-for (const [path, url] of Object.entries(imageModules)) {
-  const category = getCategoryFromPath(path);
-  if (!category) {
+for (const image of collectionImages) {
+  const category = getCategoryFromPath(image.path);
+  if (!category || !image.srcset) {
     continue;
   }
 
-  groupedByCategory[category].push({ path, url });
+  groupedByCategory[category].push(image);
 }
 
 for (const category of CATEGORY_ORDER) {
   groupedByCategory[category].sort(compareOldestFirst);
 }
 
+const toStaticImage = (
+  category: CollectionCategory,
+  image: CollectionImageSource,
+  index: number
+): StaticCollectionImage => ({
+  _id: `${category}-${index + 1}`,
+  url: getFallbackUrl(image.srcset),
+  srcset: image.srcset,
+  width: image.width,
+  height: image.height,
+  originalName: toFileName(image.path),
+  category,
+});
+
 export const staticCollectionImagesByCategory: Record<CollectionCategory, StaticCollectionImage[]> = {
-  weddings: groupedByCategory.weddings.map((image, index) => ({
-    _id: `weddings-${index + 1}`,
-    url: image.url,
-    srcset: getSrcset(image.path),
-    originalName: toFileName(image.path),
-    category: "weddings",
-  })),
-  funerals: groupedByCategory.funerals.map((image, index) => ({
-    _id: `funerals-${index + 1}`,
-    url: image.url,
-    srcset: getSrcset(image.path),
-    originalName: toFileName(image.path),
-    category: "funerals",
-  })),
-  corporate: groupedByCategory.corporate.map((image, index) => ({
-    _id: `corporate-${index + 1}`,
-    url: image.url,
-    srcset: getSrcset(image.path),
-    originalName: toFileName(image.path),
-    category: "corporate",
-  })),
+  weddings: groupedByCategory.weddings.map((image, index) => toStaticImage("weddings", image, index)),
+  funerals: groupedByCategory.funerals.map((image, index) => toStaticImage("funerals", image, index)),
+  corporate: groupedByCategory.corporate.map((image, index) => toStaticImage("corporate", image, index)),
 };

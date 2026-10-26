@@ -273,23 +273,19 @@ const ManageCollection = () => {
         <CardContent className="space-y-6 overflow-hidden pt-6">
           {/* Summary stats */}
           <div className="flex flex-wrap gap-3">
-            <div className="flex items-center gap-2.5 rounded-xl border border-white/50 bg-linear-to-br from-white/70 to-white/40 backdrop-blur-md px-4 py-2.5 text-sm shadow-xs">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-slate-600 to-slate-700 text-white shadow-md shadow-slate-500/20">
+            <div className="flex flex-col items-center justify-center gap-0.5 rounded-xl border border-white/50 bg-linear-to-br from-white/70 to-white/40 px-4 py-3 text-center text-sm shadow-xs backdrop-blur-md">
+              <div className="flex h-8 w-8 items-center justify-center text-slate-600">
                 <FolderOpen className="h-4 w-4" />
               </div>
-              <div>
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Total</p>
-                <strong className="text-base font-bold tabular-nums">{allStaticCount + uploadedImages.length}</strong>
-              </div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Total</p>
+              <strong className="text-base font-bold tabular-nums">{allStaticCount + uploadedImages.length}</strong>
             </div>
-            <div className="flex items-center gap-2.5 rounded-xl border border-white/50 bg-linear-to-br from-white/70 to-white/40 backdrop-blur-md px-4 py-2.5 text-sm shadow-xs">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-br from-amber-400 to-amber-500 text-white shadow-md shadow-amber-500/20">
+            <div className="flex flex-col items-center justify-center gap-0.5 rounded-xl border border-white/50 bg-linear-to-br from-white/70 to-white/40 px-4 py-3 text-center text-sm shadow-xs backdrop-blur-md">
+              <div className="flex h-8 w-8 items-center justify-center text-amber-500">
                 <Upload className="h-4 w-4" />
               </div>
-              <div>
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Uploaded</p>
-                <strong className="text-base font-bold tabular-nums">{uploadedImages.length}</strong>
-              </div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Uploaded</p>
+              <strong className="text-base font-bold tabular-nums">{uploadedImages.length}</strong>
             </div>
           </div>
 

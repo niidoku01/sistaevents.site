@@ -26,6 +26,7 @@ const BORDER = "E2E8F0";
 const LIGHT = "F8FAFC";
 const HEADER_FILL = "1E293B";
 const TOTAL_FILL = "FFF7ED";
+const RECEIPT_PAPER = "FFF7DB";
 
 const thin = { style: BorderStyle.SINGLE, size: 4, color: BORDER };
 const cellBorders = { top: thin, bottom: thin, left: thin, right: thin };
@@ -249,6 +250,7 @@ function buildItemsTable(doc: BillingDoc, media?: BillingMedia): (Table | Paragr
             new TableCell({
               children: descriptionParagraphs,
               borders: cellBorders,
+              shading: fill("FFFDF5"),
               margins: { top: 100, bottom: 100, left: 200, right: 200 },
             }),
           ],
@@ -422,6 +424,7 @@ export function buildBillingDocx(doc: BillingDoc, media?: BillingMedia): Documen
   return new Document({
     creator: "Sista Events & Rentals",
     title: `${isInvoice ? "Invoice" : "Receipt"} ${doc.docNumber || ""}`.trim(),
+    ...(isInvoice ? {} : { background: { color: RECEIPT_PAPER } }),
     styles: {
       default: {
         document: { run: { font: "Calibri", size: 20 }, paragraph: { spacing: { line: 276 } } },

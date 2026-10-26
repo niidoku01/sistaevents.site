@@ -671,6 +671,8 @@ function TotalChip({ label, value, muted }: { label: string; value: string; mute
 }
 
 // ─── Live preview (mirrors the .DOCX template) ─────────────
+const RECEIPT_PAPER = "#FFF7DB";
+
 function PreviewDocument({ doc }: { doc: BillingDoc }) {
   const totals = useMemo(() => computeTotals(doc), [doc]);
   const isInvoice = doc.kind === "invoice";
@@ -679,7 +681,12 @@ function PreviewDocument({ doc }: { doc: BillingDoc }) {
   const grandTotal = isInvoice && doc.deposit > 0 ? totals.balanceDue : totals.total;
 
   return (
-    <div className="bg-white text-slate-800 p-4 sm:p-7 text-[11px] leading-relaxed max-h-[640px] overflow-y-auto">
+    <div
+      className={`text-slate-800 p-4 sm:p-7 text-[11px] leading-relaxed max-h-[640px] overflow-y-auto ${
+        isInvoice ? "bg-white" : ""
+      }`}
+      style={isInvoice ? undefined : { backgroundColor: RECEIPT_PAPER }}
+    >
       {/* Header — Invoice left, logo + name right */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -762,7 +769,7 @@ function PreviewDocument({ doc }: { doc: BillingDoc }) {
       ) : (
         <>
           {/* Receipt — event description only */}
-          <div className="mt-4 rounded-xl border border-slate-300 bg-slate-50/40 px-3 divide-y divide-dashed divide-slate-200">
+          <div className="mt-4 rounded-xl border border-amber-300/70 bg-white/55 px-3 divide-y divide-dashed divide-amber-200/80">
             {doc.items.map((it) => (
               <div key={it.id} className="py-1.5 font-semibold text-slate-800 leading-snug first:pt-2 last:pb-2">
                 {it.description || "Item"}

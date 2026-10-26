@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, ChevronLeft, ChevronRight, ChevronUp, Circle, GripHorizontal } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Circle, Plus, X } from "lucide-react";
 import { ELEMENT_DEFS, CATEGORIES } from "../constants";
 import { getFrequentTypes } from "../utils";
 import { useBreakpoint } from "../hooks/useBreakpoint";
@@ -63,7 +63,7 @@ export default function ElementSidebar({
         <div className="w-10 h-10 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200" style={{ backgroundColor: def.color + "12" }}>
           <Icon className="w-5 h-5 sm:w-4.5 sm:h-4.5" style={{ color: def.color }} />
         </div>
-        <span className="text-[9px] text-slate-600 text-center leading-tight font-medium">{def.label}</span>
+        <span className="text-[10px] text-slate-600 text-center leading-tight font-medium">{def.label}</span>
       </div>
     );
   };
@@ -74,7 +74,7 @@ export default function ElementSidebar({
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
           <Input value={elementSearch} onChange={(e) => setElementSearch(e.target.value)} placeholder="Search elements..." aria-label="Search elements"
-            className="h-8 text-xs pl-8 rounded-xl border-slate-200/80 focus:border-indigo-400 focus:ring-indigo-400/20 bg-slate-50/50" />
+            className="h-9 text-xs pl-8 rounded-xl border-slate-200/80 focus:border-indigo-400 focus:ring-indigo-400/20 bg-slate-50/50" />
         </div>
 
         {frequentTypes.length > 0 && !elementSearch.trim() && (
@@ -116,7 +116,7 @@ export default function ElementSidebar({
       </>)}
 
       {sidebarTab === "layers" && (
-        <div className="space-y-1 max-h-[60vh] overflow-y-auto">
+        <div className="space-y-1">
           {sortedElements.length === 0 && <p className="text-[10px] text-slate-400 text-center py-6">No elements</p>}
           {[...sortedElements].reverse().map((el) => {
             const def = ELEMENT_DEFS.find((d) => d.type === el.type);
@@ -124,7 +124,7 @@ export default function ElementSidebar({
             const isActive = selectedId === el.id;
             return (
               <div key={el.id} onClick={() => setSelectedId(el.id)}
-                className={`flex items-center gap-2 p-2 rounded-xl cursor-pointer text-[10px] transition-all duration-150
+                className={`flex items-center gap-2 p-2.5 rounded-xl cursor-pointer text-[11px] transition-all duration-150
                   ${isActive
                     ? "bg-linear-to-r from-indigo-50 to-purple-50 border border-indigo-200/60 shadow-xs"
                     : "hover:bg-slate-50 border border-transparent"
@@ -147,10 +147,12 @@ export default function ElementSidebar({
     return (
       <>
         {!sidebarOpen && (
-          <button onClick={() => setSidebarOpen(true)}
-            className="fixed top-20 left-2 z-40 w-9 h-16 rounded-r-2xl bg-white border border-slate-200/60 shadow-md flex items-center justify-center hover:bg-slate-50 transition-all duration-200 hover:shadow-lg"
-            aria-label="Open elements">
-            <ChevronRight className="w-4 h-4 text-slate-500" />
+          <button
+            onClick={() => { setSidebarTab("elements"); setSidebarOpen(true); }}
+            className="absolute bottom-3 left-3 z-30 inline-flex h-11 items-center gap-2 rounded-full border border-indigo-200/70 bg-white/95 px-4 text-xs font-semibold text-indigo-700 shadow-lg shadow-indigo-500/10 backdrop-blur transition-all duration-200 hover:bg-indigo-50 active:scale-95"
+            aria-label="Open element library">
+            <Plus className="h-4 w-4" />
+            Add element
           </button>
         )}
 
@@ -159,24 +161,29 @@ export default function ElementSidebar({
         )}
 
         <div ref={sheetRef}
-          className={`fixed z-50 top-0 left-0 h-full w-[84%] max-w-[300px] bg-white/95 backdrop-blur-xl shadow-2xl border-r border-slate-200/50 transition-transform duration-300 ease-out rounded-r-2xl will-change-transform pb-[env(safe-area-inset-bottom)] ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+          className={`fixed z-50 top-0 left-0 h-dvh w-[88%] max-w-[340px] bg-white/95 backdrop-blur-xl shadow-2xl border-r border-slate-200/50 transition-transform duration-300 ease-out rounded-r-2xl will-change-transform pb-[env(safe-area-inset-bottom)] ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
           <div className="p-4 h-full flex flex-col">
             <div className="flex justify-center pt-0.5 pb-2 sm:hidden">
               <div className="w-10 h-1 rounded-full bg-slate-200" />
             </div>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex gap-1 bg-slate-100/60 rounded-xl p-0.5">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="flex flex-1 gap-1 bg-slate-100/60 rounded-xl p-0.5">
                 <TabBtn active={sidebarTab === "elements"} onClick={() => setSidebarTab("elements")}>Elements</TabBtn>
                 <TabBtn active={sidebarTab === "layers"} onClick={() => setSidebarTab("layers")}>Layers</TabBtn>
               </div>
               <button onClick={() => setSidebarOpen(false)} aria-label="Close elements"
-                className="text-slate-400 hover:text-slate-600 p-2 rounded-xl hover:bg-slate-100 transition-colors">
-                <ChevronLeft className="w-4 h-4" />
+                className="text-slate-500 hover:text-slate-800 p-2 rounded-xl hover:bg-slate-100 transition-colors">
+                <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto space-y-3">
+            <div className="flex-1 overflow-y-auto overscroll-contain space-y-3 pr-0.5">
               {paletteContent}
             </div>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="mt-3 h-10 w-full rounded-xl bg-slate-900 text-xs font-semibold text-white transition-all duration-150 hover:bg-slate-800 active:scale-[0.98]">
+              Done
+            </button>
           </div>
         </div>
       </>
@@ -218,7 +225,7 @@ export default function ElementSidebar({
 function TabBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button onClick={onClick}
-      className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-lg transition-all duration-150 ${active ? "bg-white text-indigo-600 shadow-xs" : "text-slate-400 hover:text-slate-600"}`}>
+      className={`flex-1 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg transition-all duration-150 ${active ? "bg-white text-indigo-600 shadow-xs" : "text-slate-500 hover:text-slate-700"}`}>
       {children}
     </button>
   );

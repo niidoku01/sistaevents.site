@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useCallback, useEffect, useMemo, lazy, Suspense } from "react";
-import { Box, Download } from "lucide-react";
+import { Box, Download, Users } from "lucide-react";
 import { ELEMENT_DEFS, VENUE_BACKGROUNDS, GRID_SIZE, snap, uid } from "./planner/constants";
 import { calculateTotalGuests, autoArrange, detectDevicePerf, trackUsage } from "./planner/utils";
 import { usePlannerHistory } from "./planner/hooks/usePlannerHistory";
@@ -242,6 +242,43 @@ const EventPlanner: React.FC = () => {
     setElements(next); pushHistory(next);
   }, [elements, setElements, pushHistory]);
 
+  // ─── Fit the plan inside the visible canvas area ─────────
+  const fitToView = useCallback(() => {
+    const plan = canvasRef.current;
+    const scroller = plan?.parentElement as HTMLElement | null;
+    if (!plan || !scroller) return;
+
+    if (elements.length === 0) {
+      setScale(() => 1);
+      scroller.scrollTo({ left: 0, top: 0, behavior: "smooth" });
+      return;
+    }
+
+    const minX = Math.min(...elements.map((el) => el.x));
+    const minY = Math.min(...elements.map((el) => el.y));
+    const maxX = Math.max(...elements.map((el) => el.x + el.width));
+    const maxY = Math.max(...elements.map((el) => el.y + el.height));
+    const planWidth = Math.max(1, maxX - minX);
+    const planHeight = Math.max(1, maxY - minY);
+
+    const padding = 40;
+    const availableWidth = Math.max(120, scroller.clientWidth - padding * 2);
+    const availableHeight = Math.max(120, scroller.clientHeight - padding * 2);
+    const nextScale = Math.max(
+      0.2,
+      Math.min(2.5, Math.min(availableWidth / planWidth, availableHeight / planHeight))
+    );
+
+    setScale(() => nextScale);
+    requestAnimationFrame(() => {
+      scroller.scrollTo({
+        left: Math.max(0, minX * nextScale - padding),
+        top: Math.max(0, minY * nextScale - padding),
+        behavior: "smooth",
+      });
+    });
+  }, [elements]);
+
   // ─── Save / Load / Export ────────────────────────────────
   const savePlan = useCallback(() => {
     try {
@@ -343,13 +380,20 @@ const EventPlanner: React.FC = () => {
   return (
     <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
       {/* ─── Header ──────────────────────────────────────── */}
-      <div className="flex-shrink-0 border-b border-slate-200/60 bg-white overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 px-2 py-2 sm:px-5 sm:py-3 min-w-0">
-          <div className="flex items-center justify-between gap-2 sm:block min-w-0">
+      <div className="flex-shrink-0 border-b border-slate-200/60 bg-white">
+        <div className="flex flex-col gap-1.5 px-2 py-2 sm:flex-row sm:items-center sm:gap-3 sm:px-5 sm:py-3 min-w-0">
+          <div className="flex items-center justify-between gap-2 sm:block sm:min-w-0">
             <h1 className="text-sm sm:text-base font-bold text-slate-800 truncate">Floor Planner</h1>
+            <div className="flex items-center gap-1.5 sm:hidden">
+              <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+                <Users className="h-3 w-3" />~{totalGuests}
+              </span>
+              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+                {elements.length} {elements.length === 1 ? "item" : "items"}
+              </span>
+            </div>
           </div>
-          <div className="hidden sm:block sm:flex-1" />
-          <div className="min-w-0">
+          <div className="min-w-0 sm:flex-1">
             <PlannerToolbar
               eventName={eventName} setEventName={setEventName} totalGuests={totalGuests}
               scale={scale} setScale={setScale} showGrid={showGrid} setShowGrid={setShowGrid}
@@ -357,6 +401,7 @@ const EventPlanner: React.FC = () => {
               showBgPicker={showBgPicker} setShowBgPicker={setShowBgPicker}
               undo={undo} redo={redo} canUndo={canUndo} canRedo={canRedo}
               handleAutoArrange={handleAutoArrange} savePlan={savePlan} exportPNG={exportPNG} clearAll={clearAll}
+              fitToView={fitToView}
               currentBg={currentBg}
               onPreview3D={() => setShowFullscreen3D(true)}
               compact={isMobile}
@@ -366,7 +411,7 @@ const EventPlanner: React.FC = () => {
       </div>
 
       {/* ─── Main canvas area ────────────────────────────── */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="relative flex flex-1 min-h-0 overflow-hidden">
         <ElementSidebar
           sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}
           sidebarTab={sidebarTab} setSidebarTab={setSidebarTab}
@@ -474,8 +519,8 @@ const EventPlanner: React.FC = () => {
 
       {/* ─── Interaction hints ────────────────────────────── */}
       {isMobile ? (
-        <div className="flex-shrink-0 text-[10px] text-slate-400 flex flex-wrap gap-x-4 gap-y-1 px-4 py-2 border-t border-slate-100 bg-white">
-          <span>Tap element to select</span>
+        <div className="flex flex-shrink-0 items-center gap-3 overflow-x-auto whitespace-nowrap border-t border-slate-100 bg-white px-3 py-1.5 text-[9px] text-slate-400 scrollbar-none">
+          <span>Tap to select</span>
           <span>Drag to move</span>
           <span>Pinch to zoom</span>
           <span>Two fingers to pan</span>

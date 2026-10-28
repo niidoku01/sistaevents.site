@@ -55,7 +55,7 @@ const dataUrlToFile = (dataUrl: string, fileName: string): File => {
 
 const isUnknownCelebratoryFieldError = (err: unknown) => {
   const message = err instanceof Error ? err.message : String(err);
-  return /extra field\s+`?celebratory`?|celebratory.*not in the validator/i.test(message);
+  return /extra field\s+`?celebratory`?|celebratory.*not in (the )?validator|unknown field.*celebratory|celebratory.*unknown/i.test(message);
 };
 
 const formatCreatedAt = (value?: number) => {
@@ -78,7 +78,7 @@ const describeCreateError = (err: unknown) => {
   if (/image url too long/i.test(raw)) {
     return "The Convex deployment still enforces the old 5,000-character image limit. Run `npx convex dev` (or `npx convex deploy`) to push the latest functions, then try again.";
   }
-  if (/extra field.*celebratory|celebratory.*not in the validator/i.test(raw)) {
+  if (/extra field.*celebratory|celebratory.*not in (the )?validator|unknown field.*celebratory|celebratory.*unknown/i.test(raw)) {
     return "The Convex deployment doesn't have the celebration flag yet. Run `npx convex dev` (or `npx convex deploy`) to push the latest schema.";
   }
   if (/extra field|argumentvalidationerror/i.test(raw)) {
@@ -163,11 +163,23 @@ const ManagePopupAds = () => {
 
       // Popup images live in R2; Convex only stores the short public URL.
       // This keeps the document small and avoids the legacy 5,000-character
-      // imageUrl limit on older deployments.
+      // imageUrl limit on older deployments. Fallback to local upload if R2
+      // isn't configured in this environment.
       let imageUrl = form.imageUrl.trim();
       if (imageUrl.startsWith("data:")) {
         const imageFile = dataUrlToFile(imageUrl, `popup-${Date.now()}.jpg`);
-        imageUrl = await popupAdAPI.uploadImageToR2(imageFile);
+        try {
+          imageUrl = await popupAdAPI.uploadImageToR2(imageFile);
+        } catch (r2Error) {
+          console.warn("R2 popup upload failed, falling back to local upload:", r2Error);
+          const result = await popupAdAPI.uploadImage(imageFile);
+          const uploadedUrl =
+            result?.image?.url || result?.url || (typeof result === "string" ? result : null);
+          if (!uploadedUrl) {
+            throw r2Error;
+          }
+          imageUrl = uploadedUrl;
+        }
       }
 
       const baseArgs = {

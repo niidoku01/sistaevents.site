@@ -47,8 +47,8 @@ export const getActivePopupAd = query({
 
 export const createPopupAd = mutation({
 	args: {
-		title: v.string(),
-		message: v.string(),
+		title: v.optional(v.string()),
+		message: v.optional(v.string()),
 		imageUrl: v.optional(v.string()),
 		ctaText: v.optional(v.string()),
 		ctaUrl: v.optional(v.string()),
@@ -61,10 +61,13 @@ export const createPopupAd = mutation({
 	handler: async (ctx, args) => {
 		validateAdminSecret(args.secret);
 
-		if (args.title.length > 200) {
+		const title = args.title ?? "";
+		const message = args.message ?? "";
+
+		if (title.length > 200) {
 			throw new Error("Title too long (max 200 characters)");
 		}
-		if (args.message.length > 500) {
+		if (message.length > 500) {
 			throw new Error("Message too long (max 500 characters)");
 		}
 		if (args.imageUrl && args.imageUrl.length > 2_000_000) {
@@ -99,8 +102,8 @@ export const createPopupAd = mutation({
 		}
 
 		const popupAd = {
-			title: args.title,
-			message: args.message,
+			title,
+			message,
 			isActive: args.active,
 			createdAt: now,
 			updatedAt: now,

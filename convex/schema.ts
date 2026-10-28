@@ -53,8 +53,8 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("by_category", ["category"]),
   popupAds: defineTable({
-    title: v.string(),
-    message: v.string(),
+    title: v.optional(v.string()),
+    message: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
     ctaText: v.optional(v.string()),
     ctaUrl: v.optional(v.string()),

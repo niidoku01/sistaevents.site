@@ -517,6 +517,11 @@ export const collectionAPI = {
   },
 };
 
+export type PopupAdUploadResult = {
+  url?: string;
+  image?: { url?: string };
+};
+
 export const popupAdAPI = {
   /**
    * Upload a popup image to R2 through the admin API and return its public URL.
@@ -533,7 +538,11 @@ export const popupAdAPI = {
       try {
         const result = await this.uploadImage(file);
         const uploadedUrl =
-          result?.image?.url || result?.url || (typeof result === "string" ? result : null);
+          typeof result === "string"
+            ? result
+            : result && typeof result === "object"
+              ? result.image?.url ?? result.url
+              : null;
         if (!uploadedUrl) throw error;
         return uploadedUrl;
       } catch {
@@ -542,7 +551,7 @@ export const popupAdAPI = {
     }
   },
 
-  async uploadImage(file: File) {
+  async uploadImage(file: File): Promise<PopupAdUploadResult | string | null> {
     const formData = new FormData();
     formData.append("image", file);
 
@@ -578,7 +587,7 @@ export const popupAdAPI = {
       throw new Error(message);
     }
 
-    return body;
+    return body as PopupAdUploadResult | string | null;
   },
 };
 

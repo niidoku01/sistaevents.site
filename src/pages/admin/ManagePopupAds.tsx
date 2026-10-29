@@ -12,6 +12,7 @@ import { Check, ImagePlus, Megaphone, PartyPopper, Power, Trash2, X } from "luci
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { ConfettiBurst } from "@/components/ConfettiBurst";
+import { celebrationTitle, isCelebrationAd } from "@/lib/popupAdCelebration";
 // Image uploads are compressed in the browser, then stored in R2.
 
 type PopupAd = {
@@ -51,11 +52,6 @@ const dataUrlToFile = (dataUrl: string, fileName: string): File => {
     bytes[index] = binary.charCodeAt(index);
   }
   return new File([bytes], fileName, { type: mime });
-};
-
-const isUnknownCelebratoryFieldError = (err: unknown) => {
-  const message = err instanceof Error ? err.message : String(err);
-  return /extra field\s+`?celebratory`?|celebratory.*not in (the )?validator|unknown field.*celebratory|celebratory.*unknown/i.test(message);
 };
 
 const formatCreatedAt = (value?: number) => {
@@ -174,7 +170,11 @@ const ManagePopupAds = () => {
           console.warn("R2 popup upload failed, falling back to local upload:", r2Error);
           const result = await popupAdAPI.uploadImage(imageFile);
           const uploadedUrl =
-            result?.image?.url || result?.url || (typeof result === "string" ? result : null);
+            typeof result === "string"
+              ? result
+              : result && typeof result === "object"
+                ? result.image?.url ?? result.url
+                : null;
           if (!uploadedUrl) {
             throw r2Error;
           }
@@ -192,36 +192,30 @@ const ManagePopupAds = () => {
         secret,
       };
 
-      let celebrationSaved = form.celebratory;
+      const createdCelebratory = form.celebratory;
       try {
-        await createPopupAd(celebrationSaved ? { ...baseArgs, celebratory: true } : baseArgs);
+        await createPopupAd(createdCelebratory ? { ...baseArgs, celebratory: true } : baseArgs);
       } catch (error) {
-        if (celebrationSaved && isUnknownCelebratoryFieldError(error)) {
-          // Older Convex deployments don't know about `celebratory` yet. Save
-          // the ad as a normal popup instead of failing the whole creation.
-          await createPopupAd(baseArgs);
-          celebrationSaved = false;
-        } else {
-          throw error;
-        }
+        if (!createdCelebratory) throw error;
+        // Older Convex deployments reject the `celebratory` argument, but they
+        // still accept a plain title. Retry with the invisible marker so the
+        // celebration ad can be saved (and go live) without a deployment.
+        console.warn("Celebration flag rejected, saving with title marker:", error);
+        await createPopupAd({ ...baseArgs, title: celebrationTitle() });
       }
 
-      const createdCelebratory = form.celebratory && celebrationSaved;
-      const celebrationStyleUnavailable = form.celebratory && !celebrationSaved;
       const createdActive = form.active;
       const createdCtaText = form.ctaText || "Book Now";
 
       toast({
         title: createdCelebratory ? "Celebration ad created" : "Popup ad created",
-        description: celebrationStyleUnavailable
-          ? "Saved as a normal popup. Run `npx convex dev` to deploy the celebration flag."
-          : createdCelebratory
-            ? createdActive
-              ? "It's live on the homepage with a confetti pop."
-              : "Saved as inactive. Activate it to show the confetti popup."
-            : createdActive
-              ? "This ad is now active on the homepage."
-              : "Ad saved as inactive.",
+        description: createdCelebratory
+          ? createdActive
+            ? "It's live on the homepage with a confetti pop."
+            : "Saved as inactive. Activate it to show the confetti popup."
+          : createdActive
+            ? "This ad is now active on the homepage."
+            : "Ad saved as inactive.",
       });
 
       if (createdCelebratory) {
@@ -651,7 +645,9 @@ const ManagePopupAds = () => {
             </div>
           ) : (
             <ul className="divide-y divide-slate-100">
-              {ads.map((ad) => (
+              {ads.map((ad) => {
+                const celebratory = isCelebrationAd(ad);
+                return (
                 <li
                   key={ad._id}
                   className="flex flex-col gap-4 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-start"
@@ -675,9 +671,9 @@ const ManagePopupAds = () => {
                     <div className="min-w-0 space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="text-sm font-semibold text-slate-900">
-                          {ad.celebratory ? "Celebration ad" : "Popup ad"}
+                          {celebratory ? "Celebration ad" : "Popup ad"}
                         </h3>
-                        {ad.celebratory && (
+                        {celebratory && (
                           <Badge
                             variant="secondary"
                             className="gap-1 border-amber-200 bg-amber-100 text-amber-700"
@@ -727,7 +723,8 @@ const ManagePopupAds = () => {
                     </Button>
                   </div>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           )}
         </CardContent>

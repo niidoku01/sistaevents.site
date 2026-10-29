@@ -524,9 +524,22 @@ export const popupAdAPI = {
    * and works with deployments that still cap `imageUrl` at 5,000 characters.
    */
   async uploadImageToR2(file: File): Promise<string> {
-    const { url } = await uploadFileToR2(file, "other");
-    if (!url) throw new Error("Image upload succeeded but no public URL was returned");
-    return url;
+    try {
+      const { url } = await uploadFileToR2(file, "other");
+      if (!url) throw new Error("Image upload succeeded but no public URL was returned");
+      return url;
+    } catch (error) {
+      // Fallback to local popup-ads upload if R2/collections flow isn't available
+      try {
+        const result = await this.uploadImage(file);
+        const uploadedUrl =
+          result?.image?.url || result?.url || (typeof result === "string" ? result : null);
+        if (!uploadedUrl) throw error;
+        return uploadedUrl;
+      } catch {
+        throw error;
+      }
+    }
   },
 
   async uploadImage(file: File) {

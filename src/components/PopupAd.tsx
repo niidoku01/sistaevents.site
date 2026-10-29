@@ -58,10 +58,28 @@ const PopupAdWithConvex = () => {
 
   useEffect(() => {
     if (ad && canShow && ad.imageUrl) {
-      setOpen(true);
-      openRafRef.current = requestAnimationFrame(() => {
-        openRafRef.current = requestAnimationFrame(() => setAnimateIn(true));
-      });
+      setOpen(false);
+      setAnimateIn(false);
+      // Small delay to ensure clean animation restart
+      const startTimeout = window.setTimeout(() => {
+        setOpen(true);
+        openRafRef.current = requestAnimationFrame(() => {
+          openRafRef.current = requestAnimationFrame(() => {
+            setAnimateIn(true);
+          });
+        });
+      }, 50);
+
+      return () => {
+        window.clearTimeout(startTimeout);
+        if (openRafRef.current !== null) {
+          cancelAnimationFrame(openRafRef.current);
+          openRafRef.current = null;
+        }
+      };
+    } else if (!ad) {
+      setOpen(false);
+      setAnimateIn(false);
     }
 
     return () => {
@@ -70,7 +88,7 @@ const PopupAdWithConvex = () => {
         openRafRef.current = null;
       }
     };
-  }, [ad, canShow]);
+  }, [ad, canShow, ad?._id]);
 
   const handleClose = useCallback(() => {
     setAnimateIn(false);
@@ -161,7 +179,7 @@ const PopupAdWithConvex = () => {
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-start justify-center overflow-hidden p-3 backdrop-blur-[2px] sm:items-center sm:p-6 transition-all duration-300 ease-out ${
+      className={`fixed inset-0 z-50 flex items-start justify-center ${ad.celebratory ? "overflow-visible" : "overflow-hidden"} p-3 backdrop-blur-[2px] sm:items-center sm:p-6 transition-all duration-300 ease-out ${
         animateIn ? "bg-slate-950/45" : "bg-transparent"
       }`}
       role="dialog"
@@ -177,11 +195,11 @@ const PopupAdWithConvex = () => {
 
       <div
         ref={dialogRef}
-        className={`relative z-10 w-full max-w-[min(100vw-1.5rem,420px)] overflow-hidden rounded-2xl border bg-white shadow-2xl mt-16 sm:mt-0 ${
+        className={`relative z-10 w-full max-w-[min(100vw-1.5rem,420px)] overflow-hidden rounded-2xl border bg-white shadow-2xl mt-16 sm:mt-0 will-change-transform ${
           ad.celebratory
             ? "border-amber-300 ring-2 ring-amber-300/60 shadow-[0_0_60px_rgba(251,191,36,0.45)]"
             : "border-amber-200"
-        } ${animateIn ? "animate-bounce-in" : "scale-75 opacity-0 translate-y-8"}`}
+        } ${animateIn ? "animate-bounce-in" : "scale-90 opacity-0 translate-y-6"}`}
         onClick={(event) => event.stopPropagation()}
       >
         <button

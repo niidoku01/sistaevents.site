@@ -231,6 +231,14 @@ const ManagePopupAds = () => {
           active: createdActive,
         });
       }
+      // If activating, clear local dismissal so the popup appears immediately
+      if (createdActive) {
+        try {
+          localStorage.removeItem("homepagePopupDismissedAt");
+        } catch {
+          /* ignore */
+        }
+      }
 
       resetForm();
     } catch (err: unknown) {
@@ -343,6 +351,13 @@ const ManagePopupAds = () => {
     try {
       const secret = await getConvexAdminSecret();
       await setPopupAdActive({ id, active, secret });
+      if (active) {
+        try {
+          localStorage.removeItem("homepagePopupDismissedAt");
+        } catch {
+          /* ignore */
+        }
+      }
       toast({
         title: "Updated",
         description: active ? "Ad is now active." : "Ad deactivated.",

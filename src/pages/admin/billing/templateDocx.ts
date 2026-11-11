@@ -36,7 +36,7 @@ const cleanBorders = { top: noneBorder, bottom: noneBorder, left: noneBorder, ri
 const p = (children: (TextRun | string)[], opts: Partial<IParagraphOptions> = {}): Paragraph =>
   new Paragraph({
     children: children.map((c) => (typeof c === "string" ? new TextRun({ text: c }) : c)),
-    spacing: { line: 276, after: 60, ...(opts.spacing ?? {}) },
+    spacing: { line: 276, after: 40, ...(opts.spacing ?? {}) },
     alignment: opts.alignment,
     border: opts.border,
   });
@@ -62,23 +62,27 @@ const fmtDate = (iso: string): string => (iso || "—").replace(/-/g, " / ");
 
 // ─── Section builders ──────────────────────────────────────
 
-// Header: "INVOICE" inscription on the LEFT, logo + company name on the RIGHT.
+// Header: "INVOICE" / "RECEIPT" on the LEFT, logo + company name on the RIGHT.
 function buildHeader(doc: BillingDoc, logoPng?: Uint8Array): (Table | Paragraph)[] {
   const isInvoice = doc.kind === "invoice";
   const title = isInvoice ? "INVOICE" : "RECEIPT";
 
-  const lhs = [p([run(title, { bold: true, size: 36, color: DARK })], { spacing: { after: 30 } })];
+  const lhs = [
+    p([run(title, { bold: true, size: 38, color: DARK })], {
+      spacing: { before: 20, after: 0 },
+    }),
+  ];
 
   const rhsChildren: (Paragraph | Table)[] = logoPng
     ? [
         new Paragraph({
           alignment: AlignmentType.RIGHT,
-          spacing: { after: 40 },
+          spacing: { after: 20 },
           children: [
             new ImageRun({
               type: "png",
               data: logoPng,
-              transformation: { width: 80, height: 80 },
+              transformation: { width: 75, height: 75 },
             }),
           ],
         }),
@@ -87,17 +91,22 @@ function buildHeader(doc: BillingDoc, logoPng?: Uint8Array): (Table | Paragraph)
         const monogram = (doc.companyName || "Sista Events & Rentals").trim().charAt(0).toUpperCase() || "S";
         return [
           new Table({
-            alignment: AlignmentType.CENTER,
-            width: { size: 1000, type: WidthType.DXA },
+            alignment: AlignmentType.RIGHT,
+            width: { size: 900, type: WidthType.DXA },
             rows: [
               new TableRow({
                 children: [
                   new TableCell({
-                    children: [p([run(monogram, { bold: true, color: "FFFFFF", size: 36 })], { alignment: AlignmentType.CENTER, spacing: { after: 0 } })],
-                    width: { size: 1000, type: WidthType.DXA },
+                    children: [
+                      p([run(monogram, { bold: true, color: "FFFFFF", size: 30 })], {
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 0 },
+                      }),
+                    ],
+                    width: { size: 900, type: WidthType.DXA },
                     shading: fill(ACCENT),
                     verticalAlign: VerticalAlign.CENTER,
-                    margins: { top: 80, bottom: 80, left: 160, right: 160 },
+                    margins: { top: 60, bottom: 60, left: 120, right: 120 },
                   }),
                 ],
               }),
@@ -108,11 +117,18 @@ function buildHeader(doc: BillingDoc, logoPng?: Uint8Array): (Table | Paragraph)
 
   const rhs = [
     ...rhsChildren,
-    p([run(doc.companyName || "Sista Events & Rentals", { bold: true, size: 20, color: DARK })], {
+    p([run(doc.companyName || "Sista Events & Rentals", { bold: true, size: 21, color: DARK })], {
       alignment: AlignmentType.RIGHT,
-      spacing: { before: 20, after: 0 },
+      spacing: { before: 10, after: 0 },
     }),
   ];
+
+  const headerBottomBorder = {
+    top: noneBorder,
+    left: noneBorder,
+    right: noneBorder,
+    bottom: { style: BorderStyle.SINGLE, size: 8, color: ACCENT },
+  };
 
   return [
     new Table({
@@ -123,23 +139,22 @@ function buildHeader(doc: BillingDoc, logoPng?: Uint8Array): (Table | Paragraph)
             new TableCell({
               children: lhs,
               width: { size: 50, type: WidthType.PERCENTAGE },
-              borders: cleanBorders,
-              verticalAlign: VerticalAlign.TOP,
+              borders: headerBottomBorder,
+              verticalAlign: VerticalAlign.CENTER,
+              margins: { bottom: 100 },
             }),
             new TableCell({
               children: rhs,
               width: { size: 50, type: WidthType.PERCENTAGE },
-              borders: cleanBorders,
+              borders: headerBottomBorder,
               verticalAlign: VerticalAlign.TOP,
+              margins: { bottom: 100 },
             }),
           ],
         }),
       ],
     }),
-    p([], {
-      spacing: { after: 200 },
-      border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: ACCENT, space: 3 } },
-    }),
+    p([], { spacing: { after: 120 } }),
   ];
 }
 
@@ -148,29 +163,34 @@ function buildClientDetails(doc: BillingDoc): (Table | Paragraph)[] {
   const isInvoice = doc.kind === "invoice";
 
   const client: Paragraph[] = [
-    p([run("BILLED TO", { bold: true, allCaps: true, color: ACCENT, size: 15 })], { spacing: { after: 40 } }),
-    p([run(doc.clientName || "Client Name", { bold: true, size: 22 })], { spacing: { after: 20 } }),
+    p([run("BILLED TO", { bold: true, allCaps: true, color: ACCENT, size: 15 })], { spacing: { after: 30 } }),
+    p([run(doc.clientName || "Client Name", { bold: true, size: 22 })], { spacing: { after: 15 } }),
   ];
   if (doc.clientAddress) {
-    client.push(p([run(doc.clientAddress, { color: MUTED, size: 18 })], { spacing: { after: 20 } }));
+    client.push(p([run(doc.clientAddress, { color: MUTED, size: 18 })], { spacing: { after: 15 } }));
   }
-  client.push(
-    p([run([doc.clientEmail, doc.clientPhone].filter(Boolean).join(" / "), { color: MUTED, size: 18 })], {
-      spacing: { after: 0 },
-    })
-  );
+  if (doc.clientEmail || doc.clientPhone) {
+    client.push(
+      p([run([doc.clientEmail, doc.clientPhone].filter(Boolean).join(" / "), { color: MUTED, size: 18 })], {
+        spacing: { after: 0 },
+      })
+    );
+  }
 
   const metaLine = (label: string, value: string) =>
     new Paragraph({
       alignment: AlignmentType.RIGHT,
-      children: [run(label, { color: MUTED, size: 18 }), run(value, { bold: true, size: 18 })],
-      spacing: { after: 90 },
+      children: [
+        run(label, { color: MUTED, size: 18 }),
+        run(value, { bold: true, size: 18 }),
+      ],
+      spacing: { after: 40 },
     });
 
   const details = [
     p([run(isInvoice ? "INVOICE DETAILS" : "RECEIPT DETAILS", { bold: true, allCaps: true, color: ACCENT, size: 15 })], {
       alignment: AlignmentType.RIGHT,
-      spacing: { after: 80 },
+      spacing: { after: 40 },
     }),
     metaLine("NO.   ", doc.docNumber || "—"),
     metaLine("Issue   ", fmtDate(doc.issueDate)),
@@ -199,7 +219,7 @@ function buildClientDetails(doc: BillingDoc): (Table | Paragraph)[] {
         }),
       ],
     }),
-    p([], { spacing: { after: 160 } }),
+    p([], { spacing: { after: 120 } }),
   ];
 }
 
@@ -211,82 +231,89 @@ function buildItemsTable(doc: BillingDoc, media?: BillingMedia): (Table | Paragr
   // Signature stamp — right-aligned, directly under the total.
   const stampParagraph = (): Paragraph | null => {
     if (!media?.stamp) return null;
-    const children = [
-      new ImageRun({
-        type: "png",
-        data: media.stamp!,
-        transformation: { width: 64, height: 64 },
-      }),
-    ];
     return new Paragraph({
       alignment: AlignmentType.RIGHT,
-      spacing: { before: 120, after: 0 },
-      children,
-    });
-  };
-
-  // Receipts: show all event items formatted in bold italic font inside a styled card, followed by the centered total.
-  if (!isInvoice) {
-    const descriptionParagraphs = doc.items.map((it: LineItem, index: number) => {
-      return p(
-        [
-          run(it.description || "Item", {
-            size: 21,
-            bold: true,
-            italics: true,
-            color: DARK,
-          }),
-        ],
-        {
-          alignment: AlignmentType.LEFT,
-          spacing: {
-            line: 280,
-            before: index === 0 ? 40 : 80,
-            after: index === doc.items.length - 1 ? 40 : 80,
-          },
-        }
-      );
-    });
-
-    const descriptionsBox = new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      rows: [
-        new TableRow({
-          children: [
-            new TableCell({
-              children: descriptionParagraphs.length > 0 ? descriptionParagraphs : [p([run("Item", { bold: true, italics: true, size: 21 })])],
-              borders: cleanBorders,
-              margins: { top: 60, bottom: 60, left: 40, right: 40 },
-            }),
-          ],
+      spacing: { before: 80, after: 0 },
+      children: [
+        new ImageRun({
+          type: "png",
+          data: media.stamp,
+          transformation: { width: 68, height: 68 },
         }),
       ],
     });
+  };
+
+  // Receipts: show all event items formatted in bold italic font, followed by the centered total and right stamp.
+  if (!isInvoice) {
+    const itemParagraphs = (doc.items.length > 0 ? doc.items : [{ id: "1", description: "Event Services", qty: 1, unitPrice: 0 }]).map(
+      (it: LineItem, index: number) =>
+        p(
+          [
+            run(it.description || "Item", {
+              size: 22,
+              bold: true,
+              italics: true,
+              color: DARK,
+            }),
+          ],
+          {
+            alignment: AlignmentType.LEFT,
+            spacing: {
+              line: 300,
+              before: index === 0 ? 80 : 30,
+              after: 30,
+            },
+          }
+        )
+    );
 
     const stamp = stampParagraph();
     const receiptAmount = doc.deposit > 0 ? doc.deposit : totals.total;
     const receiptLabel = doc.deposit > 0 ? "DEPOSIT PAID" : "TOTAL";
 
     return [
-      descriptionsBox,
-      p([run(receiptLabel, { bold: true, allCaps: true, color: DARK, size: 16 })], {
+      ...itemParagraphs,
+      p([run(receiptLabel, { bold: true, allCaps: true, color: MUTED, size: 16 })], {
         alignment: AlignmentType.CENTER,
-        spacing: { before: 140, after: 30 },
+        spacing: { before: 200, after: 40 },
       }),
-      p([run(money(receiptAmount, doc.currency), { bold: true, color: ACCENT, size: 36 })], {
+      p([run(money(receiptAmount, doc.currency), { bold: true, color: ACCENT, size: 40 })], {
         alignment: AlignmentType.CENTER,
-        spacing: { after: 30 },
+        spacing: { after: 40 },
       }),
       ...(doc.deposit > 0 && totals.total > doc.deposit
         ? [
             p(
               [
                 run(
-                  `Total bill: ${money(totals.total, doc.currency)}   |   Balance due: ${money(totals.balanceDue, doc.currency)}`,
+                  `Total bill: ${money(totals.total, doc.currency)}   •   Balance due: ${money(totals.balanceDue, doc.currency)}`,
                   { color: MUTED, size: 18 }
                 ),
               ],
-              { alignment: AlignmentType.CENTER, spacing: { after: 40 } }
+              { alignment: AlignmentType.CENTER, spacing: { after: 60 } }
+            ),
+          ]
+        : []),
+      ...(doc.paymentMethod
+        ? [
+            p(
+              [
+                run("Payment: ", { bold: true, color: MUTED, size: 16 }),
+                run(doc.paymentMethod, { color: DARK, size: 16 }),
+              ],
+              { alignment: AlignmentType.CENTER, spacing: { before: 20, after: 20 } }
+            ),
+          ]
+        : []),
+      ...(doc.notes
+        ? [
+            p(
+              [
+                run("Note: ", { bold: true, color: MUTED, size: 16 }),
+                run(doc.notes, { color: DARK, size: 16 }),
+              ],
+              { alignment: AlignmentType.CENTER, spacing: { before: 20, after: 20 } }
             ),
           ]
         : []),
@@ -294,12 +321,13 @@ function buildItemsTable(doc: BillingDoc, media?: BillingMedia): (Table | Paragr
     ];
   }
 
-  // Invoices: 4-column breakdown
-  const columnWidths = [52, 16, 12, 20];
-  const widthOf = (i: number) => ({ size: columnWidths[i], type: WidthType.PERCENTAGE });
+  // Invoices: 4-column breakdown with guaranteed rigid widths [50%, 18%, 12%, 20%]
+  const colWidths = [50, 18, 12, 20];
+  const widthOf = (i: number) => ({ size: colWidths[i], type: WidthType.PERCENTAGE });
 
-  const headerCell = (text: string, align: (typeof AlignmentType)[keyof typeof AlignmentType]) =>
+  const headerCell = (text: string, align: (typeof AlignmentType)[keyof typeof AlignmentType], colIdx: number) =>
     new TableCell({
+      width: widthOf(colIdx),
       children: [p([run(text, { bold: true, color: "FFFFFF", size: 17 })], { alignment: align, spacing: { after: 0 } })],
       shading: fill(HEADER_FILL),
       verticalAlign: VerticalAlign.CENTER,
@@ -309,10 +337,10 @@ function buildItemsTable(doc: BillingDoc, media?: BillingMedia): (Table | Paragr
   const head = new TableRow({
     tableHeader: true,
     children: [
-      headerCell("DESCRIPTION", AlignmentType.LEFT),
-      headerCell("RATE", AlignmentType.RIGHT),
-      headerCell("QTY", AlignmentType.CENTER),
-      headerCell("AMOUNT", AlignmentType.RIGHT),
+      headerCell("DESCRIPTION", AlignmentType.LEFT, 0),
+      headerCell("RATE", AlignmentType.RIGHT, 1),
+      headerCell("QTY", AlignmentType.CENTER, 2),
+      headerCell("AMOUNT", AlignmentType.RIGHT, 3),
     ],
   });
 
@@ -328,19 +356,23 @@ function buildItemsTable(doc: BillingDoc, media?: BillingMedia): (Table | Paragr
       children: [
         new TableCell({
           ...common,
+          width: widthOf(0),
           children: [p([run(it.description || "Item", { size: 19, bold: !!it.description })], { spacing: { after: 0 } })],
         }),
         new TableCell({
           ...common,
+          width: widthOf(1),
           children: [p([run(money(it.unitPrice || 0, doc.currency), { size: 18 })], { alignment: AlignmentType.RIGHT, spacing: { after: 0 } })],
         }),
         new TableCell({
           ...common,
+          width: widthOf(2),
           children: [p([run(String(it.qty || 0), { size: 18 })], { alignment: AlignmentType.CENTER, spacing: { after: 0 } })],
           margins: { top: 100, bottom: 100, left: 80, right: 80 },
         }),
         new TableCell({
           ...common,
+          width: widthOf(3),
           children: [p([run(money((it.qty || 0) * (it.unitPrice || 0), doc.currency), { bold: true, size: 18 })], { alignment: AlignmentType.RIGHT, spacing: { after: 0 } })],
         }),
       ],
@@ -352,85 +384,176 @@ function buildItemsTable(doc: BillingDoc, media?: BillingMedia): (Table | Paragr
     rows: [head, ...body],
   });
 
-  // Totals — Subtotal, adjustments, and total.
-  const accentBoxL = {
-    top: thin,
-    bottom: { style: BorderStyle.SINGLE, size: 8, color: ACCENT, space: 0 },
-    left: thin,
-    right: noneBorder,
-  };
-  const accentBoxR = {
-    top: thin,
-    bottom: { style: BorderStyle.SINGLE, size: 8, color: ACCENT, space: 0 },
-    left: noneBorder,
-    right: thin,
-  };
-
-  const totalRow = (label: string, value: string, opts: { fill?: string; accent?: boolean } = {}) => {
-    const blank = (w: number) =>
-      new TableCell({
-        children: [p([""], { spacing: { after: 0 } })],
-        width: widthOf(w),
-        borders: cleanBorders,
-        margins: { top: 40, bottom: 40 },
-      });
-    const labelCell = new TableCell({
-      children: [p([run(label, { bold: !opts.accent, color: opts.accent ? DARK : MUTED, size: 17 })], {
-        alignment: AlignmentType.RIGHT,
-        spacing: { after: 0 },
-      })],
-      width: widthOf(2),
-      borders: opts.accent ? accentBoxL : cleanBorders,
-      shading: opts.fill ? fill(opts.fill) : undefined,
-      margins: { top: 70, bottom: 70, left: 140, right: 140 },
-      verticalAlign: VerticalAlign.CENTER,
-    });
-    const valueCell = new TableCell({
-      children: [p([run(value, { bold: true, color: opts.accent ? ACCENT : DARK, size: opts.accent ? 21 : 18 })], {
-        alignment: AlignmentType.RIGHT,
-        spacing: { after: 0 },
-      })],
-      width: widthOf(3),
-      borders: opts.accent ? accentBoxR : cleanBorders,
-      shading: opts.fill ? fill(opts.fill) : undefined,
-      margins: { top: 70, bottom: 70, left: 140, right: 140 },
-      verticalAlign: VerticalAlign.CENTER,
-    });
-    return new TableRow({
-      children: [
-        blank(0),
-        blank(1),
-        labelCell,
-        valueCell,
-      ],
-    });
-  };
-
-  const totalsRows: TableRow[] = [totalRow("SUBTOTAL", money(totals.subtotal, doc.currency))];
+  // Totals & adjustments
   const ttCombined = (totals.taxAmount || 0) - (totals.discountAmount || 0) + (totals.tt || 0);
-  if (ttCombined !== 0) {
-    totalsRows.push(totalRow("T & T", money(ttCombined, doc.currency)));
-  }
-  totalsRows.push(totalRow("TOTAL", money(totals.total, doc.currency), { fill: TOTAL_FILL, accent: true }));
 
   const totalsTable = new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
-    rows: totalsRows,
+    rows: [
+      new TableRow({
+        children: [
+          new TableCell({
+            width: { size: 45, type: WidthType.PERCENTAGE },
+            borders: cleanBorders,
+            margins: { top: 60, bottom: 60, left: 60, right: 60 },
+            verticalAlign: VerticalAlign.CENTER,
+            children: [
+              p([run("SUBTOTAL", { bold: true, color: MUTED, size: 16 })], {
+                alignment: AlignmentType.RIGHT,
+                spacing: { after: 0 },
+              }),
+            ],
+          }),
+          new TableCell({
+            width: { size: 55, type: WidthType.PERCENTAGE },
+            borders: cleanBorders,
+            margins: { top: 60, bottom: 60, left: 60, right: 60 },
+            verticalAlign: VerticalAlign.CENTER,
+            children: [
+              p([run(money(totals.subtotal, doc.currency), { bold: true, color: DARK, size: 18 })], {
+                alignment: AlignmentType.RIGHT,
+                spacing: { after: 0 },
+              }),
+            ],
+          }),
+        ],
+      }),
+      ...(ttCombined !== 0
+        ? [
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: { size: 45, type: WidthType.PERCENTAGE },
+                  borders: cleanBorders,
+                  margins: { top: 60, bottom: 60, left: 60, right: 60 },
+                  verticalAlign: VerticalAlign.CENTER,
+                  children: [
+                    p([run("T & T", { bold: true, color: MUTED, size: 16 })], {
+                      alignment: AlignmentType.RIGHT,
+                      spacing: { after: 0 },
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: { size: 55, type: WidthType.PERCENTAGE },
+                  borders: cleanBorders,
+                  margins: { top: 60, bottom: 60, left: 60, right: 60 },
+                  verticalAlign: VerticalAlign.CENTER,
+                  children: [
+                    p([run(money(ttCombined, doc.currency), { bold: true, color: DARK, size: 18 })], {
+                      alignment: AlignmentType.RIGHT,
+                      spacing: { after: 0 },
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ]
+        : []),
+      new TableRow({
+        children: [
+          new TableCell({
+            width: { size: 45, type: WidthType.PERCENTAGE },
+            borders: {
+              top: thin,
+              bottom: { style: BorderStyle.SINGLE, size: 8, color: ACCENT, space: 0 },
+              left: thin,
+              right: noneBorder,
+            },
+            shading: fill(TOTAL_FILL),
+            margins: { top: 80, bottom: 80, left: 100, right: 60 },
+            verticalAlign: VerticalAlign.CENTER,
+            children: [
+              p([run("TOTAL", { bold: true, color: DARK, size: 18 })], {
+                alignment: AlignmentType.LEFT,
+                spacing: { after: 0 },
+              }),
+            ],
+          }),
+          new TableCell({
+            width: { size: 55, type: WidthType.PERCENTAGE },
+            borders: {
+              top: thin,
+              bottom: { style: BorderStyle.SINGLE, size: 8, color: ACCENT, space: 0 },
+              left: noneBorder,
+              right: thin,
+            },
+            shading: fill(TOTAL_FILL),
+            margins: { top: 80, bottom: 80, left: 60, right: 100 },
+            verticalAlign: VerticalAlign.CENTER,
+            children: [
+              p([run(money(totals.total, doc.currency), { bold: true, color: ACCENT, size: 22 })], {
+                alignment: AlignmentType.RIGHT,
+                spacing: { after: 0 },
+              }),
+            ],
+          }),
+        ],
+      }),
+    ],
   });
 
   const stamp = stampParagraph();
-  return [itemsTable, p([], { spacing: { after: 40 } }), totalsTable, ...(stamp ? [stamp] : [])];
+
+  // Left column: payment info / notes if filled
+  const leftInfo: Paragraph[] = [];
+  if (doc.paymentMethod) {
+    leftInfo.push(
+      p([run("PAYMENT DETAILS", { bold: true, allCaps: true, color: ACCENT, size: 15 })], {
+        spacing: { before: 40, after: 20 },
+      }),
+      p([run(doc.paymentMethod, { color: MUTED, size: 17 })], { spacing: { after: 40 } })
+    );
+  }
+  if (doc.notes) {
+    leftInfo.push(
+      p([run("NOTES", { bold: true, allCaps: true, color: ACCENT, size: 15 })], {
+        spacing: { before: 20, after: 20 },
+      }),
+      p([run(doc.notes, { color: MUTED, size: 17 })], { spacing: { after: 40 } })
+    );
+  }
+  if (leftInfo.length === 0) {
+    leftInfo.push(p([""], { spacing: { after: 0 } }));
+  }
+
+  const summaryLayout = new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({
+        children: [
+          new TableCell({
+            width: { size: 55, type: WidthType.PERCENTAGE },
+            borders: cleanBorders,
+            verticalAlign: VerticalAlign.TOP,
+            children: leftInfo,
+          }),
+          new TableCell({
+            width: { size: 45, type: WidthType.PERCENTAGE },
+            borders: cleanBorders,
+            verticalAlign: VerticalAlign.TOP,
+            children: [
+              totalsTable,
+              ...(stamp ? [stamp] : []),
+            ],
+          }),
+        ],
+      }),
+    ],
+  });
+
+  return [
+    itemsTable,
+    p([], { spacing: { after: 80 } }),
+    summaryLayout,
+  ];
 }
 
 // ─── Public API ────────────────────────────────────────────
 
 export interface BillingMedia {
-  logoSvg?: string;
   logo?: Uint8Array;
-  stampSvg?: string;
   stamp?: Uint8Array;
-  phone?: Uint8Array;
-  location?: Uint8Array;
 }
 
 export function buildBillingDocx(doc: BillingDoc, media?: BillingMedia): Document {
@@ -453,7 +576,7 @@ export function buildBillingDocx(doc: BillingDoc, media?: BillingMedia): Documen
         properties: {
           page: {
             size: { width: 11906, height: 16838 },
-            margin: { top: 1100, bottom: 1700, left: 1247, right: 1247 },
+            margin: { top: 1000, bottom: 1200, left: 1200, right: 1200 },
           },
         },
         footers: {
@@ -464,29 +587,22 @@ export function buildBillingDocx(doc: BillingDoc, media?: BillingMedia): Documen
                 border: {
                   top: { style: BorderStyle.SINGLE, size: 6, color: ACCENT, space: 6 },
                 },
-                spacing: { before: 160 },
-                children: [run("Ts & Cs", { bold: true, color: ACCENT, size: 14 })],
+                spacing: { before: 120 },
+                children: [run("Ts & Cs", { bold: true, color: ACCENT, size: 15 })],
               }),
               new Paragraph({
                 alignment: AlignmentType.CENTER,
-                spacing: { before: 60, after: 40 },
-                children: [run(terms, { color: MUTED, size: 18 })],
+                spacing: { before: 30, after: 30 },
+                children: [run(terms, { color: MUTED, size: 17 })],
               }),
               new Paragraph({
                 alignment: AlignmentType.CENTER,
-                spacing: { before: 80, after: 0 },
+                spacing: { before: 30, after: 0 },
                 children: [
-                  run(` ${doc.companyWebsite || "sistaevents.site"}`, { color: MUTED, size: 12 }),
-                  run("   •   ", { color: MUTED, size: 12 }),
-                  ...(media?.phone
-                    ? [new ImageRun({ type: "png", data: media.phone, transformation: { width: 16, height: 16 } })]
-                    : []),
-                  run(` ${doc.companyPhone || "0555182969"}`, { color: MUTED, size: 12 }),
-                  run("   •   ", { color: MUTED, size: 12 }),
-                  ...(media?.location
-                    ? [new ImageRun({ type: "png", data: media.location, transformation: { width: 16, height: 16 } })]
-                    : []),
-                  run(` ${doc.companyAddress || "Kasoa, Accra"}`, { color: MUTED, size: 12 }),
+                  run(
+                    `${doc.companyWebsite || "sistaevents.site"}   •   ${doc.companyPhone || "0555 182 969"}   •   ${doc.companyAddress || "Amanfro, Kasoa, Ghana"}`,
+                    { color: MUTED, size: 15 }
+                  ),
                 ],
               }),
             ],
@@ -496,7 +612,6 @@ export function buildBillingDocx(doc: BillingDoc, media?: BillingMedia): Documen
           ...buildHeader(doc, media?.logo),
           ...buildClientDetails(doc),
           ...buildItemsTable(doc, media),
-          p([], { spacing: { after: 200 } }),
         ],
       },
     ],
@@ -506,24 +621,17 @@ export function buildBillingDocx(doc: BillingDoc, media?: BillingMedia): Documen
 export async function downloadBillingDocx(doc: BillingDoc): Promise<void> {
   let logo: Uint8Array | undefined;
   let stamp: Uint8Array | undefined;
-  let socials: { phone?: Uint8Array; location?: Uint8Array } = {};
 
   try {
-    const { loadLogoPng, loadStampPng, loadSocialPngs } = await import("./logoRaster");
-    const results = await Promise.allSettled([loadLogoPng(), loadStampPng(), loadSocialPngs()]);
+    const { loadLogoPng, loadStampPng } = await import("./logoRaster");
+    const results = await Promise.allSettled([loadLogoPng(300), loadStampPng(256)]);
     if (results[0].status === "fulfilled") logo = results[0].value;
     if (results[1].status === "fulfilled") stamp = results[1].value;
-    if (results[2].status === "fulfilled") socials = results[2].value;
   } catch {
-    // Proceed with fallback vector/text rendering if image rasterization fails
+    // Proceed with fallback text rendering if image rasterization fails
   }
 
-  const file = buildBillingDocx(doc, {
-    logo,
-    stamp,
-    phone: socials.phone,
-    location: socials.location,
-  });
+  const file = buildBillingDocx(doc, { logo, stamp });
   const blob = await Packer.toBlob(file);
   const kind = doc.kind === "invoice" ? "Invoice" : "Receipt";
   const safeNumber = (doc.docNumber || "draft").replace(/[^\w-]+/g, "-");

@@ -7,6 +7,8 @@ import { useAdminConfirm } from "@/components/admin/AdminConfirmProvider";
 import {
   ReceiptText,
   FileDown,
+  Eye,
+  Save,
   Building2,
   User,
   CalendarDays,
@@ -36,6 +38,7 @@ import {
   money,
 } from "./billing/types";
 import { downloadBillingDocx } from "./billing/templateDocx";
+import { buildBillingHtml, downloadBillingHtml } from "./billing/templateHtml";
 import {
   loadSavedDraft,
   saveDraftToStorage,
@@ -111,6 +114,8 @@ const Billing: React.FC = () => {
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(initialDraft.updatedAt);
   const [isSaving, setIsSaving] = useState(false);
   const [isOnline, setIsOnline] = useState(() => (typeof navigator !== "undefined" ? navigator.onLine : true));
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const previewFrameRef = useRef<HTMLIFrameElement>(null);
   const [, setTimeTick] = useState(0);
 
   const doc = docs[kind];
@@ -347,6 +352,30 @@ const Billing: React.FC = () => {
 
   const totals = useMemo(() => computeTotals(doc), [doc]);
 
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  const openBrowserPreview = useCallback(() => {
+    flushSave();
+    const blob = new Blob([buildBillingHtml(doc)], { type: "text/html;charset=utf-8" });
+    setPreviewUrl((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return URL.createObjectURL(blob);
+    });
+  }, [doc, flushSave]);
+
+  const closeBrowserPreview = useCallback(() => {
+    setPreviewUrl(null);
+  }, []);
+
+  const printBrowserPreview = useCallback(() => {
+    previewFrameRef.current?.contentWindow?.focus();
+    previewFrameRef.current?.contentWindow?.print();
+  }, []);
+
   const handleDownload = useCallback(async () => {
     if (!doc.clientName.trim()) {
       toast({
@@ -446,6 +475,15 @@ const Billing: React.FC = () => {
             >
               <FileDown className="w-4 h-4" />
               <span>Download</span>
+            </button>
+            <button
+              type="button"
+              onClick={openBrowserPreview}
+              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-slate-600 hover:text-amber-600 hover:bg-amber-50 transition-colors border border-slate-200/70 bg-white/70"
+              title="Preview this document in the browser"
+            >
+              <Eye className="w-4 h-4" />
+              <span>Preview</span>
             </button>
           </div>
         </div>
@@ -816,7 +854,7 @@ const Billing: React.FC = () => {
             </div>
           </Section>
 
-          {/* Payment / notes */}
+          {/* Payment / terms */}
           <Section icon={<StickyNote className="w-4 h-4" />} title="Payment details" subtitle="mode of client payments">
             <div className="space-y-3">
               <Field label={kind === "invoice" ? "Payment details" : "Payment summary"}>
@@ -828,7 +866,7 @@ const Billing: React.FC = () => {
                   placeholder="Bank / mobile money details or a short summary"
                 />
               </Field>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {kind === "invoice" && (
                 <Field label="Notes">
                   <textarea
                     value={doc.notes}
@@ -837,7 +875,9 @@ const Billing: React.FC = () => {
                     className={`${inputCls} w-full h-auto py-2 resize-none`}
                   />
                 </Field>
-                <Field label={kind === "invoice" ? "Terms & conditions" : "Additional info"}>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Field label="Ts & Cs" className="sm:col-span-2">
                   <textarea
                     value={doc.terms}
                     onChange={(e) => patchActive({ terms: e.target.value })}
@@ -869,16 +909,56 @@ const Billing: React.FC = () => {
             <PreviewDocument doc={doc} />
           </div>
 
-          <button
-            type="button"
-            onClick={handleDownload}
-            className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-semibold text-slate-500 hover:text-amber-600 hover:bg-amber-50 border border-slate-200/60 bg-white/60 backdrop-blur-sm transition-colors"
-          >
-            <FileDown className="w-4 h-4" />
-            Download {kind === "invoice" ? "Invoice" : "Receipt"} (.DOCX)
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={printBrowserPreview}
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 shadow-xs transition-colors"
+              title="Print or save as PDF from the browser"
+            >
+              <Save className="w-4 h-4" />
+              Save
+            </button>
+            <button
+              type="button"
+              onClick={() => downloadBillingHtml(doc)}
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-semibold text-slate-600 hover:text-amber-600 hover:bg-amber-50 border border-slate-200/60 bg-white/60 transition-colors"
+              title="Download a self-contained HTML document"
+            >
+              <FileDown className="w-4 h-4" />
+              Download
+            </button>
+          </div>
         </div>
       </div>
+
+      {previewUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label={`${kind} browser preview`}>
+          <div className="flex h-full w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-slate-100 shadow-2xl">
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3">
+              <div>
+                <h3 className="text-sm font-bold text-slate-800">{kind === "invoice" ? "Invoice" : "Receipt"} preview</h3>
+
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <button type="button" onClick={printBrowserPreview} className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-2 text-xs font-semibold text-white hover:bg-amber-700">
+                  <Save className="h-4 w-4" />
+                  Save
+                </button>
+                <button type="button" onClick={closeBrowserPreview} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+                  Close
+                </button>
+              </div>
+            </div>
+            <iframe
+              ref={previewFrameRef}
+              src={previewUrl}
+              title={`${kind} document preview`}
+              className="min-h-0 flex-1 border-0 bg-slate-200"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -969,8 +1049,22 @@ function PreviewDocument({ doc }: { doc: BillingDoc }) {
             </tbody>
           </table>
 
-          {/* Totals */}
-          <div className="flex justify-end mt-3">
+          {/* Totals & payment details */}
+          <div className="flex justify-between items-start gap-4 mt-3">
+            <div className="text-[10px] space-y-2 max-w-[50%]">
+              {doc.paymentMethod && (
+                <div>
+                  <p className="text-[9px] font-bold text-amber-600 uppercase tracking-widest">Payment details</p>
+                  <p className="text-slate-600 whitespace-pre-wrap">{doc.paymentMethod}</p>
+                </div>
+              )}
+              {doc.notes && (
+                <div>
+                  <p className="text-[9px] font-bold text-amber-600 uppercase tracking-widest">Notes</p>
+                  <p className="text-slate-600 whitespace-pre-wrap">{doc.notes}</p>
+                </div>
+              )}
+            </div>
             <div>
               <div className="w-56 space-y-1 text-[10px]">
                 <TotalLine label="Subtotal" value={money(totals.subtotal, doc.currency)} />
@@ -1015,6 +1109,17 @@ function PreviewDocument({ doc }: { doc: BillingDoc }) {
               </p>
             )}
           </div>
+          {/* Receipt — payment info if present */}
+          {(doc.paymentMethod || doc.notes) && (
+            <div className="mt-3 pt-2 text-[10px] space-y-1 text-center">
+              {doc.paymentMethod && (
+                <p className="text-slate-600"><span className="font-semibold text-slate-500">Payment: </span>{doc.paymentMethod}</p>
+              )}
+              {doc.notes && (
+                <p className="text-slate-600"><span className="font-semibold text-slate-500">Note: </span>{doc.notes}</p>
+              )}
+            </div>
+          )}
           {/* Signature stamp — under the total */}
           <div className="flex justify-end mt-2">
             <img src={sistastampUrl} alt="Payment stamp" className="w-14 h-14 sm:w-16 sm:h-16 object-contain" />
@@ -1027,7 +1132,7 @@ function PreviewDocument({ doc }: { doc: BillingDoc }) {
         <p className="text-[9px] font-extrabold text-amber-600 uppercase tracking-widest">Ts &amp; Cs</p>
         <p className="text-[9px] text-slate-500 mt-1 px-2 whitespace-pre-wrap">
           {doc.terms ||
-            " No refunds for cancellations within 7 days of the event."}
+            " No refunds for cancellations within 7 days to your event."}
         </p>
         <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1 mt-2 text-[8px] text-slate-400 px-1">
           <Globe className="h-3 w-3 shrink-0" />

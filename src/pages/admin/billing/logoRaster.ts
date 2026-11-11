@@ -42,8 +42,7 @@ function rasterize(svgText: string, dimension: number): Promise<Uint8Array> {
       canvas.height = dimension;
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Canvas 2D context unavailable");
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, dimension, dimension);
+      ctx.clearRect(0, 0, dimension, dimension);
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
       ctx.drawImage(img, 0, 0, dimension, dimension);

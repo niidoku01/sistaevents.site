@@ -8,11 +8,9 @@ import { visualizer } from "rollup-plugin-visualizer";
 /**
  * Build-time responsive images.
  *
- * 1. `?responsive` query imports generate WebP variants (480w / 800w / 1280w /
- *    1920w / native-width) for a single image and export `{ src, srcset }`.
- *    The final srcset tier is the source's native resolution so large/retina
- *    screens and the full-screen viewer can fetch the highest quality possible;
- *    `src` stays capped at 1920w so old browsers/lossy paths stay lean.
+ * 1. `?responsive` query imports generate WebP variants up to 2560px and
+ *    export `{ src, srcset }`, keeping gallery images sharp on large and
+ *    retina displays while still letting phones choose smaller candidates.
  * 2. `virtual:responsive-collection-images` is populated at build start by
  *    scanning `src/assets/collections`, so the collection gallery can build
  *    per-image `srcset` values without relying on glob query imports (which
@@ -22,13 +20,13 @@ import { visualizer } from "rollup-plugin-visualizer";
  * Variants are written to `public/res/img` (gitignored) so they are served
  * statically in both dev and production builds.
  */
-const RESPONSIVE_WIDTHS = [320, 480, 800, 1280, 1920];
-const MAX_GENERATED_WIDTH = 1920;
+const RESPONSIVE_WIDTHS = [360, 480, 768, 1080, 1440, 1920, 2560];
+const MAX_GENERATED_WIDTH = 2560;
 const RESPONSIVE_OUTPUT_PREFIX = "/res/img/";
 const COLLECTION_DIR = path.resolve(process.cwd(), "src/assets/collections");
 // Bump when the encoding settings below change so browsers don't keep serving
 // stale variants from a previous build (the file names are not content-hashed).
-const VARIANT_VERSION = "v2";
+const VARIANT_VERSION = "v4";
 
 function responsiveImages(): Plugin {
   const cache = new Map<string, string>();
@@ -42,8 +40,8 @@ function responsiveImages(): Plugin {
     const srcWidth = meta.width || MAX_GENERATED_WIDTH;
     const srcHeight = meta.height || 0;
 
-    // Cap the largest tier at 1920w. The old native-resolution tier could
-    // easily exceed 3 MB per photo, which made the lightbox slow on phones.
+    // Keep a high-resolution tier for the lightbox and retina displays without forcing phones to
+    // download it; srcset lets each viewport choose the smallest suitable file.
     let widths = RESPONSIVE_WIDTHS.filter((w) => w < srcWidth);
     widths.push(srcWidth <= MAX_GENERATED_WIDTH ? srcWidth : MAX_GENERATED_WIDTH);
     widths = Array.from(new Set(widths)).sort((a, b) => a - b);
@@ -59,10 +57,14 @@ function responsiveImages(): Plugin {
       if (!(await fs.access(outFile).then(() => true).catch(() => false))) {
         await sharp(filePath, { failOn: "none" })
           .rotate()
-          .resize({ width })
+          .resize({
+            width,
+            withoutEnlargement: true,
+            fastShrinkOnLoad: false,
+          })
           .webp({
-            quality: width >= 1280 ? 82 : 80,
-            effort: 4,
+            quality: width >= 1920 ? 94 : width >= 1080 ? 92 : width >= 768 ? 90 : 88,
+            effort: 6,
             smartSubsample: true,
           })
           .toFile(outFile);
@@ -131,7 +133,8 @@ function responsiveImages(): Plugin {
       if (cached) return cached;
 
       const { variants, width, height } = await generateVariants(filePath);
-      const src = (variants.findLast((v) => v.width <= MAX_GENERATED_WIDTH) ?? variants[variants.length - 1]).url;
+      const fallbackVariant = variants.findLast((v) => v.width <= 1920) ?? variants[variants.length - 1];
+      const src = fallbackVariant.url;
       const srcset = variants.map((v) => `${v.url} ${v.width}w`).join(", ");
       const code = [
         `export const src = ${JSON.stringify(src)};`,

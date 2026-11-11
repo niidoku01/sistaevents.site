@@ -30,7 +30,7 @@ const optimizeBuffer = async (inputPath, format) => {
   if (format === "jpeg" || format === "jpg") {
     return pipeline
       .jpeg({
-        quality: 88,
+        quality: 92,
         mozjpeg: true,
         progressive: true,
       })
@@ -40,10 +40,10 @@ const optimizeBuffer = async (inputPath, format) => {
   if (format === "png") {
     return pipeline
       .png({
-        compressionLevel: 6,
+        compressionLevel: 8,
         palette: true,
-        quality: 90,
-        effort: 6,
+        quality: 95,
+        effort: 7,
       })
       .toBuffer();
   }
@@ -51,8 +51,9 @@ const optimizeBuffer = async (inputPath, format) => {
   if (format === "webp") {
     return pipeline
       .webp({
-        quality: 88,
-        effort: 4,
+        quality: 92,
+        effort: 6,
+        smartSubsample: true,
       })
       .toBuffer();
   }

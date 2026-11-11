@@ -41,10 +41,14 @@ const p = (children: (TextRun | string)[], opts: Partial<IParagraphOptions> = {}
     border: opts.border,
   });
 
-const run = (text: string, opts: { bold?: boolean; color?: string; size?: number; allCaps?: boolean } = {}): TextRun =>
+const run = (
+  text: string,
+  opts: { bold?: boolean; italics?: boolean; color?: string; size?: number; allCaps?: boolean } = {}
+): TextRun =>
   new TextRun({
     text,
     bold: opts.bold,
+    italics: opts.italics,
     color: opts.color ?? DARK,
     size: opts.size ?? 20,
     allCaps: opts.allCaps,
@@ -61,7 +65,7 @@ const fmtDate = (iso: string): string => (iso || "—").replace(/-/g, " / ");
 // Header: "INVOICE" inscription on the LEFT, logo + company name on the RIGHT.
 function buildHeader(doc: BillingDoc, logoSvg?: string, logoPng?: Uint8Array): (Table | Paragraph)[] {
   const isInvoice = doc.kind === "invoice";
-  const title = doc.kind === "invoice" ? "INVOICE" : "RECEIPT";
+  const title = isInvoice ? "INVOICE" : "RECEIPT";
 
   const lhs = [p([run(title, { bold: true, size: 36, color: DARK })], { spacing: { after: 30 } })];
 
@@ -231,47 +235,76 @@ function buildItemsTable(doc: BillingDoc, media?: BillingMedia): (Table | Paragr
     });
   };
 
-  // Receipts: show only the event description(s) in a bordered box, then a centered bill total below.
-  // Tight line spacing + cell padding keeps more items on a single standard sheet.
+  // Receipts: show all event items formatted in bold italic font inside a styled card, followed by the centered total.
   if (!isInvoice) {
-    const descriptionParagraphs = doc.items.map((it: LineItem, i: number) => {
-      const isLast = i === doc.items.length - 1;
-      return p([run(it.description || "Item", { size: 20, bold: true, color: DARK })], {
-        alignment: AlignmentType.LEFT,
-        spacing: { line: 240, after: isLast ? 0 : 30 },
-        border: isLast ? undefined : { bottom: { style: BorderStyle.DOTTED, size: 4, color: "E2E8F0", space: 8 } },
-      });
+    const descriptionParagraphs = doc.items.map((it: LineItem, index: number) => {
+      return p(
+        [
+          run(it.description || "Item", {
+            size: 21,
+            bold: true,
+            italics: true,
+            color: DARK,
+          }),
+        ],
+        {
+          alignment: AlignmentType.LEFT,
+          spacing: {
+            line: 280,
+            before: index === 0 ? 40 : 80,
+            after: index === doc.items.length - 1 ? 40 : 80,
+          },
+        }
+      );
     });
+
     const descriptionsBox = new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
       rows: [
         new TableRow({
           children: [
             new TableCell({
-              children: descriptionParagraphs,
-              borders: cellBorders,
-              shading: fill("FFFDF5"),
-              margins: { top: 100, bottom: 100, left: 200, right: 200 },
+              children: descriptionParagraphs.length > 0 ? descriptionParagraphs : [p([run("Item", { bold: true, italics: true, size: 21 })])],
+              borders: cleanBorders,
+              margins: { top: 60, bottom: 60, left: 40, right: 40 },
             }),
           ],
         }),
       ],
     });
+
     const stamp = stampParagraph();
+    const receiptAmount = doc.deposit > 0 ? doc.deposit : totals.total;
+    const receiptLabel = doc.deposit > 0 ? "DEPOSIT PAID" : "TOTAL";
+
     return [
       descriptionsBox,
-      p([run("TOTAL", { bold: true, allCaps: true, color: DARK, size: 16 })], {
+      p([run(receiptLabel, { bold: true, allCaps: true, color: DARK, size: 16 })], {
         alignment: AlignmentType.CENTER,
-        spacing: { before: 120, after: 20 },
+        spacing: { before: 140, after: 30 },
       }),
-      p([run(money(totals.total, doc.currency), { bold: true, color: ACCENT, size: 36 })], {
+      p([run(money(receiptAmount, doc.currency), { bold: true, color: ACCENT, size: 36 })], {
         alignment: AlignmentType.CENTER,
-        spacing: { after: 0 },
+        spacing: { after: 30 },
       }),
+      ...(doc.deposit > 0 && totals.total > doc.deposit
+        ? [
+            p(
+              [
+                run(
+                  `Total bill: ${money(totals.total, doc.currency)}   |   Balance due: ${money(totals.balanceDue, doc.currency)}`,
+                  { color: MUTED, size: 18 }
+                ),
+              ],
+              { alignment: AlignmentType.CENTER, spacing: { after: 40 } }
+            ),
+          ]
+        : []),
       ...(stamp ? [stamp] : []),
     ];
   }
 
+  // Invoices: 4-column breakdown
   const columnWidths = [52, 16, 12, 20];
   const widthOf = (i: number) => ({ size: columnWidths[i], type: WidthType.PERCENTAGE });
 
@@ -329,7 +362,7 @@ function buildItemsTable(doc: BillingDoc, media?: BillingMedia): (Table | Paragr
     rows: [head, ...body],
   });
 
-  // Totals — Subtotal, T & T, Total (with optional deposit row for invoices).
+  // Totals — Subtotal, adjustments, and total.
   const accentBoxL = {
     top: thin,
     bottom: { style: BorderStyle.SINGLE, size: 8, color: ACCENT, space: 0 },
@@ -342,11 +375,12 @@ function buildItemsTable(doc: BillingDoc, media?: BillingMedia): (Table | Paragr
     left: noneBorder,
     right: thin,
   };
+
   const totalRow = (label: string, value: string, opts: { fill?: string; accent?: boolean } = {}) => {
-    const blank = () =>
+    const blank = (w: number) =>
       new TableCell({
         children: [p([""], { spacing: { after: 0 } })],
-        width: widthOf(0),
+        width: widthOf(w),
         borders: cleanBorders,
         margins: { top: 40, bottom: 40 },
       });
@@ -374,12 +408,8 @@ function buildItemsTable(doc: BillingDoc, media?: BillingMedia): (Table | Paragr
     });
     return new TableRow({
       children: [
-        blank(),
-        new TableCell({
-          children: [],
-          width: widthOf(1),
-          borders: cleanBorders,
-        }),
+        blank(0),
+        blank(1),
         labelCell,
         valueCell,
       ],
@@ -387,13 +417,11 @@ function buildItemsTable(doc: BillingDoc, media?: BillingMedia): (Table | Paragr
   };
 
   const totalsRows: TableRow[] = [totalRow("SUBTOTAL", money(totals.subtotal, doc.currency))];
-  totalsRows.push(totalRow("T & T", money(totals.taxAmount - totals.discountAmount + totals.tt, doc.currency)));
-  if (doc.deposit > 0) {
-    totalsRows.push(totalRow("LESS DEPOSIT", `− ${money(doc.deposit, doc.currency)}`));
-    totalsRows.push(totalRow("TOTAL", money(totals.balanceDue, doc.currency), { fill: TOTAL_FILL, accent: true }));
-  } else {
-    totalsRows.push(totalRow("TOTAL", money(totals.total, doc.currency), { fill: TOTAL_FILL, accent: true }));
+  const ttCombined = (totals.taxAmount || 0) - (totals.discountAmount || 0) + (totals.tt || 0);
+  if (ttCombined !== 0) {
+    totalsRows.push(totalRow("T & T", money(ttCombined, doc.currency)));
   }
+  totalsRows.push(totalRow("TOTAL", money(totals.total, doc.currency), { fill: TOTAL_FILL, accent: true }));
 
   const totalsTable = new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
@@ -486,12 +514,28 @@ export function buildBillingDocx(doc: BillingDoc, media?: BillingMedia): Documen
 }
 
 export async function downloadBillingDocx(doc: BillingDoc): Promise<void> {
-  const { loadLogoSvg, loadLogoPng, loadStampSvg, loadStampPng, loadSocialPngs } = await import("./logoRaster");
-  const [logo, stamp, socials] = await Promise.all([loadLogoPng(), loadStampPng(), loadSocialPngs()]);
+  let logo: Uint8Array | undefined;
+  let stamp: Uint8Array | undefined;
+  let socials: { phone?: Uint8Array; location?: Uint8Array } = {};
+  let logoSvg: string | undefined;
+  let stampSvg: string | undefined;
+
+  try {
+    const { loadLogoSvg, loadLogoPng, loadStampSvg, loadStampPng, loadSocialPngs } = await import("./logoRaster");
+    logoSvg = loadLogoSvg();
+    stampSvg = loadStampSvg();
+    const results = await Promise.allSettled([loadLogoPng(), loadStampPng(), loadSocialPngs()]);
+    if (results[0].status === "fulfilled") logo = results[0].value;
+    if (results[1].status === "fulfilled") stamp = results[1].value;
+    if (results[2].status === "fulfilled") socials = results[2].value;
+  } catch {
+    // Proceed with fallback vector/text rendering if image rasterization fails
+  }
+
   const file = buildBillingDocx(doc, {
-    logoSvg: loadLogoSvg(),
+    logoSvg,
     logo,
-    stampSvg: loadStampSvg(),
+    stampSvg,
     stamp,
     phone: socials.phone,
     location: socials.location,
@@ -507,5 +551,5 @@ export async function downloadBillingDocx(doc: BillingDoc): Promise<void> {
   document.body.appendChild(link);
   link.click();
   link.remove();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

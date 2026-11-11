@@ -17,3 +17,5 @@ Disallow: /admin
 User-agent: *
 Allow: /
 Disallow: /admin
+
+Sitemap: https://sistaevents.site/sitemap.xml

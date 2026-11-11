@@ -99,6 +99,7 @@ export default function CanvasElement({
         width: el.width * scale, height: el.height * scale,
         transform: `rotate(${el.rotation}deg)`,
         cursor: isLocked ? "not-allowed" : "move",
+        touchAction: isLocked ? "manipulation" : "none",
         transition: "box-shadow 0.2s ease, filter 0.2s ease",
         zIndex: el.zIndex ?? zIndex,
       }}

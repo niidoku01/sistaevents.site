@@ -12,14 +12,18 @@
 export const CELEBRATION_TITLE_MARKER = "\u200B[celebration]";
 
 type CelebrationFields = {
-  celebratory?: boolean;
+  celebratory?: boolean | null;
   title?: string;
 };
 
 /** True when an ad should render the celebration style/confetti. */
 export const isCelebrationAd = (ad: CelebrationFields | null | undefined): boolean => {
   if (!ad) return false;
-  return ad.celebratory === true || (ad.title ?? "").startsWith(CELEBRATION_TITLE_MARKER);
+  // Check both the explicit boolean flag and the fallback title marker
+  // Use loose equality to handle cases where the field might be missing/undefined
+  const hasCelebratoryFlag = ad.celebratory === true || ad.celebratory === "true";
+  const hasTitleMarker = (ad.title ?? "").startsWith(CELEBRATION_TITLE_MARKER);
+  return hasCelebratoryFlag || hasTitleMarker;
 };
 
 /** Adds the invisible marker so older deployments can persist the style. */

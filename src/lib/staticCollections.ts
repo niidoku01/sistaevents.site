@@ -43,7 +43,7 @@ const getFallbackUrl = (srcset: string): string => {
   const preferred = entries
     .slice()
     .reverse()
-    .find((entry) => entry.width <= 1280);
+    .find((entry) => entry.width <= 1920);
 
   return (preferred ?? entries[entries.length - 1]).url;
 };

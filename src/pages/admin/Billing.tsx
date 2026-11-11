@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminConfirm } from "@/components/admin/AdminConfirmProvider";
 import {
   ReceiptText,
   FileDown,
@@ -10,6 +11,7 @@ import {
   User,
   CalendarDays,
   Banknote,
+  Calculator,
   StickyNote,
   FilePlus2,
   CheckCircle2,
@@ -19,6 +21,8 @@ import {
   Phone,
   MapPin,
   Globe,
+  WifiOff,
+  Loader2,
 } from "lucide-react";
 import sistalogoUrl from "@/assets/sistalogo.svg";
 import sistastampUrl from "@/assets/sistastamp.svg";
@@ -32,128 +36,38 @@ import {
   money,
 } from "./billing/types";
 import { downloadBillingDocx } from "./billing/templateDocx";
-
-// ─── Defaults ──────────────────────────────────────────────
-function iso(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
-
-const SEQ_KEY = "sista-events.billing.seq";
-
-function seqKey(kind: DocKind): string {
-  return `${SEQ_KEY}.${kind === "invoice" ? "inv" : "rct"}`;
-}
-
-function docNumberPrefix(kind: DocKind): string {
-  return kind === "invoice" ? "INV" : "RCPT";
-}
-
-function formatDocNumber(kind: DocKind, year: number, n: number): string {
-  return `${docNumberPrefix(kind)}-${year}-${String(n).padStart(3, "0")}`;
-}
-
-// Highest sequence already used by a saved document for this kind + year, so
-// newly generated numbers never collide with existing (or imported) ones.
-function maxDocNumberFromSaved(kind: DocKind, year: number): number {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const saved = raw ? JSON.parse(raw) : null;
-    const doc = saved && saved[kind] ? saved[kind] : null;
-    const m = doc && doc.docNumber && /^[A-Z]{3}-(\d{4})-(\d+)$/.exec(doc.docNumber);
-    if (!m) return 0;
-    return Number(m[1]) === year ? Number(m[2]) : 0;
-  } catch {
-    return 0;
-  }
-}
-
-function readSeq(kind: DocKind): { year: number; n: number } {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(seqKey(kind)) || "null");
-    if (parsed && typeof parsed.year === "number" && typeof parsed.n === "number") {
-      return parsed;
-    }
-  } catch {
-    // fall through to default
-  }
-  return { year: new Date().getFullYear(), n: 0 };
-}
-
-function writeSeq(kind: DocKind, entry: { year: number; n: number }): void {
-  localStorage.setItem(seqKey(kind), JSON.stringify(entry));
-}
-
-function nextDocNumber(kind: DocKind): string {
-  const year = new Date().getFullYear();
-  try {
-    const entry = readSeq(kind);
-    const fromDocs = maxDocNumberFromSaved(kind, year);
-    const n = Math.max(entry.year === year ? entry.n : 0, fromDocs) + 1;
-    writeSeq(kind, { year, n });
-    return formatDocNumber(kind, year, n);
-  } catch {
-    return formatDocNumber(kind, year, 1);
-  }
-}
-
-function createDefault(kind: DocKind): BillingDoc {
-  const now = new Date();
-  const due = new Date(now);
-  due.setDate(now.getDate() + 14);
-  return {
-    kind,
-    currency: "GHS",
-    docNumber: nextDocNumber(kind),
-    issueDate: iso(now),
-    dueDate: iso(due),
-    paidDate: iso(now),
-    companyName: "Sista Events & Rentals",
-    companyTagline: "Creating unforgettable moments with sizeable budget.",
-    companyAddress: "Kasoa, Accra",
-    companyEmail: "info@sistaevents.com",
-    companyPhone: "0555 182 969",
-    companyWebsite: "sistaevents.site",
-    clientName: "",
-    clientEmail: "",
-    clientPhone: "",
-    clientAddress: "",
-    items: [emptyItem()],
-    discountRate: 0,
-    taxRate: 0,
-    tt: 0,
-    deposit: 0,
-    notes:
-      kind === "invoice"
-        ? "A deposit secures your booking date. The balance is due before the event day. Please include your booking reference with any payment."
-        : "This confirms payment for your booking. Keep this receipt for your records.",
-    terms:
-      "Convenience: no refunds for cancellations within 7 days of the event. Rescheduling is allowed up to 48 hours before the event, subject to availability.",
-    paymentMethod:
-      "MTN Mobile Money: 0555 182 969  ",
-  };
-}
-
-function loadOrCreate(kind: DocKind): BillingDoc {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const saved = raw ? JSON.parse(raw) : null;
-    const source = saved && saved[kind] ? saved[kind] : null;
-    if (source) {
-      const parsed: BillingDoc = { ...createDefault(kind), ...source, kind };
-      parsed.items = Array.isArray(source.items) && source.items.length > 0 ? source.items : [emptyItem()];
-      return parsed;
-    }
-  } catch {
-    return createDefault(kind);
-  }
-  return createDefault(kind);
-}
+import {
+  loadSavedDraft,
+  saveDraftToStorage,
+  createDefaultDoc,
+  nextDocNumber,
+  hasDraftContent,
+  formatRelativeSavedTime,
+  localIsoDate,
+  defaultDueDate,
+  syncDefaultDates,
+} from "./billing/storage";
 
 // ─── Small building blocks ─────────────────────────────────
-function Field({ label, hint, children, className = "" }: { label: string; hint?: string; children: React.ReactNode; className?: string }) {
+function Field({
+  label,
+  hint,
+  action,
+  children,
+  className = "",
+}: {
+  label: string;
+  hint?: string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
     <label className={`block ${className}`}>
-      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 block">{label}</span>
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">{label}</span>
+        {action}
+      </div>
       {children}
       {hint && <span className="text-[10px] text-slate-400 mt-1 block">{hint}</span>}
     </label>
@@ -168,13 +82,12 @@ function Section({ icon, title, subtitle, children }: {
 }) {
   return (
     <div className="rounded-2xl border border-slate-200/60 bg-white/70 backdrop-blur-sm shadow-xs hover:shadow-md transition-all duration-300">
-      <div className="flex items-start gap-3 px-4 py-3 sm:flex-row">
+      <div className="flex items-center gap-3 px-4 py-3 sm:flex-row">
         <div className="w-9 h-9 rounded-xl bg-linear-to-br from-amber-100 to-amber-50 border border-amber-200/60 flex items-center justify-center text-amber-600 flex-shrink-0">
           {icon}
         </div>
         <div className="min-w-0">
           <h3 className="text-sm font-bold text-slate-800">{title}</h3>
-          {subtitle && <p className="text-[11px] text-slate-400">{subtitle}</p>}
         </div>
       </div>
       <div className="px-4 pb-4">{children}</div>
@@ -188,39 +101,190 @@ const inputCls =
 // ─── Page ──────────────────────────────────────────────────
 const Billing: React.FC = () => {
   const { toast } = useToast();
-  const [kind, setKind] = useState<DocKind>("invoice");
-  const [docs, setDocs] = useState<Record<DocKind, BillingDoc>>(() => ({
-    invoice: loadOrCreate("invoice"),
-    receipt: loadOrCreate("receipt"),
-  }));
-  const [savedFlash, setSavedFlash] = useState(false);
-  const saveTimer = useRef<number | null>(null);
+  const { confirm } = useAdminConfirm();
+
+  // Load existing draft from storage (supports offline, tab break restoration, and previous active tab)
+  const initialDraft = useMemo(() => loadSavedDraft(), []);
+
+  const [kind, setKind] = useState<DocKind>(initialDraft.activeKind);
+  const [docs, setDocs] = useState<Record<DocKind, BillingDoc>>(initialDraft.docs);
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(initialDraft.updatedAt);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isOnline, setIsOnline] = useState(() => (typeof navigator !== "undefined" ? navigator.onLine : true));
+  const [, setTimeTick] = useState(0);
 
   const doc = docs[kind];
 
-  // Autosave (debounced) + flash indicator
-  useEffect(() => {
-    if (saveTimer.current) window.clearTimeout(saveTimer.current);
-    saveTimer.current = window.setTimeout(() => {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(docs));
-        setSavedFlash(true);
-        window.setTimeout(() => setSavedFlash(false), 1600);
-      } catch {
-        /* quota / private mode – ignore */
-      }
-    }, 650);
-    return () => {
-      if (saveTimer.current) window.clearTimeout(saveTimer.current);
-    };
-  }, [docs]);
+  // Up-to-date refs for synchronous flushes without stale closure issues
+  const docsRef = useRef(docs);
+  docsRef.current = docs;
+  const kindRef = useRef(kind);
+  kindRef.current = kind;
+  const isDirtyRef = useRef(false);
+  const saveTimerRef = useRef<number | null>(null);
 
-  const patchActive = useCallback((patch: Partial<BillingDoc> | ((d: BillingDoc) => BillingDoc)) => {
-    setDocs((prev) => ({
-      ...prev,
-      [kind]: typeof patch === "function" ? patch(prev[kind]) : { ...prev[kind], ...patch },
-    }));
-  }, [kind]);
+  // Synchronous flush: immediately commits any pending in-memory edits to storage
+  const flushSave = useCallback(() => {
+    if (saveTimerRef.current) {
+      window.clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = null;
+    }
+    if (isDirtyRef.current) {
+      const savedTime = saveDraftToStorage(docsRef.current, kindRef.current);
+      isDirtyRef.current = false;
+      setLastSavedAt(savedTime);
+      setIsSaving(false);
+    }
+  }, []);
+
+  // Synchronizes unedited dates with current day date on mount, navigation, or visibility changes
+  const syncCurrentDayDates = useCallback(() => {
+    setDocs((prev) => {
+      const syncedInvoice = syncDefaultDates(prev.invoice);
+      const syncedReceipt = syncDefaultDates(prev.receipt);
+      if (syncedInvoice === prev.invoice && syncedReceipt === prev.receipt) {
+        return prev;
+      }
+      const updated = { invoice: syncedInvoice, receipt: syncedReceipt };
+      docsRef.current = updated;
+      saveDraftToStorage(updated, kindRef.current);
+      return updated;
+    });
+  }, []);
+
+  useEffect(() => {
+    syncCurrentDayDates();
+  }, [syncCurrentDayDates]);
+
+  // 1. Unmount cleanup: flushes edits immediately when navigating between admin tabs
+  useEffect(() => {
+    return () => {
+      flushSave();
+    };
+  }, [flushSave]);
+
+  // 2. Tab visibility changes: switching browser tabs or minimizing
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        flushSave();
+      } else if (document.visibilityState === "visible") {
+        // Tab became active again:
+        // Sync default dates with current day date
+        syncCurrentDayDates();
+        // Sync if updated by another tab while hidden
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (
+              typeof parsed?.updatedAt === "number" &&
+              parsed.updatedAt > (lastSavedAt || 0) &&
+              !isDirtyRef.current
+            ) {
+              const latest = loadSavedDraft();
+              setDocs(latest.docs);
+              docsRef.current = latest.docs;
+              if (latest.updatedAt) setLastSavedAt(latest.updatedAt);
+            }
+          }
+        } catch {
+          // ignore
+        }
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [flushSave, lastSavedAt, syncCurrentDayDates]);
+
+  // 3. Window closing or page reload: synchronous save
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      flushSave();
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("pagehide", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("pagehide", handleBeforeUnload);
+    };
+  }, [flushSave]);
+
+  // 4. Cross-tab synchronization via storage event
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (parsed?.docs && !isDirtyRef.current) {
+            setDocs(parsed.docs);
+            docsRef.current = parsed.docs;
+            if (parsed.activeKind && (parsed.activeKind === "invoice" || parsed.activeKind === "receipt")) {
+              setKind(parsed.activeKind);
+              kindRef.current = parsed.activeKind;
+            }
+            if (typeof parsed.updatedAt === "number") {
+              setLastSavedAt(parsed.updatedAt);
+            }
+          }
+        } catch {
+          // ignore
+        }
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
+
+  // 5. Online / Offline network listeners
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      toast({
+        title: "Back online",
+        description: "Your network connection is restored.",
+      });
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+      flushSave();
+      toast({
+        title: "Working offline",
+        description: "All changes continue to be autosaved locally.",
+      });
+    };
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [flushSave, toast]);
+
+  // 6. Live relative time tick every 10 seconds
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setTimeTick((t) => t + 1);
+    }, 10000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  // Persist every edit immediately so the latest input survives interruptions.
+  const patchActive = useCallback(
+    (patch: Partial<BillingDoc> | ((d: BillingDoc) => BillingDoc)) => {
+      const current = docsRef.current;
+      const nextDoc =
+        typeof patch === "function" ? patch(current[kind]) : { ...current[kind], ...patch };
+      const updated = { ...current, [kind]: nextDoc };
+      docsRef.current = updated;
+      setDocs(updated);
+      const savedTime = saveDraftToStorage(updated, kind);
+      isDirtyRef.current = false;
+      setLastSavedAt(savedTime);
+      setIsSaving(false);
+    },
+    [kind]
+  );
 
   // Item helpers
   const updateItem = (id: string, patch: Partial<LineItem>) => {
@@ -242,17 +306,44 @@ const Billing: React.FC = () => {
   };
 
   const switchKind = (k: DocKind) => {
+    if (k === kind) return;
+    flushSave();
     setKind(k);
+    kindRef.current = k;
     setDocs((prev) => {
-      if (prev[k]) return prev;
-      return { ...prev, [k]: createDefault(k) };
+      const target = prev[k] ? syncDefaultDates(prev[k]) : createDefaultDoc(k);
+      const updated = { ...prev, [k]: target };
+      docsRef.current = updated;
+      saveDraftToStorage(updated, k);
+      return updated;
     });
   };
 
-  const newDocument = useCallback(() => {
-    setDocs((prev) => ({ ...prev, [kind]: createDefault(kind) }));
-    toast({ title: `New ${kind === "invoice" ? "invoice" : "receipt"}`, description: "Start filling in the details below." });
-  }, [kind, toast]);
+  const newDocument = useCallback(async () => {
+    if (hasDraftContent(doc)) {
+      const confirmed = await confirm({
+        title: `Start new ${kind === "invoice" ? "invoice" : "receipt"}?`,
+        description: `You have filled in details on this ${kind}. Starting a new document will clear the current draft and assign the next document number.`,
+        confirmLabel: "Start New",
+        cancelLabel: "Keep Editing",
+        destructive: true,
+      });
+      if (!confirmed) return;
+    }
+    const fresh = createDefaultDoc(kind, nextDocNumber(kind));
+    setDocs((prev) => {
+      const updated = { ...prev, [kind]: fresh };
+      docsRef.current = updated;
+      saveDraftToStorage(updated, kind);
+      return updated;
+    });
+    setLastSavedAt(Date.now());
+    isDirtyRef.current = false;
+    toast({
+      title: `New ${kind === "invoice" ? "invoice" : "receipt"} created`,
+      description: `Document ${fresh.docNumber} is ready for details.`,
+    });
+  }, [confirm, doc, kind, toast]);
 
   const totals = useMemo(() => computeTotals(doc), [doc]);
 
@@ -265,19 +356,26 @@ const Billing: React.FC = () => {
       });
       return;
     }
-    if (!doc.items.some((it) => it.description.trim() && it.qty > 0 && it.unitPrice > 0)) {
+    const hasRequiredContent = doc.kind === "receipt"
+      ? doc.items.some((it) => it.description.trim()) && (doc.deposit > 0 || totals.total > 0)
+      : doc.items.some((it) => it.description.trim() && it.qty > 0 && it.unitPrice > 0);
+    if (!hasRequiredContent) {
       toast({
-        title: "No line items yet",
-        description: "Add at least one item with description, quantity and price.",
+        title: doc.kind === "receipt" ? "Receipt details missing" : "No line items yet",
+        description: doc.kind === "receipt"
+          ? "Add a receipt description and an amount or deposit."
+          : "Add at least one item with description, quantity and price.",
         variant: "destructive",
       });
       return;
     }
     try {
+      flushSave();
       await downloadBillingDocx(doc);
+      const downloadedAmount = doc.kind === "receipt" ? (doc.deposit > 0 ? doc.deposit : totals.total) : totals.total;
       toast({
         title: `Your ${doc.kind} is ready`,
-        description: `${money(totals.total, doc.currency)} .DOCX downloaded. Ready to share.`,
+        description: `${money(downloadedAmount, doc.currency)} .DOCX downloaded. Ready to share.`,
       });
     } catch (err) {
       toast({
@@ -286,49 +384,68 @@ const Billing: React.FC = () => {
         variant: "destructive",
       });
     }
-  }, [doc, totals.total, toast]);
+  }, [doc, totals, toast, flushSave]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* ── Page header ─────────────────────────────────── */}
       <div className="rounded-2xl border border-slate-200/60 bg-white/70 backdrop-blur-sm shadow-xs overflow-hidden">
         <div className="h-[2px] bg-linear-to-r from-transparent via-amber-400/60 to-transparent" />
-        <div className="px-4 py-4 sm:px-6 flex flex-wrap items-center gap-3">
+        <div className="px-4 py-4 sm:px-6 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-amber-400 to-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20">
+            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-amber-400 to-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20 shrink-0">
               <ReceiptText className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">Billing</h2>
-              <p className="text-[11px] sm:text-xs text-slate-400 truncate">
-                 fill in the details, preview live, download DOCX
-              </p>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">Billing</h2>
+              </div>
             </div>
           </div>
 
-          <div className="flex-1" />
-
-          <div className="flex items-center gap-2">
-            {savedFlash && (
-              <span className="hidden sm:flex items-center gap-1.5 text-[10px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200/60 rounded-full px-2.5 py-1">
-                <CheckCircle2 className="w-3 h-3" /> Auto-saved
+          {/* Status pill & Action buttons */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Autosave / Online status pill */}
+            {!isOnline ? (
+              <span
+                className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-amber-700 bg-amber-50/90 border border-amber-200/80 rounded-full px-2.5 py-1 shadow-xs"
+                title="You are working offline. Everything is autosaved locally on this browser."
+              >
+                <WifiOff className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+                <span>Offline • Saved locally</span>
+              </span>
+            ) : isSaving ? (
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 bg-slate-100/90 border border-slate-200/60 rounded-full px-2.5 py-1">
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-500" />
+                <span>Saving draft...</span>
+              </span>
+            ) : (
+              <span
+                className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50/90 border border-emerald-200/70 rounded-full px-2.5 py-1 shadow-xs transition-all"
+                title="Your billing draft is autosaved and preserved across tab switches and offline sessions."
+              >
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Autosaved {formatRelativeSavedTime(lastSavedAt)}</span>
               </span>
             )}
+
             <button
               type="button"
               onClick={newDocument}
-              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-slate-500 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-slate-600 hover:text-amber-600 hover:bg-amber-50 transition-colors border border-transparent hover:border-amber-200/60"
+              title="Start a new document"
             >
               <FilePlus2 className="w-4 h-4" />
-              <span className="hidden sm:inline">New</span>
+              <span>New</span>
             </button>
             <button
               type="button"
               onClick={handleDownload}
-              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-slate-500 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 shadow-xs transition-colors"
+              title="Download Word (.docx) document"
             >
               <FileDown className="w-4 h-4" />
-              <span className="hidden sm:inline">Download</span>
+              <span>Download</span>
             </button>
           </div>
         </div>
@@ -357,6 +474,16 @@ const Billing: React.FC = () => {
         </div>
       </div>
 
+      {/* Offline banner notification */}
+      {!isOnline && (
+        <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border border-amber-300/80 bg-amber-50/90 text-amber-900 text-xs shadow-xs">
+          <WifiOff className="w-4 h-4 text-amber-600 shrink-0" />
+          <div className="flex-1">
+            <span className="font-bold">Offline mode </span>
+          </div>
+        </div>
+      )}
+
       {/* ── Content grid ────────────────────────────────── */}
       <div className="grid grid-cols-1 xl:grid-cols-[1fr,460px] gap-6 items-start">
         {/* Form column */}
@@ -367,14 +494,105 @@ const Billing: React.FC = () => {
               <Field label="Document no.">
                 <Input value={doc.docNumber} onChange={(e) => patchActive({ docNumber: e.target.value })} className={inputCls} />
               </Field>
-              <Field label="Issue date">
-                <Input type="date" value={doc.issueDate} onChange={(e) => patchActive({ issueDate: e.target.value })} className={inputCls} />
+
+              {/* Issue Date with Auto-sync with current day date */}
+              <Field
+                label="Issue date"
+                action={
+                  doc.customDates?.issueDate ? (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        patchActive((d) => ({
+                          ...d,
+                          issueDate: localIsoDate(),
+                          customDates: { ...d.customDates, issueDate: false },
+                        }))
+                      }
+                      className="text-[10px] font-semibold text-amber-600 hover:text-amber-700 hover:underline"
+                      title="Sync back to current day date"
+                    >
+                      Today
+                    </button>
+                  ) : null
+                }
+              >
+                <Input
+                  type="date"
+                  value={doc.issueDate}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const isToday = val === localIsoDate();
+                    patchActive((d) => ({
+                      ...d,
+                      issueDate: val,
+                      customDates: { ...d.customDates, issueDate: !isToday },
+                    }));
+                  }}
+                  className={inputCls}
+                />
               </Field>
-              <Field label={kind === "invoice" ? "Due date" : "Paid date"}>
+
+              {/* Due Date (invoice) / Paid Date (receipt) with Auto-sync with current day date */}
+              <Field
+                label={kind === "invoice" ? "Due date" : "Paid date"}
+                action={
+                  kind === "invoice" ? (
+                    doc.customDates?.dueDate ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          patchActive((d) => ({
+                            ...d,
+                            dueDate: defaultDueDate(new Date(), 14),
+                            customDates: { ...d.customDates, dueDate: false },
+                          }))
+                        }
+                        className="text-[10px] font-semibold text-amber-600 hover:text-amber-700 hover:underline"
+                        title="Reset to default due date (+14 days)"
+                      >
+                        Reset (+14d)
+                      </button>
+                    ) : null
+                  ) : doc.customDates?.paidDate ? (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        patchActive((d) => ({
+                          ...d,
+                          paidDate: localIsoDate(),
+                          customDates: { ...d.customDates, paidDate: false },
+                        }))
+                      }
+                      className="text-[10px] font-semibold text-amber-600 hover:text-amber-700 hover:underline"
+                      title="Sync back to current day date"
+                    >
+                      Today
+                    </button>
+                  ) : null
+                }
+              >
                 <Input
                   type="date"
                   value={kind === "invoice" ? doc.dueDate : doc.paidDate}
-                  onChange={(e) => patchActive(kind === "invoice" ? { dueDate: e.target.value } : { paidDate: e.target.value })}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (kind === "invoice") {
+                      const isDefaultDue = val === defaultDueDate(new Date(), 14);
+                      patchActive((d) => ({
+                        ...d,
+                        dueDate: val,
+                        customDates: { ...d.customDates, dueDate: !isDefaultDue },
+                      }));
+                    } else {
+                      const isToday = val === localIsoDate();
+                      patchActive((d) => ({
+                        ...d,
+                        paidDate: val,
+                        customDates: { ...d.customDates, paidDate: !isToday },
+                      }));
+                    }
+                  }}
                   className={inputCls}
                 />
               </Field>
@@ -427,7 +645,7 @@ const Billing: React.FC = () => {
           <Section
             icon={<ListChecks className="w-4 h-4" />}
             title="Items"
-            subtitle="Description of services"
+            subtitle={undefined}
           >
             <div className="space-y-2.5">
               {kind === "invoice" ? (
@@ -532,47 +750,44 @@ const Billing: React.FC = () => {
           </Section>
 
           {/* Totals & adjustments */}
-          <Section icon={<Banknote className="w-4 h-4" />} title="Calculations" subtitle="Automated discounts and tax deposits">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              <Field label={`Discount %`}>
-                <Input
-                  type="number" min={0} max={100} step="0.5"
-                  value={doc.discountRate}
-                  onChange={(e) => patchActive({ discountRate: Math.max(0, Math.min(100, Number(e.target.value))) })}
-                  className={inputCls}
-                />
-              </Field>
-              <Field label="Tax %">
-                <Input
-                  type="number" min={0} max={100} step="0.5"
-                  value={doc.taxRate}
-                  onChange={(e) => patchActive({ taxRate: Math.max(0, Math.min(100, Number(e.target.value))) })}
-                  className={inputCls}
-                />
-              </Field>
-              <Field label="T & T amount" hint="Taxes & tariffs added to the bill">
-                <Input
-                  type="number" min={0} step="0.01"
-                  value={doc.tt}
-                  onChange={(e) => patchActive({ tt: Math.max(0, Number(e.target.value)) })}
-                  className={inputCls}
-                />
-              </Field>
-              {kind === "invoice" ? (
-                <Field label="Deposit paid">
+          <Section icon={<Banknote className="w-4 h-4" />} title="Calculations" subtitle="Automated discounts, tax, and payment totals">
+            <div className={`grid grid-cols-1 sm:grid-cols-2 ${kind === "invoice" ? "lg:grid-cols-3" : "lg:grid-cols-4"} gap-3`}>
+              {kind === "invoice" && (
+                <Field label="Discount %">
+                  <Input
+                    type="number" min={0} max={100} step="0.5"
+                    value={doc.discountRate}
+                    onChange={(e) => patchActive({ discountRate: Math.max(0, Math.min(100, Number(e.target.value))) })}
+                    className={inputCls}
+                  />
+                </Field>
+              )}
+              {kind === "invoice" && (
+                <Field label="Tax %">
+                  <Input
+                    type="number" min={0} max={100} step="0.5"
+                    value={doc.taxRate}
+                    onChange={(e) => patchActive({ taxRate: Math.max(0, Math.min(100, Number(e.target.value))) })}
+                    className={inputCls}
+                  />
+                </Field>
+              )}
+              {kind === "invoice" && (
+                <Field label="T & T amount" hint="Taxes & tariffs added to the bill">
+                  <Input
+                    type="number" min={0} step="0.01"
+                    value={doc.tt}
+                    onChange={(e) => patchActive({ tt: Math.max(0, Number(e.target.value)) })}
+                    className={inputCls}
+                  />
+                </Field>
+              )}
+              {kind === "receipt" && (
+                <Field label="Deposit paid" hint="Amount deposited for this receipt">
                   <Input
                     type="number" min={0} step="0.01"
                     value={doc.deposit}
                     onChange={(e) => patchActive({ deposit: Math.max(0, Number(e.target.value)) })}
-                    className={inputCls}
-                  />
-                </Field>
-              ) : (
-                <Field label="Payment method (receipt)">
-                  <Input
-                    value={doc.paymentMethod}
-                    onChange={(e) => patchActive({ paymentMethod: e.target.value })}
-                    placeholder="e.g. MTN MoMo +2330 000 000"
                     className={inputCls}
                   />
                 </Field>
@@ -582,14 +797,21 @@ const Billing: React.FC = () => {
             {/* Live totals strip */}
             <div className="mt-4 rounded-xl border border-slate-200/70 bg-linear-to-r from-slate-50 to-white p-3 flex flex-wrap items-center gap-x-6 gap-y-2">
               <TotalChip label="Subtotal" value={money(totals.subtotal, doc.currency)} />
-              {doc.discountRate > 0 && <TotalChip label={`Discount (-${doc.discountRate}%)`} value={`− ${money(totals.discountAmount, doc.currency)}`} muted />}
-              {doc.taxRate > 0 && <TotalChip label={`Tax (+${doc.taxRate}%)`} value={money(totals.taxAmount, doc.currency)} muted />}
-              {doc.tt > 0 && <TotalChip label="T & T" value={money(totals.tt, doc.currency)} muted />}
-              {kind === "invoice" && doc.deposit > 0 && <TotalChip label="Deposit paid" value={`− ${money(doc.deposit, doc.currency)}`} muted />}
+              {kind === "invoice" && doc.discountRate > 0 && <TotalChip label={`Discount (-${doc.discountRate}%)`} value={`− ${money(totals.discountAmount, doc.currency)}`} muted />}
+              {kind === "invoice" && doc.taxRate > 0 && <TotalChip label={`Tax (+${doc.taxRate}%)`} value={money(totals.taxAmount, doc.currency)} muted />}
+              {kind === "invoice" && doc.tt > 0 && <TotalChip label="T & T" value={money(totals.tt, doc.currency)} muted />}
+              {kind === "receipt" && doc.deposit > 0 && <TotalChip label="Deposit paid" value={money(doc.deposit, doc.currency)} muted />}
+              {kind === "receipt" && doc.deposit > 0 && totals.total > doc.deposit && (
+                <TotalChip label="Balance due" value={money(totals.balanceDue, doc.currency)} muted />
+              )}
               <div className="flex-1" />
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{kind === "invoice" ? "Balance due" : "Amount paid"}</span>
-                <span className="text-lg font-extrabold text-amber-600 tabular-nums">{money(kind === "invoice" ? totals.balanceDue : totals.total, doc.currency)}</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  {kind === "invoice" ? "Total amount" : doc.deposit > 0 ? "Deposit paid" : "Total amount"}
+                </span>
+                <span className="text-lg font-extrabold text-amber-600 tabular-nums">
+                  {money(kind === "invoice" ? totals.total : (doc.deposit > 0 ? doc.deposit : totals.total), doc.currency)}
+                </span>
               </div>
             </div>
           </Section>
@@ -634,7 +856,7 @@ const Billing: React.FC = () => {
             <div className="flex items-center gap-2">
               <span className="relative flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                 <span className="live-dot" />
-                Live preview
+                Preview
               </span>
             </div>
             <Badge variant="secondary" className="text-[10px] bg-slate-100 text-slate-500 border-slate-200/60 font-semibold">
@@ -678,7 +900,7 @@ function PreviewDocument({ doc }: { doc: BillingDoc }) {
   const isInvoice = doc.kind === "invoice";
   const company = doc.companyName || "Sista Events & Rentals";
   const date = (d: string) => d.replace(/-/g, " / ");
-  const grandTotal = isInvoice && doc.deposit > 0 ? totals.balanceDue : totals.total;
+  const grandTotal = totals.total;
 
   return (
     <div
@@ -753,7 +975,6 @@ function PreviewDocument({ doc }: { doc: BillingDoc }) {
               <div className="w-56 space-y-1 text-[10px]">
                 <TotalLine label="Subtotal" value={money(totals.subtotal, doc.currency)} />
                 <TotalLine label="T & T" value={money(totals.taxAmount - totals.discountAmount + totals.tt, doc.currency)} />
-                {doc.deposit > 0 && <TotalLine label="Less deposit" value={`− ${money(doc.deposit, doc.currency)}`} />}
                 <div className="flex justify-between items-center bg-orange-50 border border-slate-200 px-2 py-1 font-extrabold">
                   <span className="uppercase text-[9px] text-slate-700">Total</span>
                   <span className="tabular-nums text-amber-600 text-sm">{money(grandTotal, doc.currency)}</span>
@@ -768,19 +989,31 @@ function PreviewDocument({ doc }: { doc: BillingDoc }) {
         </>
       ) : (
         <>
-          {/* Receipt — event description only */}
-          <div className="mt-4 rounded-xl border border-amber-300/70 bg-white/55 px-3 divide-y divide-dashed divide-amber-200/80">
+          {/* Receipt — event description in bold italic font */}
+          <div className="mt-4 px-1 space-y-1.5">
             {doc.items.map((it) => (
-              <div key={it.id} className="py-1.5 font-semibold text-slate-800 leading-snug first:pt-2 last:pb-2">
+              <div
+                key={it.id}
+                className="text-[12px] font-bold italic text-slate-800 leading-relaxed tracking-tight"
+              >
                 {it.description || "Item"}
               </div>
             ))}
           </div>
 
-          {/* Receipt — bill total, centered */}
+          {/* Receipt — bill total / deposit paid, centered */}
           <div className="text-center mt-5">
-            <p className="text-[9px] font-extrabold text-slate-600 uppercase tracking-widest">Total</p>
-            <p className="text-2xl font-extrabold text-amber-600 tabular-nums mt-1">{money(grandTotal, doc.currency)}</p>
+            <p className="text-[9px] font-extrabold text-slate-600 uppercase tracking-widest">
+              {doc.deposit > 0 ? "Deposit Paid" : "Total"}
+            </p>
+            <p className="text-2xl font-extrabold text-amber-600 tabular-nums mt-1">
+              {money(doc.deposit > 0 ? doc.deposit : totals.total, doc.currency)}
+            </p>
+            {doc.deposit > 0 && totals.total > doc.deposit && (
+              <p className="text-[10px] text-slate-500 mt-1">
+                Total bill: {money(totals.total, doc.currency)} · Balance due: {money(totals.balanceDue, doc.currency)}
+              </p>
+            )}
           </div>
           {/* Signature stamp — under the total */}
           <div className="flex justify-end mt-2">
@@ -794,7 +1027,7 @@ function PreviewDocument({ doc }: { doc: BillingDoc }) {
         <p className="text-[9px] font-extrabold text-amber-600 uppercase tracking-widest">Ts &amp; Cs</p>
         <p className="text-[9px] text-slate-500 mt-1 px-2 whitespace-pre-wrap">
           {doc.terms ||
-            "Payment confirms your booking. No refunds for cancellations within 7 days of the event; rescheduling is allowed up to 48 hours before the event, subject to availability."}
+            " No refunds for cancellations within 7 days of the event."}
         </p>
         <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1 mt-2 text-[8px] text-slate-400 px-1">
           <Globe className="h-3 w-3 shrink-0" />

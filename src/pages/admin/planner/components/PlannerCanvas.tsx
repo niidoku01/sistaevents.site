@@ -166,7 +166,7 @@ export default function PlannerCanvas({
 
   return (
     <div
-      className="flex-1 min-h-0 min-w-0 overflow-auto overscroll-contain rounded-2xl border border-slate-200/50 bg-linear-to-br from-slate-50 to-slate-100/50 relative transition-all duration-300"
+      className="flex-1 min-h-0 min-w-0 overflow-auto overscroll-contain rounded-2xl border border-slate-200/50 bg-linear-to-br from-slate-50 to-slate-100/50 relative transition-all duration-300 touch-pan-x touch-pan-y"
       onMouseDown={handleCanvasMouseDown}
     >
       {/* Guide lines */}
@@ -204,13 +204,14 @@ export default function PlannerCanvas({
         />
       )}
 
-      <div ref={canvasRef} className="relative min-w-full sm:min-w-[min(100%,1200px)] min-h-full sm:min-h-[min(100%,800px)]"
+      <div ref={canvasRef} className="relative min-w-[960px] min-h-[640px] sm:min-w-[min(100%,1200px)] sm:min-h-[min(100%,800px)]"
         style={{
           backgroundImage: showGrid
             ? `linear-gradient(to right, #e2e8f0 1px, transparent 1px), linear-gradient(to bottom, #e2e8f0 1px, transparent 1px)`
             : "none",
           backgroundSize: `${GRID_SIZE * scale}px ${GRID_SIZE * scale}px`,
           backgroundColor: "#f9fafb",
+          touchAction: "manipulation",
         }}
         onClick={handleCanvasClick} onDrop={handleCanvasDrop} onDragOver={handleCanvasDragOver}>
 

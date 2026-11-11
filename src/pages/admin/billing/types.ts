@@ -28,10 +28,16 @@ export interface BillingDoc {
   discountRate: number;
   taxRate: number;
   tt: number;
+  serviceCharge: number;
   deposit: number;
   notes: string;
   terms: string;
   paymentMethod: string;
+  customDates?: {
+    issueDate?: boolean;
+    dueDate?: boolean;
+    paidDate?: boolean;
+  };
 }
 
 export interface Totals {
@@ -39,6 +45,7 @@ export interface Totals {
   discountAmount: number;
   taxAmount: number;
   tt: number;
+  serviceCharge: number;
   total: number;
   deposit: number;
   balanceDue: number;
@@ -50,9 +57,11 @@ export function computeTotals(doc: BillingDoc): Totals {
   const taxable = subtotal - discountAmount;
   const taxAmount = (taxable * (doc.taxRate || 0)) / 100;
   const tt = Math.max(0, doc.tt || 0);
-  const total = taxable + taxAmount + tt;
-  const deposit = Math.min(Math.max(0, doc.deposit || 0), total);
-  return { subtotal, discountAmount, taxAmount, tt, total, deposit, balanceDue: total - deposit };
+  const serviceCharge = Math.max(0, doc.serviceCharge || 0);
+  const total = taxable + taxAmount + tt + serviceCharge;
+  const deposit = doc.kind === "receipt" ? Math.max(0, doc.deposit || 0) : 0;
+  const balanceDue = doc.kind === "receipt" ? Math.max(0, total - deposit) : total;
+  return { subtotal, discountAmount, taxAmount, tt, serviceCharge, total, deposit, balanceDue };
 }
 
 export function emptyItem(): LineItem {

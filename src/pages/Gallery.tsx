@@ -41,11 +41,11 @@ type CollectionImage = {
 
 // Matches the masonry column counts below so the browser requests the right
 // variant instead of guessing and over-fetching large files.
-const GRID_SIZES = "(min-width: 1536px) 24vw, (min-width: 1280px) 32vw, 49vw";
+const GRID_SIZES = "(min-width: 1536px) 25vw, (min-width: 1280px) 33vw, 50vw";
 const COVER_SIZES = "(max-width: 640px) 100vw, 33vw";
 const LIGHTBOX_SIZES = "100vw";
-const PRIORITY_GRID_IMAGES = 4;
-const EAGER_GRID_IMAGES = 12;
+const PRIORITY_GRID_IMAGES = 2;
+const EAGER_GRID_IMAGES = 6;
 const INITIAL_VISIBLE_IMAGES = 12;
 const LOAD_MORE_STEP = 12;
 

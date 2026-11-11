@@ -230,8 +230,9 @@ const EventPlanner: React.FC = () => {
     setElements(next);
     pushHistory(next);
     setSelectedIds([newEl.id]);
+    setSidebarOpen(false);
     trackUsage(type);
-  }, [elements, setElements, pushHistory, setSelectedIds, scale, canvasRef]);
+  }, [elements, setElements, pushHistory, setSelectedIds, setSidebarOpen, scale, canvasRef]);
   const sortedElements = useMemo(() => [...elements].sort((a, b) => (a.zIndex ?? 0) - (b.zIndex ?? 0)), [elements]);
   const currentBg = useMemo(() => VENUE_BACKGROUNDS.find((b) => b.id === venueBg) || VENUE_BACKGROUNDS[0], [venueBg]);
 

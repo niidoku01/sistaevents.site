@@ -19,14 +19,17 @@ const configuredApiUrls = (import.meta.env.VITE_API_URLS as string | undefined)
   .filter(Boolean);
 
 const configuredApiUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
-const fallbackApiUrl = configuredApiUrl || (import.meta.env.DEV ? "http://localhost:5000" : "");
+const defaultApiUrl = "https://server-seven-ochre.vercel.app";
+const fallbackApiUrl = configuredApiUrl || defaultApiUrl;
 
-const apiBases = (configuredApiUrls && configuredApiUrls.length > 0
+const configuredBases = configuredApiUrls && configuredApiUrls.length > 0
   ? configuredApiUrls
   : fallbackApiUrl
     ? [fallbackApiUrl]
-    : []
-).map((url) => url.replace(/\/+$/, ""));
+    : [];
+const apiBases = configuredBases
+  .map((url) => url.replace(/\/+$/, ""))
+  .filter((url, index, urls) => urls.indexOf(url) === index);
 
 let apiRotationIndex = 0;
 let _authToken: string | null = null;
@@ -94,12 +97,32 @@ export const getConvexAdminSecret = async (): Promise<string> => {
   }
 
   if (lastError instanceof Error && lastError.message.startsWith("Failed to obtain admin token for Convex")) {
-    throw lastError;
-  }
-  throw new Error(
-    "Failed to obtain admin token — server unreachable. " +
-      "Start the backend (`npm run dev` in /server) or set VITE_API_URL to the deployed backend URL."
-  );
+      throw lastError;
+    }
+
+    // Provide more helpful error message for local development
+    const isLocalDev = import.meta.env.DEV;
+    const localhostUrl = "http://localhost:5000";
+    const triedLocalhost = apiBases.some(b => b === localhostUrl);
+
+    if (isLocalDev && triedLocalhost && apiBases.length === 1) {
+      throw new Error(
+        "Could not connect to the admin API server.\n\n" +
+        "Make sure the backend is running:\n" +
+        "  1. Open a new terminal\n" +
+        "  2. Run: cd server && npm run dev\n" +
+        "  3. Wait for 'Server running at http://localhost:5000'\n\n" +
+        "Or set VITE_API_URL in .env.local to your deployed backend URL.\n\n" +
+        `Last error: ${lastError instanceof Error ? lastError.message : "Unknown error"}`
+      );
+    }
+
+    throw new Error(
+      "Failed to obtain admin token — server unreachable. " +
+        (isLocalDev
+          ? "Start the backend (`npm run dev` in /server) or set VITE_API_URL to the deployed backend URL."
+          : "Set VITE_API_URL to the deployed backend URL.")
+    );
 };
 
 export const bookingAPI = {
@@ -590,5 +613,3 @@ export const popupAdAPI = {
     return body as PopupAdUploadResult | string | null;
   },
 };
-
-

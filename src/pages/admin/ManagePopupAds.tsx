@@ -407,7 +407,7 @@ const ManagePopupAds = () => {
         <Card className="border-slate-200/60 bg-white/60 shadow-xs backdrop-blur-sm">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg font-bold text-slate-900 sm:text-xl">Create ad</CardTitle>
-            <CardDescription>Upload an image and set up how the popup behaves.</CardDescription>
+            <CardDescription>Upload an image .</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleCreate} className="space-y-6">
@@ -417,7 +417,7 @@ const ManagePopupAds = () => {
                   <label htmlFor="popup-ad-image" className="text-sm font-semibold text-slate-900">
                     Image
                   </label>
-                  <span className="text-xs text-slate-500">Auto-compressed under 450 KB</span>
+                  <span className="text-xs text-slate-500">Auto-compressed - 450 KB</span>
                 </div>
                 <label
                   htmlFor="popup-ad-image"
@@ -474,7 +474,7 @@ const ManagePopupAds = () => {
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block text-sm font-semibold text-slate-900">Normal ad</span>
-                      <span className="mt-0.5 block text-xs text-slate-500">Standard popup, no effects</span>
+                      <span className="mt-0.5 block text-xs text-slate-500">Standard popup</span>
                     </span>
                     {!form.celebratory && <Check className="mt-0.5 h-4 w-4 shrink-0 text-slate-900" />}
                   </button>
@@ -493,8 +493,8 @@ const ManagePopupAds = () => {
                       <PartyPopper className="h-4 w-4" />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-semibold text-slate-900">Celebration ad</span>
-                      <span className="mt-0.5 block text-xs text-slate-500">Adds a confetti pop</span>
+                      <span className="block text-sm font-semibold text-slate-900">Celebratory ad</span>
+                      <span className="mt-0.5 block text-xs text-slate-500">confetti pop ads</span>
                     </span>
                     {form.celebratory && <Check className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />}
                   </button>
@@ -565,7 +565,7 @@ const ManagePopupAds = () => {
         <Card className="border-slate-200/60 bg-white/60 shadow-xs backdrop-blur-sm lg:sticky lg:top-0">
           <CardHeader className="pb-4">
             <CardTitle className="text-base font-semibold text-slate-900">Live preview</CardTitle>
-            <CardDescription>This is how the popup appears on the homepage.</CardDescription>
+
           </CardHeader>
           <CardContent className="space-y-4">
             <div
@@ -772,7 +772,7 @@ const ManagePopupAds = () => {
               </p>
               <p className="mt-1 text-xs text-slate-600">
                 {celebrationPreview.active
-                  ? "Visitors will see this popup with a confetti burst."
+                  ? "It's now active on the homepage with a confetti pop."
                   : "Activate it from the list below to show it on the homepage."}
               </p>
               <div className="mt-3 flex items-center justify-between gap-3">
@@ -785,7 +785,7 @@ const ManagePopupAds = () => {
                   onClick={() => setCelebrationPreview(null)}
                   className="rounded-lg bg-amber-500 font-semibold text-white hover:bg-amber-600"
                 >
-                  Nice!
+                  Close
                 </Button>
               </div>
             </div>

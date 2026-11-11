@@ -63,7 +63,7 @@ const fmtDate = (iso: string): string => (iso || "—").replace(/-/g, " / ");
 // ─── Section builders ──────────────────────────────────────
 
 // Header: "INVOICE" inscription on the LEFT, logo + company name on the RIGHT.
-function buildHeader(doc: BillingDoc, logoSvg?: string, logoPng?: Uint8Array): (Table | Paragraph)[] {
+function buildHeader(doc: BillingDoc, logoPng?: Uint8Array): (Table | Paragraph)[] {
   const isInvoice = doc.kind === "invoice";
   const title = isInvoice ? "INVOICE" : "RECEIPT";
 
@@ -75,18 +75,11 @@ function buildHeader(doc: BillingDoc, logoSvg?: string, logoPng?: Uint8Array): (
           alignment: AlignmentType.RIGHT,
           spacing: { after: 40 },
           children: [
-            logoSvg
-              ? new ImageRun({
-                  type: "svg",
-                  data: new TextEncoder().encode(logoSvg),
-                  transformation: { width: 80, height: 80 },
-                  fallback: { type: "png", data: logoPng },
-                })
-              : new ImageRun({
-                  type: "png",
-                  data: logoPng,
-                  transformation: { width: 80, height: 80 },
-                }),
+            new ImageRun({
+              type: "png",
+              data: logoPng,
+              transformation: { width: 80, height: 80 },
+            }),
           ],
         }),
       ]
@@ -217,17 +210,14 @@ function buildItemsTable(doc: BillingDoc, media?: BillingMedia): (Table | Paragr
 
   // Signature stamp — right-aligned, directly under the total.
   const stampParagraph = (): Paragraph | null => {
-    if (!media?.stampSvg && !media?.stamp) return null;
-    const children = media.stampSvg
-      ? [
-          new ImageRun({
-            type: "svg",
-            data: new TextEncoder().encode(media.stampSvg),
-            transformation: { width: 64, height: 64 },
-            fallback: media.stamp ? { type: "png", data: media.stamp } : undefined,
-          }),
-        ]
-      : [new ImageRun({ type: "png", data: media.stamp!, transformation: { width: 64, height: 64 } })];
+    if (!media?.stamp) return null;
+    const children = [
+      new ImageRun({
+        type: "png",
+        data: media.stamp!,
+        transformation: { width: 64, height: 64 },
+      }),
+    ];
     return new Paragraph({
       alignment: AlignmentType.RIGHT,
       spacing: { before: 120, after: 0 },
@@ -503,7 +493,7 @@ export function buildBillingDocx(doc: BillingDoc, media?: BillingMedia): Documen
           }),
         },
         children: [
-          ...buildHeader(doc, media?.logoSvg, media?.logo),
+          ...buildHeader(doc, media?.logo),
           ...buildClientDetails(doc),
           ...buildItemsTable(doc, media),
           p([], { spacing: { after: 200 } }),
@@ -517,13 +507,9 @@ export async function downloadBillingDocx(doc: BillingDoc): Promise<void> {
   let logo: Uint8Array | undefined;
   let stamp: Uint8Array | undefined;
   let socials: { phone?: Uint8Array; location?: Uint8Array } = {};
-  let logoSvg: string | undefined;
-  let stampSvg: string | undefined;
 
   try {
-    const { loadLogoSvg, loadLogoPng, loadStampSvg, loadStampPng, loadSocialPngs } = await import("./logoRaster");
-    logoSvg = loadLogoSvg();
-    stampSvg = loadStampSvg();
+    const { loadLogoPng, loadStampPng, loadSocialPngs } = await import("./logoRaster");
     const results = await Promise.allSettled([loadLogoPng(), loadStampPng(), loadSocialPngs()]);
     if (results[0].status === "fulfilled") logo = results[0].value;
     if (results[1].status === "fulfilled") stamp = results[1].value;
@@ -533,9 +519,7 @@ export async function downloadBillingDocx(doc: BillingDoc): Promise<void> {
   }
 
   const file = buildBillingDocx(doc, {
-    logoSvg,
     logo,
-    stampSvg,
     stamp,
     phone: socials.phone,
     location: socials.location,

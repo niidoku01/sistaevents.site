@@ -86,13 +86,13 @@ export function buildBillingHtml(doc: BillingDoc): string {
   :root { color-scheme: light; }
   @page { size: A4 portrait; margin: 0; }
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; background: #e2e8f0; color: #000000; font-family: Arial, Helvetica, sans-serif; font-size: 11px; }
+  html, body { margin: 0; padding: 0; background: #e2e8f0; color: #1e293b; font-family: Arial, Helvetica, sans-serif; font-size: 11px; }
   body { min-width: 0; }
   .paper { width: min(794px, 100%); min-height: 1123px; margin: 24px auto; padding: 56px 58px 66px; background: ${isInvoice ? "#ffffff" : RECEIPT_PAPER}; position: relative; overflow: hidden; }
   .paper, .paper * { max-width: 100%; }
   .header, .details, .summary-grid { display: table; width: 100%; table-layout: fixed; }
   .header > *, .details > *, .summary-grid > * { display: table-cell; vertical-align: top; }
-  .header { border-bottom: 2px solid #ffea06cc; padding-bottom: 14px; }
+  .header { border-bottom: 2px solid #f59e0b; padding-bottom: 14px; }
   .header h1 { margin: 0; font-size: 31px; letter-spacing: 1px; }
   .brand { text-align: right; }
   .logo { display: block; width: 76px; height: 76px; object-fit: contain; margin: 0 0 5px auto; }
@@ -101,13 +101,13 @@ export function buildBillingHtml(doc: BillingDoc): string {
   .details > :first-child { width: 58%; padding-right: 20px; }
   .details > :last-child { width: 42%; text-align: right; }
   h2, h3, p { margin-top: 0; }
-  .eyebrow, h3 { color: #efe711b7; text-transform: uppercase; letter-spacing: 1px; font-size: 9px; font-weight: 700; }
+  .eyebrow, h3 { color: #d97706; text-transform: uppercase; letter-spacing: 1px; font-size: 9px; font-weight: 700; }
   .client { font-weight: 700; font-size: 13px; margin: 5px 0; }
-  .muted { color: #000000d0; }
+  .muted { color: #64748b; }
   .meta p { margin: 0 0 4px; white-space: nowrap; }
   .items { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 28px; page-break-inside: avoid; }
   .items th, .items td { padding: 9px 10px; border: 1px solid #e2e8f0; overflow-wrap: anywhere; }
-  .items th { background: #040404be; color: #fff; text-align: left; font-size: 10px; }
+  .items th { background: #1e293b; color: #fff; text-align: left; font-size: 10px; }
   .items th:nth-child(1), .items td:nth-child(1) { width: 50%; }
   .items th:nth-child(2), .items td:nth-child(2) { width: 18%; }
   .items th:nth-child(3), .items td:nth-child(3) { width: 12%; }
@@ -120,17 +120,19 @@ export function buildBillingHtml(doc: BillingDoc): string {
   .totals { width: 45%; text-align: right; }
   .totals > div { display: flex; justify-content: space-between; gap: 18px; padding: 4px 8px; }
   .grand-total { margin-top: 5px; background: #fff7ed; border: 1px solid #e2e8f0; border-bottom: 2px solid #d97706; font-size: 14px; }
+  .grand-total span { color: #334155; text-transform: uppercase; font-size: 9px; }
+  .grand-total strong { color: #d97706; }
   .stamp { display: block; width: 68px; height: 68px; object-fit: contain; margin: 10px 0 0 auto; }
   .receipt-items { margin-top: 30px; }
   .receipt-items p { margin: 0 0 8px; font-size: 15px; font-style: italic; font-weight: 700; overflow-wrap: anywhere; }
   .receipt-total { text-align: center; margin: 42px 0 18px; }
-  .receipt-total h3 { color: #070708e4; margin-bottom: 7px; }
-  .receipt-total strong { color: #f9e611e0; font-size: 30px; }
-  .receipt-total p { color: #000000d6; margin: 8px 0 0; }
+  .receipt-total h3 { color: #475569; margin-bottom: 7px; }
+  .receipt-total strong { color: #d97706; font-size: 30px; }
+  .receipt-total p { color: #64748b; margin: 8px 0 0; }
   .receipt-stamp { margin-top: 18px; }
   .footer { position: absolute; left: 58px; right: 58px; bottom: 25px; border-top: 2px solid #d97706; padding-top: 8px; text-align: center; }
   .footer p { margin: 3px 0; color: #64748b; font-size: 9px; overflow-wrap: anywhere; }
-  .footer .eyebrow { color: #eeee06e8; }
+  .footer .eyebrow { color: #d97706; }
   @media screen { .paper { box-shadow: 0 12px 35px rgba(0, 0, 0, 0.75); } }
   @media screen and (max-width: 600px) {
     .paper { min-height: 0; margin: 0 auto; padding: 28px 20px 34px; }
